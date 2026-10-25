@@ -1,96 +1,96 @@
 {
-  "guerriero": {
-    "descrizione": "Un combattente specializzato nell'uso delle armi e delle armature pesanti",
-    "statistiche_base": {
-      "forza": 15,
-      "destrezza": 10,
-      "costituzione": 14,
-      "intelligenza": 8,
-      "saggezza": 10,
-      "carisma": 9
+  "fighter": {
+    "description": "A warrior specialized in the use of weapons and heavy armor",
+    "base_stats": {
+      "strength": 15,
+      "dexterity": 10,
+      "constitution": 14,
+      "intelligence": 8,
+      "wisdom": 10,
+      "charisma": 9
     },
-    "abilita_speciali": ["Colpo Possente", "Parata"],
-    "equipaggiamento_iniziale": ["Spada corta", "Scudo di legno", "Armatura di cuoio"],
+    "special_abilities": ["Powerful Blow", "Parry"],
+    "starting_equipment": ["Short Sword", "Wooden Shield", "Leather Armor"],
     "hp_base": 12,
     "mana_base": 0,
-    "progressione": {
-      "hp_per_livello": 10,
-      "abilita_ai_livelli": {
-        "3": "Attacco Impetuoso",
-        "5": "Colpo Multiplo",
-        "7": "Maestria nelle Armi"
+    "progression": {
+      "hp_per_level": 10,
+      "abilities_per_level": {
+        "3": "Fierce Attack",
+        "5": "Multiattack",
+        "7": "Weapon Mastery"
       }
     }
   },
-  "mago": {
-    "descrizione": "Un incantatore che ha imparato a manipolare la magia attraverso lo studio",
-    "statistiche_base": {
-      "forza": 6,
-      "destrezza": 10,
-      "costituzione": 8,
-      "intelligenza": 16,
-      "saggezza": 12,
-      "carisma": 10
+  "wizard": {
+    "description": "A spellcaster who has learned to manipulate magic through study",
+    "base_stats": {
+      "strength": 6,
+      "dexterity": 10,
+      "constitution": 8,
+      "intelligence": 16,
+      "wisdom": 12,
+      "charisma": 10
     },
-    "abilita_speciali": ["Dardo Incantato", "Scudo Magico"],
-    "equipaggiamento_iniziale": ["Bastone", "Veste da mago", "Libro degli incantesimi"],
+    "special_abilities": ["Magic Missile", "Mage Shield"],
+    "starting_equipment": ["staff", "Wizard's Robe", "Spellbook"],
     "hp_base": 6,
     "mana_base": 20,
-    "progressione": {
-      "hp_per_livello": 4,
-      "mana_per_livello": 10,
-      "abilita_ai_livelli": {
-        "3": "Palla di Fuoco",
-        "5": "Fulmine",
-        "7": "Teletrasporto"
+    "progression": {
+      "hp_per_level": 4,
+      "mana_per_level": 10,
+      "abilities_per_level": {
+        "3": "Fireball",
+        "5": "Lightning Bolt",
+        "7": "Teleport"
       }
     }
   },
-  "ladro": {
-    "descrizione": "Un abile furfante specializzato nella furtività e nelle serrature",
-    "statistiche_base": {
-      "forza": 8,
-      "destrezza": 16,
-      "costituzione": 10,
-      "intelligenza": 12,
-      "saggezza": 10,
-      "carisma": 12
+  "rogue": {
+    "description": "A skilled scoundrel specialized in stealth and lockpicking",
+    "base_stats": {
+      "strength": 8,
+      "dexterity": 16,
+      "constitution": 10,
+      "intelligence": 12,
+      "wisdom": 10,
+      "charisma": 12
     },
-    "abilita_speciali": ["Attacco Furtivo", "Eludere"],
-    "equipaggiamento_iniziale": ["Pugnale", "Armatura di cuoio", "Grimaldelli"],
+    "special_abilities": ["Sneak Attack", "Evade"],
+    "starting_equipment": ["dagger", "Leather Armor", "Lockpicks"],
     "hp_base": 8,
     "mana_base": 4,
-    "progressione": {
-      "hp_per_livello": 6,
-      "mana_per_livello": 2,
-      "abilita_ai_livelli": {
-        "3": "Colpo alle Spalle",
-        "5": "Evasione",
-        "7": "Maestria dei Veleni"
+    "progression": {
+      "hp_per_level": 6,
+      "mana_per_level": 2,
+      "abilities_per_level": {
+        "3": "Backstab",
+        "5": "Evasion",
+        "7": "Poison Mastery"
       }
     }
   },
-  "chierico": {
-    "descrizione": "Un sacerdote che canalizza la potenza divina",
-    "statistiche_base": {
-      "forza": 10,
-      "destrezza": 8,
-      "costituzione": 12,
-      "intelligenza": 10,
-      "saggezza": 16,
-      "carisma": 12
+  "cleric": {
+    "description": "A priest who channels divine power",
+    "base_stats": {
+      "strength": 10,
+      "dexterity": 8,
+      "constitution": 12,
+      "intelligence": 10,
+      "wisdom": 16,
+      "charisma": 12
     },
-    "abilita_speciali": ["Cura Ferite", "Benedizione"],
-    "equipaggiamento_iniziale": ["Mazza", "Scudo", "Simbolo sacro"],
+    "special_abilities": ["Cure Wounds", "Blessing"],
+    "starting_equipment": ["mace", "shield", "Holy Symbol"],
     "hp_base": 10,
     "mana_base": 10,
-    "progressione": {
-      "hp_per_livello": 8,
-      "mana_per_livello": 6,
-      "abilita_ai_livelli": {
-        "3": "Rimuovi Maledizione",
-        "5": "Risanamento",
-        "7": "Armatura Divina"
+    "progression": {
+      "hp_per_level": 8,
+      "mana_per_level": 6,
+      "abilities_per_level": {
+        "3": "Remove Curse",
+        "5": "Restoration",
+        "7": "Divine Armor"
       }
     }
   }

@@ -1,253 +1,253 @@
 {
   "Durnan": {
-    "nome": "Durnan",
-    "descrizione": "Un uomo robusto con una lunga barba. È il proprietario della taverna Il Portale Spalancato.",
-    "professione": "Taverniere",
-    "livello": 5,
+    "name": "Durnan",
+    "description": "A sturdy man with a long beard. He is the owner of the Yawning Portal tavern.",
+    "profession": "Innkeeper",
+    "level": 5,
     "hp": 30,
     "hp_max": 30,
-    "forza": 14,
-    "destrezza": 12,
-    "costituzione": 16,
-    "intelligenza": 13,
-    "saggezza": 14,
-    "carisma": 16,
+    "strength": 14,
+    "dexterity": 12,
+    "constitution": 16,
+    "intelligence": 13,
+    "wisdom": 14,
+    "charisma": 16,
     "token": "D",
-    "inventario": [
+    "inventory": [
       {
-        "nome": "Pugnale",
-        "tipo": "arma",
-        "effetto": {"forza": 2},
-        "valore": 10,
-        "descrizione": "Un semplice pugnale affilato"
+        "name": "dagger",
+        "type": "weapon",
+        "effect": {"strength": 2},
+        "value": 10,
+        "description": "A simple sharp dagger"
       },
       {
-        "nome": "Pozione di cura",
-        "tipo": "cura",
-        "effetto": {"cura": 10},
-        "valore": 25,
-        "descrizione": "Una pozione curativa di media potenza"
+        "name": "Healing Potion",
+        "type": "heal",
+        "effect": {"heal": 10},
+        "value": 25,
+        "description": "A healing potion of moderate power"
       }
     ],
-    "oro": 500,
-    "amichevole": true
+    "gold": 500,
+    "friendly": true
   },
   "Elminster": {
-    "nome": "Elminster",
-    "descrizione": "Un anziano mago con una lunga barba bianca e occhi che brillano di un'intelligenza sovrannaturale.",
-    "professione": "Mago",
-    "livello": 20,
+    "name": "Elminster",
+    "description": "An elderly wizard with a long white beard and eyes that gleam with supernatural intelligence.",
+    "profession": "wizard",
+    "level": 20,
     "hp": 70,
     "hp_max": 70,
-    "forza": 10,
-    "destrezza": 14,
-    "costituzione": 16,
-    "intelligenza": 20,
-    "saggezza": 18,
-    "carisma": 18,
-    "token": "E",
-    "inventario": [
+    "strength": 10,
+    "dexterity": 14,
+    "constitution": 16,
+    "intelligence": 20,
+    "wisdom": 18,
+    "charisma": 18,
+    "token": "and",
+    "inventory": [
       {
-        "nome": "Bastone del potere",
-        "tipo": "arma",
-        "effetto": {"forza": 2, "intelligenza": 4},
-        "valore": 500,
-        "descrizione": "Un bastone ornato con rune misteriose"
+        "name": "Staff of Power",
+        "type": "weapon",
+        "effect": {"strength": 2, "intelligence": 4},
+        "value": 500,
+        "description": "A staff adorned with mysterious runes"
       },
       {
-        "nome": "Amuleto della protezione",
-        "tipo": "accessorio",
-        "effetto": {"difesa": 3},
-        "valore": 300,
-        "descrizione": "Un amuleto che fornisce protezione magica"
+        "name": "Amulet of Protection",
+        "type": "accessory",
+        "effect": {"defense": 3},
+        "value": 300,
+        "description": "An amulet that provides magical protection"
       },
       {
-        "nome": "Manuale arcano base",
-        "tipo": "comune",
-        "valore": 50,
-        "descrizione": "Un libro con incantesimi di base per apprendisti maghi"
+        "name": "Basic Arcane Manual",
+        "type": "common",
+        "value": 50,
+        "description": "A book of basic spells for apprentice wizards"
       }
     ],
-    "oro": 1000,
-    "amichevole": true
+    "gold": 1000,
+    "friendly": true
   },
   "Mirt": {
-    "nome": "Mirt",
-    "descrizione": "Un uomo corpulento con abiti costosi e un'espressione astuta sul viso.",
-    "professione": "Mercante",
-    "livello": 8,
+    "name": "Mirt",
+    "description": "A portly man in expensive clothes with a cunning expression on his face.",
+    "profession": "merchant",
+    "level": 8,
     "hp": 45,
     "hp_max": 45,
-    "forza": 14,
-    "destrezza": 14,
-    "costituzione": 16,
-    "intelligenza": 16,
-    "saggezza": 14,
-    "carisma": 18,
+    "strength": 14,
+    "dexterity": 14,
+    "constitution": 16,
+    "intelligence": 16,
+    "wisdom": 14,
+    "charisma": 18,
     "token": "M",
-    "inventario": [
+    "inventory": [
       {
-        "nome": "Spada corta",
-        "tipo": "arma",
-        "effetto": {"forza": 3},
-        "valore": 25,
-        "descrizione": "Una piccola spada di buona fattura"
+        "name": "Short Sword",
+        "type": "weapon",
+        "effect": {"strength": 3},
+        "value": 25,
+        "description": "A small, well-made sword"
       },
       {
-        "nome": "Pozione di cura",
-        "tipo": "cura",
-        "effetto": {"cura": 10},
-        "valore": 25,
-        "descrizione": "Una pozione curativa di media potenza"
+        "name": "Healing Potion",
+        "type": "heal",
+        "effect": {"heal": 10},
+        "value": 25,
+        "description": "A healing potion of moderate power"
       },
       {
-        "nome": "Amuleto della protezione",
-        "tipo": "accessorio",
-        "effetto": {"difesa": 2},
-        "valore": 60,
-        "descrizione": "Un amuleto magico che protegge chi lo indossa"
+        "name": "Amulet of Protection",
+        "type": "accessory",
+        "effect": {"defense": 2},
+        "value": 60,
+        "description": "A magic amulet that protects its wearer"
       },
       {
-        "nome": "Mappa del Sottomonte",
-        "tipo": "comune",
-        "valore": 100,
-        "descrizione": "Una mappa dettagliata dei primi tre livelli del Sottomonte"
+        "name": "Map of Undermountain",
+        "type": "common",
+        "value": 100,
+        "description": "A detailed map of the first three levels of Undermountain"
       }
     ],
-    "oro": 2000,
-    "amichevole": true
+    "gold": 2000,
+    "friendly": true
   },
-  "Violetta": {
-    "nome": "Violetta",
-    "descrizione": "Una donna con lunghi capelli neri e un bancone di spezie ed erbe rare.",
-    "professione": "Erborista",
-    "livello": 4,
+  "Violet": {
+    "name": "Violet",
+    "description": "A woman with long black hair and a stall of rare spices and herbs.",
+    "profession": "Herbalist",
+    "level": 4,
     "hp": 25,
     "hp_max": 25,
-    "forza": 10,
-    "destrezza": 14,
-    "costituzione": 12,
-    "intelligenza": 16,
-    "saggezza": 18,
-    "carisma": 14,
+    "strength": 10,
+    "dexterity": 14,
+    "constitution": 12,
+    "intelligence": 16,
+    "wisdom": 18,
+    "charisma": 14,
     "token": "V",
-    "inventario": [
+    "inventory": [
       {
-        "nome": "Pugnale",
-        "tipo": "arma",
-        "effetto": {"forza": 2},
-        "valore": 10,
-        "descrizione": "Un piccolo pugnale da difesa personale"
+        "name": "dagger",
+        "type": "weapon",
+        "effect": {"strength": 2},
+        "value": 10,
+        "description": "A small dagger for personal defense"
       },
       {
-        "nome": "Pozione di cura leggera",
-        "tipo": "cura_leggera",
-        "effetto": {"cura_leggera": 5},
-        "valore": 10,
-        "descrizione": "Una piccola pozione curativa"
+        "name": "Light Healing Potion",
+        "type": "light_heal",
+        "effect": {"light_heal": 5},
+        "value": 10,
+        "description": "A small healing potion"
       },
       {
-        "nome": "Pozione di cura",
-        "tipo": "cura",
-        "effetto": {"cura": 10},
-        "valore": 25,
-        "descrizione": "Una pozione curativa di media potenza"
+        "name": "Healing Potion",
+        "type": "heal",
+        "effect": {"heal": 10},
+        "value": 25,
+        "description": "A healing potion of moderate power"
       },
       {
-        "nome": "Antidoto",
-        "tipo": "cura",
-        "effetto": {"cura": 5, "rimuovi_veleno": true},
-        "valore": 20,
-        "descrizione": "Un antidoto che neutralizza i veleni"
+        "name": "Antidote",
+        "type": "heal",
+        "effect": {"heal": 5, "remove_poison": true},
+        "value": 20,
+        "description": "An antidote that neutralizes poisons"
       }
     ],
-    "oro": 300,
-    "amichevole": true
+    "gold": 300,
+    "friendly": true
   },
-  "Araldo": {
-    "nome": "Araldo",
-    "descrizione": "Un uomo muscoloso che gestisce una bancarella di armi nel mercato.",
-    "professione": "Fabbro",
-    "livello": 6,
+  "Herald": {
+    "name": "Herald",
+    "description": "A muscular man who runs a weapon stall in the market.",
+    "profession": "Blacksmith",
+    "level": 6,
     "hp": 40,
     "hp_max": 40,
-    "forza": 18,
-    "destrezza": 12,
-    "costituzione": 16,
-    "intelligenza": 12,
-    "saggezza": 12,
-    "carisma": 14,
-    "token": "A",
-    "inventario": [
+    "strength": 18,
+    "dexterity": 12,
+    "constitution": 16,
+    "intelligence": 12,
+    "wisdom": 12,
+    "charisma": 14,
+    "token": "to",
+    "inventory": [
       {
-        "nome": "Martello da fabbro",
-        "tipo": "arma",
-        "effetto": {"forza": 4},
-        "valore": 20,
-        "descrizione": "Un pesante martello da lavoro che può essere usato anche come arma"
+        "name": "Blacksmith's Hammer",
+        "type": "weapon",
+        "effect": {"strength": 4},
+        "value": 20,
+        "description": "A heavy work hammer that can also be used as a weapon"
       },
       {
-        "nome": "Spada corta",
-        "tipo": "arma",
-        "effetto": {"forza": 3},
-        "valore": 25,
-        "descrizione": "Una piccola spada di buona fattura"
+        "name": "Short Sword",
+        "type": "weapon",
+        "effect": {"strength": 3},
+        "value": 25,
+        "description": "A small, well-made sword"
       },
       {
-        "nome": "Spada lunga",
-        "tipo": "arma",
-        "effetto": {"forza": 5},
-        "valore": 50,
-        "descrizione": "Una spada a una mano con lama affilata"
+        "name": "Long Sword",
+        "type": "weapon",
+        "effect": {"strength": 5},
+        "value": 50,
+        "description": "A one-handed sword with a sharp blade"
       },
       {
-        "nome": "Armatura di cuoio",
-        "tipo": "armatura",
-        "effetto": {"difesa": 2},
-        "valore": 20,
-        "descrizione": "Una leggera armatura di cuoio che offre protezione di base"
+        "name": "Leather Armor",
+        "type": "armor",
+        "effect": {"defense": 2},
+        "value": 20,
+        "description": "A light leather armor that offers basic protection"
       }
     ],
-    "oro": 400,
-    "amichevole": true
+    "gold": 400,
+    "friendly": true
   },
   "Gundren": {
-    "nome": "Gundren",
-    "descrizione": "Un nano con una folta barba rossa che vende oggetti preziosi.",
-    "professione": "Gioielliere",
-    "livello": 5,
+    "name": "Gundren",
+    "description": "A dwarf with a thick red beard who sells precious goods.",
+    "profession": "Jeweler",
+    "level": 5,
     "hp": 35,
     "hp_max": 35,
-    "forza": 15,
-    "destrezza": 12,
-    "costituzione": 16,
-    "intelligenza": 14,
-    "saggezza": 14,
-    "carisma": 12,
+    "strength": 15,
+    "dexterity": 12,
+    "constitution": 16,
+    "intelligence": 14,
+    "wisdom": 14,
+    "charisma": 12,
     "token": "G",
-    "inventario": [
+    "inventory": [
       {
-        "nome": "Ascia da battaglia",
-        "tipo": "arma",
-        "effetto": {"forza": 4},
-        "valore": 40,
-        "descrizione": "Un'ascia di buona fattura nanica"
+        "name": "Battle Axe",
+        "type": "weapon",
+        "effect": {"strength": 4},
+        "value": 40,
+        "description": "A well-made dwarven axe"
       },
       {
-        "nome": "Gemma di rubino",
-        "tipo": "comune",
-        "valore": 100,
-        "descrizione": "Un rubino di buona qualità"
+        "name": "Ruby Gem",
+        "type": "common",
+        "value": 100,
+        "description": "A ruby of good quality"
       },
       {
-        "nome": "Anello d'oro",
-        "tipo": "accessorio",
-        "effetto": {"carisma": 1},
-        "valore": 30,
-        "descrizione": "Un semplice anello d'oro"
+        "name": "Golden Ring",
+        "type": "accessory",
+        "effect": {"charisma": 1},
+        "value": 30,
+        "description": "A simple gold ring"
       }
     ],
-    "oro": 800,
-    "amichevole": true
+    "gold": 800,
+    "friendly": true
   }
 } 

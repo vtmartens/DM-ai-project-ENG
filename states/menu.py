@@ -1,40 +1,40 @@
 from states.base_state import BaseState
-from states.combattimento import CombattimentoState
+from states.combat import CombatState
 
 class MenuState(BaseState):
-    def esegui(self, gioco):
-        gioco.io.mostra_messaggio("\n=== Menu Principale ===")
-        gioco.io.mostra_messaggio("1. Inizia Gioco")
-        gioco.io.mostra_messaggio("2. Esci")
+    def run(self, game):
+        game.io.show_message("\n=== Main Menu ===")
+        game.io.show_message("1. Start Game")
+        game.io.show_message("2. Exit")
         
-        scelta = gioco.io.richiedi_input("Scegli un'opzione: ")
+        selection = game.io.request_input("Choose an option:")
         
-        if scelta == "1":
-            gioco.cambia_stato(CombattimentoState())
-        elif scelta == "2":
-            gioco.running = False
+        if selection == "1":
+            game.change_state(CombatState())
+        elif selection == "2":
+            game.running = False
         else:
-            gioco.io.messaggio_errore("Scelta non valida!") 
+            game.io.error_message("Invalid choice!") 
             
     def to_dict(self):
         """
-        Converte lo stato in un dizionario per la serializzazione.
+        Convert the state into a dictionary for serialization.
         
         Returns:
-            dict: Rappresentazione dello stato in formato dizionario
+            dict: Dictionary representation of the state
         """
-        # Utilizza il metodo base perché MenuState non ha attributi aggiuntivi
+        # Use the base method because MenuState has no additional attributes
         return super().to_dict()
 
     @classmethod
     def from_dict(cls, data):
         """
-        Crea un'istanza di MenuState da un dizionario.
+        Create an instance of MenuState from a dictionary.
         
         Args:
-            data (dict): Dizionario con i dati dello stato
+            data (dict): Dictionary with the state data
             
         Returns:
-            MenuState: Nuova istanza dello stato
+            MenuState: New instance of the state
         """
         return cls() 

@@ -1,0 +1,44 @@
+[
+  {
+    "name": "Short Sword",
+    "type": "weapon",
+    "effect": {"strength": 3},
+    "value": 25,
+    "description": "A small sword suited to close-quarters combat"
+  },
+  {
+    "name": "Long Sword",
+    "type": "weapon",
+    "effect": {"strength": 5},
+    "value": 50,
+    "description": "A one-handed sword with a sharp blade"
+  },
+  {
+    "name": "Battle Axe",
+    "type": "weapon",
+    "effect": {"strength": 7},
+    "value": 75,
+    "description": "A heavy axe capable of dealing considerable damage"
+  },
+  {
+    "name": "Short Bow",
+    "type": "weapon",
+    "effect": {"strength": 4, "dexterity": 1},
+    "value": 30,
+    "description": "A light bow that is easy to use"
+  },
+  {
+    "name": "dagger",
+    "type": "weapon",
+    "effect": {"strength": 2, "dexterity": 2},
+    "value": 15,
+    "description": "A small but deadly weapon when wielded with precision"
+  },
+  {
+    "name": "Mage Staff",
+    "type": "weapon",
+    "effect": {"strength": 2, "intelligence": 3},
+    "value": 100,
+    "description": "A staff that amplifies magical powers"
+  }
+] 

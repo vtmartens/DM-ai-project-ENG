@@ -1,283 +1,283 @@
 {
   "default": {
-    "inizio": {
-      "testo": "Salve, viaggiatore! Cosa posso fare per te?",
-      "opzioni": [
-        ["Cosa puoi dirmi su questo posto?", "info_posto"],
-        ["Non importa, arrivederci.", null]
+    "start": {
+      "text": "Greetings, traveler! What can I do for you?",
+      "options": [
+        ["What can you tell me about this place?", "info_place"],
+        ["Never mind, farewell.", null]
       ]
     },
-    "info_posto": {
-      "testo": "Non molto, temo. Sono solo di passaggio anche io.",
-      "opzioni": [
-        ["Ho capito, grazie comunque.", null]
+    "info_place": {
+      "text": "Not much, I'm afraid. I'm just passing through myself.",
+      "options": [
+        ["I understand, thanks anyway.", null]
       ]
     }
   },
   "Durnan": {
-    "inizio": {
-      "testo": "Benvenuto alla Taverna Il Portale Spalancato. Io sono Durnan, il proprietario. Posso offrirti qualcosa da bere?",
-      "opzioni": [
-        ["Si, grazie. Una birra.", "offri_birra"],
-        ["Cosa puoi dirmi su questo posto?", "info_taverna"],
-        ["Hai sentito alcune voci interessanti ultimamente?", "info_voci"],
-        ["No, grazie. Solo qualche informazione.", "info_generale"]
+    "start": {
+      "text": "Welcome to the Yawning Portal. I am Durnan, the owner. Can I offer you something to drink?",
+      "options": [
+        ["Yes, please. A beer.", "offer_beer"],
+        ["What can you tell me about this place?", "info_tavern"],
+        ["Have you heard any interesting rumors lately?", "rumors_info"],
+        ["No, thanks. Just some information.", "info_general"]
       ]
     },
-    "offri_birra": {
-      "testo": "Ecco a te una bella birra scura. Sono 2 monete d'oro.",
-      "effetto": {
-        "tipo": "scambio",
-        "oggetto": "Birra scura",
-        "costo": 2
+    "offer_beer": {
+      "text": "Here is a fine dark beer for you. That will be 2 gold coins.",
+      "effect": {
+        "type": "trade",
+        "item": "Dark Beer",
+        "cost": 2
       },
-      "opzioni": [
-        ["Grazie! Cosa puoi dirmi su questo posto?", "info_taverna"],
-        ["Hai sentito alcune voci interessanti ultimamente?", "info_voci"],
-        ["Arrivederci e grazie.", null]
+      "options": [
+        ["Thanks! What can you tell me about this place?", "info_tavern"],
+        ["Have you heard any interesting rumors lately?", "rumors_info"],
+        ["Goodbye and thanks.", null]
       ]
     },
-    "info_taverna": {
-      "testo": "La Taverna Il Portale Spalancato è il luogo di incontro preferito di avventurieri e mercanti. Sotto di noi si trova l'ingresso al famigerato Dungeon di Waterdeep, anche se sconsiglio a chiunque di avventurarsi lì senza una buona preparazione.",
-      "opzioni": [
-        ["Raccontami di più sul dungeon.", "info_dungeon"],
-        ["Chi sono le persone interessanti che frequentano la taverna?", "info_clienti"],
-        ["Grazie dell'informazione, arrivederci.", null]
+    "info_tavern": {
+      "text": "The Yawning Portal is the favorite meeting place of adventurers and merchants. Below us is the entrance to the infamous Undermountain, though I would advise anyone against venturing down there without proper preparation.",
+      "options": [
+        ["Tell me more about the dungeon.", "info_dungeon"],
+        ["Who are the interesting people who frequent the tavern?", "clients_info"],
+        ["Thanks for the information, goodbye.", null]
       ]
     },
     "info_dungeon": {
-      "testo": "Il Dungeon di Waterdeep è un labirinto mortale sotto la città. Molti entrano, pochi escono... almeno interi. Se sei interessato a esplorarlo, parla con Elminster, è seduto nell'angolo. Sa molto più di me su quei luoghi maledetti.",
-      "opzioni": [
-        ["Parlerò con lui, grazie.", null]
+      "text": "Undermountain is a deadly labyrinth beneath the city. Many enter, few leave... at least in one piece. If you are interested in exploring it, talk to Elminster; he is sitting in the corner. He knows far more than I do about those cursed halls.",
+      "options": [
+        ["I will speak with him, thanks.", null]
       ]
     },
-    "info_clienti": {
-      "testo": "Beh, abbiamo spesso Elminster che viene a bere qualcosa, è quel vecchio nell'angolo con la barba bianca. C'è anche Mirt, un mercante benestante che conosce tutte le notizie commerciali della città.",
-      "opzioni": [
-        ["Grazie per le informazioni.", null]
+    "clients_info": {
+      "text": "Well, Elminster often comes in for a drink; he is that old man in the corner with the white beard. There is also Mirt, a wealthy merchant who knows all the trading news in the city.",
+      "options": [
+        ["Thanks for the information.", null]
       ]
     },
-    "info_voci": {
-      "testo": "Ultimamente si parla molto di strani accadimenti al mercato. Oggetti che scompaiono, rumori nella notte... e qualcuno dice di aver visto dei cultisti incappucciati aggirarsi per le strade. Ma sai come sono le voci, spesso esagerate.",
-      "opzioni": [
-        ["Sai altro su questi cultisti?", "info_cultisti"],
-        ["Interessante, terrò gli occhi aperti.", null]
+    "rumors_info": {
+      "text": "Lately there is a lot of talk about strange happenings at the market. Objects vanishing, noises in the night... and some say they have seen hooded cultists prowling the streets. But you know how rumors are; often exaggerated.",
+      "options": [
+        ["Do you know anything else about these cultists?", "cultists_info"],
+        ["Interesting, I will keep my eyes open.", null]
       ]
     },
-    "info_cultisti": {
-      "testo": "No, ma se sei davvero interessato, parla con Violetta al mercato. Lei ha un banco di spezie e vede tutto quello che succede in piazza.",
-      "opzioni": [
-        ["Lo farò, grazie.", null]
+    "cultists_info": {
+      "text": "No, but if you are truly interested, talk to Violet at the market. She has a spice stall and sees everything that happens in the square.",
+      "options": [
+        ["I will, thanks.", null]
       ]
     },
-    "info_generale": {
-      "testo": "Cosa vorresti sapere? Posso darti informazioni su Waterdeep, sui clienti della taverna o sul famigerato dungeon sotto di noi.",
-      "opzioni": [
-        ["Parlami di Waterdeep.", "info_waterdeep"],
-        ["Chi sono i clienti interessanti della taverna?", "info_clienti"],
-        ["Cosa sai del dungeon?", "info_dungeon"]
+    "info_general": {
+      "text": "What would you like to know? I can give you information about Waterdeep, the tavern patrons, or the infamous dungeon beneath us.",
+      "options": [
+        ["Tell me about Waterdeep.", "info_waterdeep"],
+        ["Who are the tavern's interesting patrons?", "clients_info"],
+        ["What do you know about the dungeon?", "info_dungeon"]
       ]
     },
     "info_waterdeep": {
-      "testo": "Waterdeep è la più grande città della Costa della Spada, governata dai Signori Mascherati e dal Lord Aperto, Dagult Neverember. È un centro di commercio, magia e intrighi politici. Se cerchi qualcosa, probabilmente lo troverai qui... al prezzo giusto.",
-      "opzioni": [
-        ["Grazie per le informazioni.", null]
+      "text": "Waterdeep is the greatest city on the Sword Coast, ruled by the Masked Lords and the Open Lord, Dagult Neverember. It is a center of trade, magic, and political intrigue. If you are looking for something, you will probably find it here... for the right price.",
+      "options": [
+        ["Thanks for the information.", null]
       ]
     }
   },
   "Elminster": {
-    "inizio": {
-      "testo": "Hmm? Oh, salve giovane avventuriero. Sono Elminster, un umile studioso di arti arcane. In cosa posso esserti utile?",
-      "opzioni": [
-        ["Durnan mi ha detto che sai molto sul dungeon di Waterdeep.", "info_dungeon"],
-        ["Sei davvero IL famoso Elminster?", "info_identita"],
-        ["Hai bisogno di aiuto per qualche compito?", "offri_aiuto"],
-        ["Scusa il disturbo, arrivederci.", null]
+    "start": {
+      "text": "Hmm? Oh, greetings, young adventurer. I am Elminster, a humble scholar of the arcane arts. How can I be of service?",
+      "options": [
+        ["Durnan told me you know a great deal about Undermountain.", "info_dungeon"],
+        ["Are you really THE famous Elminster?", "identity_info"],
+        ["Do you need help with any task?", "offer_help"],
+        ["Sorry to bother you, farewell.", null]
       ]
     },
     "info_dungeon": {
-      "testo": "Ah, il famigerato Sottomonte. Un labirinto di pericoli e tesori dimenticati. Creato dal mago pazzo Halaster Neroenero secoli fa, è pieno di mostri, trappole e reliquie magiche. Se intendi esplorarlo, ti consiglio di procurarti almeno una mappa dei livelli superiori.",
-      "opzioni": [
-        ["Sai dove posso trovare una mappa?", "info_mappa"],
-        ["Quali creature potrei incontrare?", "info_creature"],
-        ["Grazie dell'informazione.", null]
+      "text": "Ah, the infamous Undermountain. A labyrinth of dangers and forgotten treasures. Created by the mad wizard Halaster Blackcloak centuries ago, it is full of monsters, traps, and magical relics. If you mean to explore it, I advise you to obtain at least a map of the upper levels.",
+      "options": [
+        ["Do you know where I can find a map?", "info_map"],
+        ["What creatures might I encounter?", "creature_info"],
+        ["Thanks for the information.", null]
       ]
     },
-    "info_mappa": {
-      "testo": "Hmm, Durnan potrebbe averne una copia, anche se non la cederà facilmente. Oppure potresti parlare con Mirt, quel mercante laggiù. Un'altra opzione è visitare il mercato nero, ma stai attento a non farti ingannare con mappe false.",
-      "opzioni": [
-        ["Grazie del consiglio.", null]
+    "info_map": {
+      "text": "Hmm, Durnan might have a copy, though he will not part with it easily. Or you could speak with Mirt, that merchant over there. Another option is to visit the black market, but be careful not to be fooled by false maps.",
+      "options": [
+        ["Thanks for the advice.", null]
       ]
     },
-    "info_creature": {
-      "testo": "Oh, il Sottomonte ospita di tutto: dai semplici goblin ai potenti beholder. Nei livelli superiori troverai per lo più non-morti, goblinoidi e qualche bestia aberrante. Ma più scendi, più le creature diventano strane e pericolose.",
-      "effetto": "riposo",
-      "opzioni": [
-        ["Hai altri consigli per un avventuriero?", "info_consigli"],
-        ["Grazie delle informazioni.", null]
+    "creature_info": {
+      "text": "Oh, Undermountain holds all manner of things: from simple goblins to powerful beholders. In the upper levels you will find mostly undead, goblinoids, and the occasional aberrant beast. But the deeper you go, the stranger and more dangerous the creatures become.",
+      "effect": "rest",
+      "options": [
+        ["Do you have any other advice for an adventurer?", "advice_info"],
+        ["Thanks for the information.", null]
       ]
     },
-    "info_consigli": {
-      "testo": "Mai avventurarti da solo. Porta sempre corde, torce extra e almeno una pozione curativa. E ricorda: a volte fuggire è la strategia migliore. Tieni, prendi questa pozione di cura, potrebbe tornarti utile.",
-      "effetto": {
-        "tipo": "aggiungi_item",
-        "oggetto": "Pozione di cura"
+    "advice_info": {
+      "text": "Never venture out alone. Always carry rope, extra torches, and at least one healing potion. And remember: sometimes fleeing is the best strategy. Here, take this healing potion; it may serve you well.",
+      "effect": {
+        "type": "add_item",
+        "item": "Healing Potion"
       },
-      "opzioni": [
-        ["Grazie mille!", null]
+      "options": [
+        ["Thank you very much!", null]
       ]
     },
-    "info_identita": {
-      "testo": "*sorride enigmaticamente* Sono solo un vecchio che ha visto molte cose in questo mondo. Le storie sul mio conto sono spesso esagerate. Ma dimmi, cosa ti porta a Waterdeep?",
-      "opzioni": [
-        ["Sono in cerca di avventura e ricchezze.", "risposta_avventura"],
-        ["Sto cercando conoscenza sulle arti arcane.", "risposta_magia"],
-        ["Solo di passaggio, esploro il mondo.", "risposta_passaggio"]
+    "identity_info": {
+      "text": "*smiles enigmatically* I am just an old man who has seen many things in this world. The stories about me are often exaggerated. But tell me, what brings you to Waterdeep?",
+      "options": [
+        ["I am in search of adventure and riches.", "adventure_answer"],
+        ["I am seeking knowledge of the arcane arts.", "magic_answer"],
+        ["Just passing through, exploring the world.", "passage_answer"]
       ]
     },
-    "risposta_avventura": {
-      "testo": "Ah, l'eterno richiamo dell'oro e della gloria. Molti prima di te hanno seguito questo sentiero. Alcuni sono diventati eroi leggendari, altri... beh, pasto per i vermi. La differenza spesso sta nella prudenza e nella saggezza, non solo nella forza del braccio.",
-      "opzioni": [
-        ["Hai qualche consiglio per me?", "info_consigli"],
-        ["Grazie per le tue parole.", null]
+    "adventure_answer": {
+      "text": "Ah, the eternal call of gold and glory. Many before you have followed this path. Some became legendary heroes, others... well, food for worms. The difference often lies in caution and wisdom, not merely in the strength of your arm.",
+      "options": [
+        ["Do you have any advice for me?", "advice_info"],
+        ["Thank you for your words.", null]
       ]
     },
-    "risposta_magia": {
-      "testo": "Un nobile obiettivo. La magia è tanto potente quanto pericolosa. Se sei sinceramente interessato allo studio arcano, potrei darti accesso ad alcuni testi base. Non sono nulla di straordinario, ma potrebbero aiutarti nel tuo cammino.",
-      "opzioni": [
-        ["Sarei molto interessato, grazie!", "offri_libro"],
-        ["Forse un'altra volta, grazie.", null]
+    "magic_answer": {
+      "text": "A noble goal. Magic is as powerful as it is dangerous. If you are sincerely interested in arcane study, I could give you access to some basic texts. They are nothing extraordinary, but they might aid you on your path.",
+      "options": [
+        ["I would be very interested, thank you!", "offer_book"],
+        ["Perhaps another time, thank you.", null]
       ]
     },
-    "risposta_passaggio": {
-      "testo": "Il viaggio stesso è spesso più importante della destinazione. Ho viaggiato per molti regni e ancora trovo meraviglie che mi sorprendono. Che i venti ti siano favorevoli, viaggiatore.",
-      "opzioni": [
-        ["Grazie, saggio Elminster.", null]
+    "passage_answer": {
+      "text": "The journey itself is often more important than the destination. I have traveled through many realms and still find wonders that surprise me. May the winds be favorable to you, traveler.",
+      "options": [
+        ["Thank you, wise Elminster.", null]
       ]
     },
-    "offri_libro": {
-      "testo": "Ecco, questo è un vecchio manuale di incantesimi di base. Prendine cura, contiene conoscenze preziose per un aspirante mago.",
-      "effetto": {
-        "tipo": "aggiungi_item",
-        "oggetto": "Manuale arcano base"
+    "offer_book": {
+      "text": "Here, this is an old manual of basic spells. Take good care of it; it contains knowledge precious to an aspiring wizard.",
+      "effect": {
+        "type": "add_item",
+        "item": "Basic Arcane Manual"
       },
-      "opzioni": [
-        ["Lo studierò con attenzione, grazie!", null]
+      "options": [
+        ["I will study it carefully, thank you!", null]
       ]
     },
-    "offri_aiuto": {
-      "testo": "Hmm, ora che lo menzioni... Ho bisogno di alcune erbe rare per i miei studi. Cresce una pianta chiamata 'Occhio di Luna' nei boschi a nord della città. Se potessi procurarmene qualche foglia, sarei molto grato.",
-      "opzioni": [
-        ["Certo, te le porterò appena possibile.", "accetta_missione"],
-        ["Mi dispiace, al momento sono impegnato con altre questioni.", null]
+    "offer_help": {
+      "text": "Hmm, now that you mention it... I need some rare herbs for my studies. A plant called 'Moon's Eye' grows in the woods north of the city. If you could procure me a few leaves, I would be most grateful.",
+      "options": [
+        ["Of course, I will bring them as soon as I can.", "accept_quest"],
+        ["I am sorry, I am busy with other matters at the moment.", null]
       ]
     },
-    "accetta_missione": {
-      "testo": "Eccellente! Le foglie sono riconoscibili per il loro colore blu argenteo e brillano leggermente di notte. Fai attenzione, i boschi non sono sempre sicuri. Torna da me quando le avrai trovate.",
-      "opzioni": [
-        ["Lo farò, a presto.", null]
+    "accept_quest": {
+      "text": "Excellent! The leaves are recognizable by their silvery-blue color, and they glow faintly at night. Be careful; the woods are not always safe. Return to me when you have found them.",
+      "options": [
+        ["I will, see you soon.", null]
       ]
     }
   },
   "Mirt": {
-    "inizio": {
-      "testo": "Saluti, amico! Mirt il Mercante al tuo servizio. Cerchi qualche affare o semplicemente informazioni?",
-      "opzioni": [
-        ["Che tipo di affari proponi?", "info_affari"],
-        ["Mi hanno detto che potresti avere una mappa del Sottomonte.", "chiedi_mappa"],
-        ["Cerco informazioni sul mercato locale.", "info_mercato"],
-        ["Solo di passaggio, grazie.", null]
+    "start": {
+      "text": "Greetings, friend! Mirt the Merchant at your service. Are you looking for some business, or simply information?",
+      "options": [
+        ["What kind of business do you offer?", "business_info"],
+        ["I was told you might have a map of Undermountain.", "ask_map"],
+        ["I am looking for information about the local market.", "info_market"],
+        ["Just passing through, thanks.", null]
       ]
     },
-    "info_affari": {
-      "testo": "Ho contatti con mercanti di tutta la Costa della Spada. Posso procurare quasi qualsiasi cosa, dal più fine vino elfrico alle armature naniche. Dipende da quanto sei disposto a spendere e, a volte, dai favori che puoi fare.",
-      "opzioni": [
-        ["Hai qualche oggetto interessante al momento?", "mostra_oggetti"],
-        ["Che tipo di favori?", "info_favori"],
-        ["Non mi interessa al momento, grazie.", null]
+    "business_info": {
+      "text": "I have contacts with merchants all along the Sword Coast. I can procure almost anything, from the finest elven wine to dwarven armor. It depends on how much you are willing to spend and, sometimes, on the favors you can do.",
+      "options": [
+        ["Do you have anything interesting at the moment?", "show_items"],
+        ["What kind of favors?", "favors_info"],
+        ["Not interested at the moment, thanks.", null]
       ]
     },
-    "mostra_oggetti": {
-      "testo": "Attualmente ho una bella pozione di cura, solo 30 monete d'oro. E questo amuleto della protezione, per 60 monete. Interessato?",
-      "opzioni": [
-        ["Mi interessa la pozione di cura.", "compra_pozione"],
-        ["Vorrei l'amuleto della protezione.", "compra_amuleto"],
-        ["Forse più tardi, grazie.", null]
+    "show_items": {
+      "text": "At the moment I have a fine healing potion, only 30 gold coins. And this amulet of protection, for 60. Interested?",
+      "options": [
+        ["I am interested in the healing potion.", "buy_potion"],
+        ["I would like the amulet of protection.", "buy_amulet"],
+        ["Maybe later, thanks.", null]
       ]
     },
-    "compra_pozione": {
-      "testo": "Ottima scelta! Ecco la tua pozione di cura.",
-      "effetto": {
-        "tipo": "scambio",
-        "oggetto": "Pozione di cura",
-        "costo": 30
+    "buy_potion": {
+      "text": "Excellent choice! Here is your healing potion.",
+      "effect": {
+        "type": "trade",
+        "item": "Healing Potion",
+        "cost": 30
       },
-      "opzioni": [
-        ["Grazie! Hai altro da offrire?", "mostra_oggetti"],
-        ["È tutto per ora, grazie.", null]
+      "options": [
+        ["Thanks! Do you have anything else to offer?", "show_items"],
+        ["That is all for now, thanks.", null]
       ]
     },
-    "compra_amuleto": {
-      "testo": "Un ottimo investimento per la tua sicurezza! Ecco l'amuleto.",
-      "effetto": {
-        "tipo": "scambio",
-        "oggetto": "Amuleto della protezione",
-        "costo": 60
+    "buy_amulet": {
+      "text": "An excellent investment in your safety! Here is the amulet.",
+      "effect": {
+        "type": "trade",
+        "item": "Amulet of Protection",
+        "cost": 60
       },
-      "opzioni": [
-        ["Grazie! Hai altro da offrire?", "mostra_oggetti"],
-        ["È tutto per ora, grazie.", null]
+      "options": [
+        ["Thanks! Do you have anything else to offer?", "show_items"],
+        ["That is all for now, thanks.", null]
       ]
     },
-    "info_favori": {
-      "testo": "Oh, nulla di illegale! *sorride* A volte ho bisogno di aiuto per consegnare pacchi in luoghi pericolosi, o per recuperare merci da commercianti... riluttanti. Il tipo di lavoro per cui un avventuriero è perfetto.",
-      "opzioni": [
-        ["Hai qualche lavoro disponibile ora?", "offri_lavoro"],
-        ["Non sono interessato a questo tipo di lavoro.", null]
+    "favors_info": {
+      "text": "Oh, nothing illegal! *smiles* Sometimes I need help delivering packages to dangerous places, or recovering goods from... reluctant merchants. The kind of work an adventurer is perfect for.",
+      "options": [
+        ["Do you have any work available now?", "offer_work"],
+        ["I am not interested in this kind of work.", null]
       ]
     },
-    "offri_lavoro": {
-      "testo": "In effetti sì. Un cliente non ha pagato un debito importante. Si chiama Vargas e vive nella zona est della città. Niente di violento, voglio solo che gli ricordi la sua... responsabilità morale.",
-      "opzioni": [
-        ["Mi occuperò io di Vargas.", "accetta_lavoro"],
-        ["Non è il tipo di lavoro che fa per me.", null]
+    "offer_work": {
+      "text": "As a matter of fact, yes. A client has not paid an important debt. His name is Vargas, and he lives in the eastern part of the city. Nothing violent; I just want you to remind him of his... moral responsibility.",
+      "options": [
+        ["I will take care of Vargas.", "accept_job"],
+        ["That is not the kind of work for me.", null]
       ]
     },
-    "accetta_lavoro": {
-      "testo": "Eccellente! Quando avrai parlato con lui, torna qui per la tua ricompensa: 50 monete d'oro. E se dovesse darti i soldi direttamente, ancora meglio, puoi tenere il 10%.",
-      "opzioni": [
-        ["Affare fatto, a presto.", null]
+    "accept_job": {
+      "text": "Excellent! Once you have spoken with him, come back here for your reward: 50 gold coins. And if he gives you the money directly, even better; you can keep 10%.",
+      "options": [
+        ["Deal, see you soon.", null]
       ]
     },
-    "chiedi_mappa": {
-      "testo": "Ah, il Sottomonte... sì, potrei avere qualcosa del genere. *abbassa la voce* Costa 100 monete d'oro. È una mappa autentica dei primi tre livelli, molto dettagliata. Ti interessa?",
-      "opzioni": [
-        ["Sì, la compro.", "compra_mappa"],
-        ["È troppo costosa per me al momento.", null]
+    "ask_map": {
+      "text": "Ah, Undermountain... yes, I might have something like that. *lowers his voice* It costs 100 gold coins. It is an authentic map of the first three levels, very detailed. Are you interested?",
+      "options": [
+        ["Yes, I will buy it.", "buy_map"],
+        ["It is too expensive for me at the moment.", null]
       ]
     },
-    "compra_mappa": {
-      "testo": "Affare fatto! Ecco la tua mappa. Usala con saggezza e non dire a nessuno che l'hai avuta da me.",
-      "effetto": {
-        "tipo": "scambio",
-        "oggetto": "Mappa del Sottomonte",
-        "costo": 100
+    "buy_map": {
+      "text": "Deal! Here is your map. Use it wisely, and do not tell anyone you got it from me.",
+      "effect": {
+        "type": "trade",
+        "item": "Map of Undermountain",
+        "cost": 100
       },
-      "opzioni": [
-        ["Grazie, sarò discreto.", null]
+      "options": [
+        ["Thanks, I will be discreet.", null]
       ]
     },
-    "info_mercato": {
-      "testo": "Il mercato di Waterdeep è il più grande della Costa della Spada! Troverai di tutto: dai tessuti di Calimshan alle armi forgiate dai nani, dalle pozioni magiche alle spezie esotiche. Ma fai attenzione ai borseggiatori, sono ovunque.",
-      "opzioni": [
-        ["Hai notato qualcosa di strano ultimamente al mercato?", "info_strange"],
-        ["Grazie dell'informazione.", null]
+    "info_market": {
+      "text": "The market of Waterdeep is the largest on the Sword Coast! You will find everything: from Calimshan fabrics to dwarven-forged weapons, from magic potions to exotic spices. But watch out for pickpockets; they are everywhere.",
+      "options": [
+        ["Have you noticed anything strange at the market lately?", "strange_info"],
+        ["Thanks for the information.", null]
       ]
     },
-    "info_strange": {
-      "testo": "Hmm... ora che lo menzioni, sì. Ci sono stati alcuni furti misteriosi. Oggetti che scompaiono senza lasciare traccia, anche quando erano ben sorvegliati. E alcuni mercanti hanno visto figure incappucciate aggirarsi di notte. Bizzarro, vero?",
-      "opzioni": [
-        ["Molto strano. Terrò gli occhi aperti.", null]
+    "strange_info": {
+      "text": "Hmm... now that you mention it, yes. There have been some mysterious thefts. Objects vanishing without a trace, even when well guarded. And some merchants have seen hooded figures prowling about at night. Bizarre, is it not?",
+      "options": [
+        ["Very strange. I will keep my eyes open.", null]
       ]
     }
   }

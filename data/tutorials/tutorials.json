@@ -1,40 +1,40 @@
 {
-  "generale": {
-    "titolo": "Guida al gioco",
-    "passi": [
-      {"id": 1, "titolo": "Movimento", "contenuto": "Usa i comandi nord, sud, est, ovest per muoverti"},
-      {"id": 2, "titolo": "Combattimento", "contenuto": "Durante un combattimento, puoi attaccare, difenderti o usare oggetti"},
-      {"id": 3, "titolo": "Interagire", "contenuto": "Usa 'esamina', 'parla', 'raccogli' per interagire con l'ambiente"},
-      {"id": 4, "titolo": "Inventario", "contenuto": "Controlla il tuo inventario per gestire gli oggetti e l'equipaggiamento"}
+  "general": {
+    "title": "Game Guide",
+    "steps": [
+      {"id": 1, "title": "movement", "content": "Use the north, south, east, west commands to move around"},
+      {"id": 2, "title": "combat", "content": "During a fight you can attack, defend, or use items"},
+      {"id": 3, "title": "Interacting", "content": "Use 'examine', 'talk', 'pick_up' to interact with the environment"},
+      {"id": 4, "title": "inventory", "content": "Check your inventory to manage items and equipment"}
     ]
   },
-  "combattimento": {
-    "titolo": "Guida al combattimento",
-    "passi": [
-      {"id": 1, "titolo": "Iniziare un combattimento", "contenuto": "I combattimenti iniziano quando incontri un nemico o attacchi qualcuno"},
-      {"id": 2, "titolo": "Turni", "contenuto": "Il combattimento si svolge a turni, dove puoi scegliere un'azione"},
-      {"id": 3, "titolo": "Attacco", "contenuto": "L'attacco base usa l'arma equipaggiata contro un nemico"},
-      {"id": 4, "titolo": "Difesa", "contenuto": "Difenderti riduce i danni subiti nel prossimo turno"},
-      {"id": 5, "titolo": "Oggetti", "contenuto": "Puoi usare pozioni o altri oggetti durante il combattimento"},
-      {"id": 6, "titolo": "Abilità", "contenuto": "Le abilità speciali dipendono dalla tua classe e consumano mana"}
+  "combat": {
+    "title": "Combat Guide",
+    "steps": [
+      {"id": 1, "title": "Starting a Fight", "content": "Fights begin when you encounter an enemy or attack someone"},
+      {"id": 2, "title": "Turns", "content": "Combat unfolds in turns, in which you choose an action"},
+      {"id": 3, "title": "attack", "content": "A basic attack uses your equipped weapon against an enemy"},
+      {"id": 4, "title": "defense", "content": "Defending reduces the damage you take on the next turn"},
+      {"id": 5, "title": "items", "content": "You can use potions or other items during combat"},
+      {"id": 6, "title": "Abilities", "content": "Special abilities depend on your class and consume mana"}
     ]
   },
-  "inventario": {
-    "titolo": "Guida all'inventario",
-    "passi": [
-      {"id": 1, "titolo": "Raccogliere oggetti", "contenuto": "Usa 'raccogli [oggetto]' per aggiungere un oggetto al tuo inventario"},
-      {"id": 2, "titolo": "Equipaggiare", "contenuto": "Usa 'equipaggia [oggetto]' per indossare o impugnare un oggetto"},
-      {"id": 3, "titolo": "Usare oggetti", "contenuto": "Usa 'usa [oggetto]' per consumare o attivare un oggetto"},
-      {"id": 4, "titolo": "Esaminare", "contenuto": "Usa 'esamina [oggetto]' per ottenere dettagli su un oggetto"}
+  "inventory": {
+    "title": "Inventory Guide",
+    "steps": [
+      {"id": 1, "title": "Picking Up Items", "content": "Use 'pick_up [item]' to add an item to your inventory"},
+      {"id": 2, "title": "Equipping", "content": "Use 'equip [item]' to wear or wield an item"},
+      {"id": 3, "title": "Using Items", "content": "Use 'use [item]' to consume or activate an item"},
+      {"id": 4, "title": "Examining", "content": "Use 'examine [item]' to get details about an item"}
     ]
   },
-  "dialogo": {
-    "titolo": "Guida ai dialoghi",
-    "passi": [
-      {"id": 1, "titolo": "Parlare con NPC", "contenuto": "Usa 'parla [nome NPC]' per iniziare una conversazione"},
-      {"id": 2, "titolo": "Opzioni di dialogo", "contenuto": "Seleziona le opzioni numerate per rispondere durante le conversazioni"},
-      {"id": 3, "titolo": "Commercio", "contenuto": "Alcuni NPC offrono opzioni per comprare o vendere oggetti"},
-      {"id": 4, "titolo": "Missioni", "contenuto": "Parlando con gli NPC puoi ricevere missioni da completare"}
+  "dialogue": {
+    "title": "Dialogue Guide",
+    "steps": [
+      {"id": 1, "title": "Talking to NPCs", "content": "Use 'talk [NPC name]' to start a conversation"},
+      {"id": 2, "title": "Dialogue Options", "content": "Select the numbered options to reply during conversations"},
+      {"id": 3, "title": "Trade", "content": "Some NPCs offer options to buy or sell items"},
+      {"id": 4, "title": "quests", "content": "By talking to NPCs you can receive quests to complete"}
     ]
   }
 } 

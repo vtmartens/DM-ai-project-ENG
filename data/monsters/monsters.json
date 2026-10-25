@@ -1,154 +1,154 @@
 {
   "goblin": {
-    "nome": "Goblin",
-    "descrizione": "Un piccolo umanoide verde con orecchie a punta e denti affilati",
-    "statistiche": {
+    "name": "goblin",
+    "description": "A small green humanoid with pointed ears and sharp teeth",
+    "stats": {
       "hp": 10,
-      "forza": 8,
-      "destrezza": 14,
-      "costituzione": 10,
-      "intelligenza": 6,
-      "saggezza": 8,
-      "carisma": 6
+      "strength": 8,
+      "dexterity": 14,
+      "constitution": 10,
+      "intelligence": 6,
+      "wisdom": 8,
+      "charisma": 6
     },
-    "armi": ["Spada corta", "Arco corto"],
-    "armatura": "Armatura di cuoio",
-    "oro": 15,
-    "esperienza": 50,
+    "weapons": ["Short Sword", "Short Bow"],
+    "armor": "Leather Armor",
+    "gold": 15,
+    "experience": 50,
     "token": "G",
-    "difficolta": "facile"
+    "difficulty": "easy"
   },
-  "orco": {
-    "nome": "Orco",
-    "descrizione": "Un grosso umanoide brutale con zanne sporgenti e pelle verde-grigiastra",
-    "statistiche": {
+  "orc": {
+    "name": "orc",
+    "description": "A large brutish humanoid with protruding tusks and grayish-green skin",
+    "stats": {
       "hp": 25,
-      "forza": 16,
-      "destrezza": 10,
-      "costituzione": 14,
-      "intelligenza": 7,
-      "saggezza": 10,
-      "carisma": 8
+      "strength": 16,
+      "dexterity": 10,
+      "constitution": 14,
+      "intelligence": 7,
+      "wisdom": 10,
+      "charisma": 8
     },
-    "armi": ["Ascia da battaglia", "Giavellotto"],
-    "armatura": "Armatura a scaglie",
-    "oro": 30,
-    "esperienza": 100,
-    "token": "O",
-    "difficolta": "medio"
+    "weapons": ["Battle Axe", "Javelin"],
+    "armor": "Scale Armor",
+    "gold": 30,
+    "experience": 100,
+    "token": "or",
+    "difficulty": "medium"
   },
-  "lupo": {
-    "nome": "Lupo Feroce",
-    "descrizione": "Un grande lupo selvatico dagli occhi gialli e il pelo scuro",
-    "statistiche": {
+  "wolf": {
+    "name": "Fierce Wolf",
+    "description": "A large wild wolf with yellow eyes and dark fur",
+    "stats": {
       "hp": 15,
-      "forza": 12,
-      "destrezza": 15,
-      "costituzione": 12,
-      "intelligenza": 3,
-      "saggezza": 12,
-      "carisma": 6
+      "strength": 12,
+      "dexterity": 15,
+      "constitution": 12,
+      "intelligence": 3,
+      "wisdom": 12,
+      "charisma": 6
     },
-    "armi": ["Morso", "Artigli"],
-    "armatura": "Pelliccia spessa",
-    "oro": 5,
-    "esperienza": 75,
+    "weapons": ["Bite", "Claws"],
+    "armor": "Thick Fur",
+    "gold": 5,
+    "experience": 75,
     "token": "L",
-    "difficolta": "facile"
+    "difficulty": "easy"
   },
-  "scheletro": {
-    "nome": "Scheletro",
-    "descrizione": "Un guerriero non-morto composto da ossa animate da magia oscura",
-    "statistiche": {
+  "skeleton": {
+    "name": "skeleton",
+    "description": "An undead warrior made of bones animated by dark magic",
+    "stats": {
       "hp": 18,
-      "forza": 10,
-      "destrezza": 14,
-      "costituzione": 12,
-      "intelligenza": 6,
-      "saggezza": 8,
-      "carisma": 5
+      "strength": 10,
+      "dexterity": 14,
+      "constitution": 12,
+      "intelligence": 6,
+      "wisdom": 8,
+      "charisma": 5
     },
-    "armi": ["Spada lunga", "Arco lungo"],
-    "armatura": "Resti di armatura",
-    "oro": 20,
-    "esperienza": 90,
+    "weapons": ["Long Sword", "Long Bow"],
+    "armor": "Armor Remnants",
+    "gold": 20,
+    "experience": 90,
     "token": "S",
-    "difficolta": "medio"
+    "difficulty": "medium"
   },
   "troll": {
-    "nome": "Troll",
-    "descrizione": "Un gigantesco umanoide con pelle verde rugosa e capacità rigenerative",
-    "statistiche": {
+    "name": "troll",
+    "description": "A gigantic humanoid with wrinkled green skin and regenerative abilities",
+    "stats": {
       "hp": 40,
-      "forza": 18,
-      "destrezza": 12,
-      "costituzione": 20,
-      "intelligenza": 7,
-      "saggezza": 8,
-      "carisma": 7
+      "strength": 18,
+      "dexterity": 12,
+      "constitution": 20,
+      "intelligence": 7,
+      "wisdom": 8,
+      "charisma": 7
     },
-    "armi": ["Artigli", "Morso"],
-    "armatura": "Pelle coriacea",
-    "oro": 50,
-    "esperienza": 200,
+    "weapons": ["Claws", "Bite"],
+    "armor": "Tough Hide",
+    "gold": 50,
+    "experience": 200,
     "token": "T",
-    "difficolta": "difficile"
+    "difficulty": "hard"
   },
-  "drago_giovane": {
-    "nome": "Giovane Drago",
-    "descrizione": "Un drago di media taglia con scaglie rosse lucenti e occhi minacciosi",
-    "statistiche": {
+  "young_dragon": {
+    "name": "Young Dragon",
+    "description": "A medium-sized dragon with gleaming red scales and menacing eyes",
+    "stats": {
       "hp": 75,
-      "forza": 19,
-      "destrezza": 14,
-      "costituzione": 17,
-      "intelligenza": 14,
-      "saggezza": 12,
-      "carisma": 16
+      "strength": 19,
+      "dexterity": 14,
+      "constitution": 17,
+      "intelligence": 14,
+      "wisdom": 12,
+      "charisma": 16
     },
-    "armi": ["Soffio di fuoco", "Artigli", "Morso"],
-    "armatura": "Scaglie spesse",
-    "oro": 200,
-    "esperienza": 500,
+    "weapons": ["Fire Breath", "Claws", "Bite"],
+    "armor": "Thick Scales",
+    "gold": 200,
+    "experience": 500,
     "token": "D",
-    "difficolta": "difficile"
+    "difficulty": "hard"
   },
-  "ragno_gigante": {
-    "nome": "Ragno Gigante",
-    "descrizione": "Un enorme aracnide con zampe pelose e zanne velenose",
-    "statistiche": {
+  "giant_spider": {
+    "name": "Giant Spider",
+    "description": "A huge arachnid with hairy legs and venomous fangs",
+    "stats": {
       "hp": 22,
-      "forza": 14,
-      "destrezza": 16,
-      "costituzione": 12,
-      "intelligenza": 2,
-      "saggezza": 10,
-      "carisma": 4
+      "strength": 14,
+      "dexterity": 16,
+      "constitution": 12,
+      "intelligence": 2,
+      "wisdom": 10,
+      "charisma": 4
     },
-    "armi": ["Morso velenoso", "Tela appiccicosa"],
-    "armatura": "Esoscheletro",
-    "oro": 25,
-    "esperienza": 120,
+    "weapons": ["Venomous Bite", "Sticky Web"],
+    "armor": "Exoskeleton",
+    "gold": 25,
+    "experience": 120,
     "token": "R",
-    "difficolta": "medio"
+    "difficulty": "medium"
   },
   "zombie": {
-    "nome": "Zombie",
-    "descrizione": "Un cadavere rianimato che avanza lentamente con sguardo vuoto",
-    "statistiche": {
+    "name": "zombie",
+    "description": "A reanimated corpse that advances slowly with a vacant stare",
+    "stats": {
       "hp": 30,
-      "forza": 13,
-      "destrezza": 6,
-      "costituzione": 16,
-      "intelligenza": 3,
-      "saggezza": 6,
-      "carisma": 5
+      "strength": 13,
+      "dexterity": 6,
+      "constitution": 16,
+      "intelligence": 3,
+      "wisdom": 6,
+      "charisma": 5
     },
-    "armi": ["Pugno", "Morso infetto"],
-    "armatura": "Vestiti logori",
-    "oro": 10,
-    "esperienza": 80,
+    "weapons": ["Punch", "Infected Bite"],
+    "armor": "Tattered Clothes",
+    "gold": 10,
+    "experience": 80,
     "token": "Z",
-    "difficolta": "medio"
+    "difficulty": "medium"
   }
 } 

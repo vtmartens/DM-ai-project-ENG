@@ -1,125 +1,125 @@
-from entities.giocatore import Giocatore
-from states.combattimento import CombattimentoState
+from entities.player import Player
+from states.combat import CombatState
 from states.menu import MenuState
 from core.game import Game
-from states.taverna import TavernaState
-from states.scelta_mappa_state import SceltaMappaState
-from util.funzioni_utili import avanti
-from items.oggetto import Oggetto
-from entities.entita import Entita
-from world.mappa import Mappa
-from world.gestore_mappe import GestitoreMappe
+from states.tavern import TavernState
+from states.map_selection_state import MapSelectionState
+from util.helpers import press_enter
+from items.item import Item
+from entities.entity import Entity
+from world.map import Map
+from world.map_manager import MapManager
 from core.io_interface import TerminalIO
 import json
 import os
 
 
-def ottieni_classi_disponibili():
-    """Ottiene l'elenco delle classi disponibili dal file JSON"""
-    percorso_file = os.path.join("data", "classes", "classes.json")
+def get_available_classes():
+    """Gets the list of available classes from the JSON file"""
+    file_path = os.path.join("data", "classes", "classes.json")
     try:
-        with open(percorso_file, "r", encoding="utf-8") as file:
-            classi = json.load(file)
-            return list(classi.keys())
+        with open(file_path, "r", encoding="utf-8") as file:
+            classes = json.load(file)
+            return list(classes.keys())
     except (FileNotFoundError, json.JSONDecodeError):
-        # In caso di errore, restituisci le classi predefinite
-        return ["guerriero", "mago", "ladro"]
+        # On error, return the default classes
+        return ["fighter", "wizard", "rogue"]
 
 
-def richiedi_classe(io_handler):
-    """Richiede all'utente di scegliere una classe tra quelle disponibili"""
-    classi_disponibili = ottieni_classi_disponibili()
+def request_class(io_handler):
+    """Asks the user to choose a class from those available"""
+    available_classes = get_available_classes()
     
-    io_handler.mostra_messaggio("Classi disponibili:")
-    for i, classe in enumerate(classi_disponibili, 1):
-        io_handler.mostra_messaggio(f"{i}. {classe}")
+    io_handler.show_message("Available classes:")
+    for i, char_class in enumerate(available_classes, 1):
+        io_handler.show_message(f"{i}. {char_class}")
         
     while True:
-        scelta = io_handler.richiedi_input("Scegli una classe (numero o nome): ")
+        selection = io_handler.request_input("Choose a class (number or name): ")
         
-        # Se l'utente ha inserito un numero
-        if scelta.isdigit():
-            indice = int(scelta) - 1
-            if 0 <= indice < len(classi_disponibili):
-                return classi_disponibili[indice]
-        # Se l'utente ha inserito il nome della classe
-        elif scelta.lower() in [c.lower() for c in classi_disponibili]:
-            for c in classi_disponibili:
-                if c.lower() == scelta.lower():
+        # If the user entered a number
+        if selection.isdigit():
+            index = int(selection) - 1
+            if 0 <= index < len(available_classes):
+                return available_classes[index]
+        # If the user entered the class name
+        elif selection.lower() in [c.lower() for c in available_classes]:
+            for c in available_classes:
+                if c.lower() == selection.lower():
                     return c
                     
-        io_handler.mostra_messaggio("Scelta non valida. Riprova.")
+        io_handler.show_message("Invalid choice. Try again.")
 
 
 def main():
-    # Crea un oggetto per l'I/O che verrà utilizzato per tutta l'applicazione
+    # Create an I/O object that will be used throughout the application
     io_handler = TerminalIO()
     
-    # Creazione oggetto temporaneo gioco per i messaggi iniziali
-    gioco_temp = Game(None, None, io_handler, e_temporaneo=True)
+    # Create a temporary game object for the initial messages
+    game_temp = Game(None, None, io_handler, temporary=True)
     
-    gioco_temp.io.mostra_messaggio("Benvenuto avventuriero!")
+    game_temp.io.show_message("Welcome, adventurer!")
     
-    # Mostra menu iniziale
-    gioco_temp.io.mostra_messaggio("1. Nuova Partita")
-    gioco_temp.io.mostra_messaggio("2. Carica Partita")
-    scelta = gioco_temp.io.richiedi_input("> ")
+    # Show the initial menu
+    game_temp.io.show_message("1. New Game")
+    game_temp.io.show_message("2. Load Game")
+    selection = game_temp.io.request_input("> ")
 
-    if scelta == "2":
-        # Crea un gioco temporaneo solo per il caricamento, passando l'io_handler
-        gioco_temp = Game(None, None, io_handler, e_temporaneo=True)
+    if selection == "2":
+        # Create a temporary game just for loading, passing the io_handler
+        game_temp = Game(None, None, io_handler, temporary=True)
         
-        if gioco_temp.carica():
-            # Se il caricamento è riuscito, crea il gioco vero con lo stato iniziale
-            gioco = Game(gioco_temp.giocatore, None, io_handler)
-            # Imposta la mappa corrente
-            gioco.gestore_mappe.imposta_mappa_attuale(gioco.giocatore.mappa_corrente)
-            # Carica lo stato di scelta mappa
-            gioco.push_stato(SceltaMappaState(gioco))
+        if game_temp.load():
+            # If loading succeeded, create the real game with the initial state
+            game = Game(game_temp.player, None, io_handler)
+            # Set the current map
+            game.map_manager.set_current_map(game.player.current_map)
+            # Load the map selection state
+            game.push_state(MapSelectionState(game))
             
-            # Imposta il contesto di gioco nel giocatore
-            if hasattr(gioco.giocatore, 'set_game_context'):
-                gioco.giocatore.set_game_context(gioco)
+            # Set the game context on the player
+            if hasattr(game.player, 'set_game_context'):
+                game.player.set_game_context(game)
         else:
-            # Se il caricamento fallisce, crea una nuova partita
-            gioco_temp.io.mostra_messaggio("Creazione di una nuova partita...")
-            nome = gioco_temp.io.richiedi_input("Come ti chiami? ")
-            classe = richiedi_classe(gioco_temp.io)
-            giocatore = Giocatore(nome, classe)
-            # Crea il gioco con il giocatore
-            gioco = Game(giocatore, None, io_handler)
-            # Carica lo stato di scelta mappa
-            gioco.push_stato(SceltaMappaState(gioco))
+            # If loading fails, create a new game
+            game_temp.io.show_message("Creating a new game...")
+            name = game_temp.io.request_input("What is your name? ")
+            char_class = request_class(game_temp.io)
+            player = Player(name, char_class)
+            # Create the game with the player
+            game = Game(player, None, io_handler)
+            # Load the map selection state
+            game.push_state(MapSelectionState(game))
             
-            # Imposta il contesto di gioco nel giocatore
-            if hasattr(gioco.giocatore, 'set_game_context'):
-                gioco.giocatore.set_game_context(gioco)
+            # Set the game context on the player
+            if hasattr(game.player, 'set_game_context'):
+                game.player.set_game_context(game)
     else:
-        # Chiedi input iniziale
-        nome = gioco_temp.io.richiedi_input("Come ti chiami? ")
-        classe = richiedi_classe(gioco_temp.io)
-        giocatore = Giocatore(nome, classe)
+        # Request initial input
+        name = game_temp.io.request_input("What is your name? ")
+        char_class = request_class(game_temp.io)
+        player = Player(name, char_class)
         
-        # Crea il gioco con il giocatore
-        gioco = Game(giocatore, None, io_handler)
-        
-        # Benvenuto iniziale
-        gioco.io.mostra_messaggio(f"Benvenuto {giocatore.nome} il {giocatore.classe}! La tua avventura sta per iniziare.")
-        gioco.io.mostra_messaggio("Scegli dove vuoi andare per cominciare la tua avventura...")
-        avanti(gioco)
-        
-        # Carica lo stato di scelta mappa
-        gioco.push_stato(SceltaMappaState(gioco))
-        
-        # Imposta il contesto di gioco nel giocatore
-        if hasattr(gioco.giocatore, 'set_game_context'):
-            gioco.giocatore.set_game_context(gioco)
+        # Create the game with the player
+        game = Game(player, None, io_handler)
+
+        # Welcome message
+        game.io.show_message(f"Welcome {player.name} the {player.char_class}! Your adventure is about to begin.")
+        game.io.show_message("Choose where you want to go to begin your adventure...")
+        press_enter(game)
+
+        # Load the map selection state
+        game.push_state(MapSelectionState(game))
+
+        # Set the game context on the player
+        if hasattr(game.player, 'set_game_context'):
+            game.player.set_game_context(game)
     
-    gioco.esegui()
+    game.run()
     
-    # Fine del gioco
-    gioco.io.mostra_messaggio("\n=== Fine dello spettacolo! ===")
-    avanti(gioco)
+    # End of the game
+    game.io.show_message("\n=== End of the show! ===")
+    press_enter(game)
 
 if __name__ == "__main__":
     main()

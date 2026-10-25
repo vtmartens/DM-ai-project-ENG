@@ -3,25 +3,31 @@
 
 This repository contains the **backend core** of a modular role-playing game (RPG) engine, designed in Python using a clean object-oriented architecture and a stack-based finite state machine (FSM). The project aims to evolve into an AI-driven, narratively rich RPG system, where a virtual Dungeon Master powered by GPT can enhance player immersion.
 
-![Descrizione immagine](Image.png)
+![Image description](Image.png)
+
+> Originally written in Italian; the codebase, its data files and its in-game text are now English.
+> See `GLOSSARY.md` for the Italian→English term mapping and `NOTES.md` for known pre-existing
+> issues (including a correction to the requirements note under **Requirements** below).
 
 ## 🏗️ Architecture Overview
 
 The project is organized into well-defined modules:
 
-gioco_rpg/
+DM-AI-EN/
 
-├── main.py # Entry point 
+├── main.py # Entry point (terminal client)
 
-├── core/ # Game loop and I/O interface 
+├── server.py # Flask REST API backend
 
-├── entities/ # Player, NPCs, enemies, shared logic 
+├── core/ # Game loop, I/O interface, web session state
 
-├── items/ # Objects and interactive elements 
+├── entities/ # Player, NPCs, enemies, shared logic
 
-├── states/ # Game states (map, combat, inventory, etc.) 
+├── items/ # Objects and interactive elements
 
-├── util/ # Dice rolling, helper functions 
+├── states/ # Game states (map, combat, inventory, etc.)
+
+├── util/ # Dice rolling, helper functions, data loading, config
 
 ├── data/ # Game data in JSON format
 
@@ -87,16 +93,25 @@ This project will serve as the backend foundation for an AI-driven narrative exp
 Clone the repository and run the main game loop:
 
 ```bash
-git clone https://github.com/yourusername/gioco_rpg.git
-cd gioco_rpg
+git clone https://github.com/yourusername/DM-AI-EN.git
+cd DM-AI-EN
 python main.py
 ```
 
 The game will launch in a text-based interface, allowing you to explore, interact, fight, and talk to characters.
 
+To run the REST API instead:
+
+```bash
+python server.py
+```
+
 ## 📋 Requirements
 - Python 3.10+
-- No external libraries required (standard library only)
+- No external libraries required for the terminal game (standard library only)
+
+Note: `server.py` additionally requires Flask and flask-cors, which are **not** covered by the
+line above and are not currently listed in any requirements file. See `NOTES.md`.
 
 ## 👥 Contribute
 I'm seeking collaborators who want to help build:

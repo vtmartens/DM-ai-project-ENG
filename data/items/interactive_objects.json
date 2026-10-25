@@ -1,0 +1,426 @@
+[
+  {
+    "name": "Treasure Chest",
+    "type": "chest",
+    "description": "A large wooden chest with metal reinforcements",
+    "state": "closed",
+    "requires_key": true,
+    "token": "C",
+    "content": [
+      {
+        "name": "Golden Ring",
+        "type": "accessory",
+        "effect": {"charisma": 1},
+        "value": 30,
+        "description": "A precious gold ring"
+      },
+      {
+        "name": "Healing Potion",
+        "type": "heal",
+        "effect": {"heal": 10},
+        "value": 25,
+        "description": "A potion that restores 10 hit points"
+      }
+    ]
+  },
+  {
+    "name": "Hidden Chest",
+    "type": "chest",
+    "description": "A small chest hidden under some wooden planks",
+    "state": "closed",
+    "requires_key": false,
+    "token": "C",
+    "content": [
+      {
+        "name": "Cellar Key",
+        "type": "key",
+        "value": 10,
+        "description": "An old key that opens the cellar door"
+      }
+    ]
+  },
+  {
+    "name": "Secret Door",
+    "type": "door",
+    "description": "A hidden door behind a shelf",
+    "state": "closed",
+    "requires_key": true,
+    "position": "tavern",
+    "destination_position": "cellar",
+    "token": "D"
+  },
+  {
+    "name": "Market Door",
+    "type": "door",
+    "description": "A solid wooden door that leads to the market",
+    "state": "closed",
+    "requires_key": false,
+    "position": "tavern",
+    "destination_position": "market",
+    "token": "D"
+  },
+  {
+    "name": "Wall Lever",
+    "type": "lever",
+    "description": "A metal lever set into the wall",
+    "state": "deactivated",
+    "token": "L"
+  },
+  {
+    "name": "Spike Trap",
+    "type": "trap",
+    "description": "Spikes hidden in the floor",
+    "state": "active",
+    "damage": 8,
+    "saving_throw_difficulty": 12,
+    "token": "T"
+  },
+  {
+    "name": "Pit Trap",
+    "type": "trap",
+    "description": "A hidden pit that opens beneath your feet",
+    "state": "active",
+    "damage": 5,
+    "saving_throw_difficulty": 10,
+    "token": "T"
+  },
+  {
+    "name": "Magic Altar",
+    "type": "interactive_object",
+    "description": "An ancient altar with mysterious symbols",
+    "state": "inactive",
+    "token": "or",
+    "state_descriptions": {
+      "inactive": "An ancient altar with mysterious symbols that seem dormant",
+      "active": "The altar emits an intense blue light and the symbols glow",
+      "examined": "You notice that the altar bears runes forming an ancient spell"
+    },
+    "possible_states": {
+      "inactive": ["examined", "active"],
+      "examined": ["active"],
+      "active": ["inactive"]
+    },
+    "required_abilities": {
+      "perception": "examined",
+      "arcana": "active"
+    },
+    "ability_difficulty": {
+      "perception": 12,
+      "arcana": 15
+    },
+    "interaction_messages": {
+      "perception": "Studying the altar closely, you notice hidden carvings",
+      "arcana": "Using your arcane knowledge, you activate the altar's ancient power"
+    }
+  },
+  {
+    "name": "Ancient Vase",
+    "type": "breakable_object",
+    "description": "A vase decorated with ancient ceramic",
+    "state": "intact",
+    "required_strength": 5,
+    "token": "or",
+    "materials": [
+      {
+        "name": "Gold Coin",
+        "type": "common",
+        "value": 1,
+        "description": "A shiny gold coin"
+      }
+    ]
+  },
+  {
+    "name": "counter",
+    "type": "interactive_object",
+    "description": "A long wooden counter where Durnan serves drinks",
+    "state": "normal",
+    "token": "or"
+  },
+  {
+    "name": "fireplace",
+    "type": "interactive_object",
+    "description": "A large stone fireplace that warms the tavern",
+    "state": "on",
+    "token": "or",
+    "state_descriptions": {
+      "on": "The flames dance merrily in the fireplace, warming the room",
+      "off": "The fireplace is cold and the ashes are gray"
+    },
+    "possible_states": {
+      "on": ["off"],
+      "off": ["on"]
+    }
+  },
+  {
+    "name": "Fruit Stall",
+    "type": "interactive_object",
+    "description": "A colorful stall full of fresh fruit",
+    "state": "normal",
+    "token": "or",
+    "content": [
+      {
+        "name": "Apple",
+        "type": "food",
+        "effect": {"heal": 2},
+        "value": 1,
+        "description": "A red, juicy apple"
+      }
+    ]
+  },
+  {
+    "name": "fountain",
+    "type": "interactive_object",
+    "description": "A decorative fountain in the center of the square",
+    "state": "active",
+    "token": "or",
+    "state_descriptions": {
+      "active": "Water gushes lively from the fountain",
+      "inactive": "The fountain is still and the water unmoving"
+    },
+    "possible_states": {
+      "active": ["inactive"],
+      "inactive": ["active"]
+    }
+  },
+  {
+    "name": "statue",
+    "type": "interactive_object",
+    "description": "A statue of an ancient hero of the city",
+    "state": "normal",
+    "token": "or"
+  },
+  {
+    "name": "counter",
+    "type": "interactive_object",
+    "description": "A solid wood counter where drinks are served.",
+    "state": "closed",
+    "token": "B",
+    "state_descriptions": {
+      "closed": "A solid wood counter where drinks are served.",
+      "open": "The counter is open; you can see some bottles inside."
+    },
+    "possible_states": {
+      "closed": ["open"],
+      "open": ["closed"]
+    }
+  },
+  {
+    "name": "fireplace",
+    "type": "interactive_object",
+    "description": "A stone fireplace with a crackling fire.",
+    "state": "on",
+    "token": "F",
+    "state_descriptions": {
+      "on": "A stone fireplace with a crackling fire that warms the room.",
+      "off": "A stone fireplace with cold ashes."
+    },
+    "possible_states": {
+      "on": ["off"],
+      "off": ["on"]
+    }
+  },
+  {
+    "name": "table",
+    "type": "interactive_object",
+    "description": "A sturdy wooden table.",
+    "state": "clean",
+    "token": "T",
+    "state_descriptions": {
+      "clean": "A sturdy, well-kept wooden table.",
+      "dirty": "A wooden table with some stains of drink and food."
+    },
+    "possible_states": {
+      "clean": ["dirty"],
+      "dirty": ["clean"]
+    }
+  },
+  {
+    "name": "chair",
+    "type": "interactive_object",
+    "description": "A wooden chair.",
+    "state": "intact",
+    "token": "S",
+    "state_descriptions": {
+      "intact": "A solid, well-built wooden chair.",
+      "broken": "A broken chair with a damaged leg."
+    },
+    "possible_states": {
+      "intact": ["broken"],
+      "broken": []
+    }
+  },
+  {
+    "name": "barrel",
+    "type": "interactive_object",
+    "description": "A wooden barrel full of drinks.",
+    "state": "closed",
+    "token": "or",
+    "state_descriptions": {
+      "closed": "A wooden barrel full of drinks, sealed airtight.",
+      "open": "An open wooden barrel containing an amber liquid."
+    },
+    "possible_states": {
+      "closed": ["open"],
+      "open": ["closed"]
+    }
+  },
+  {
+    "name": "stairs",
+    "type": "interactive_object",
+    "description": "A wooden staircase leading to the upper floor.",
+    "state": "usable",
+    "token": "H",
+    "state_descriptions": {
+      "usable": "A wooden staircase leading to the upper floor.",
+      "blocked": "A wooden staircase, but someone seems to have blocked access."
+    },
+    "possible_states": {
+      "usable": ["blocked"],
+      "blocked": ["usable"]
+    }
+  },
+  {
+    "name": "hidden_chest",
+    "type": "chest",
+    "description": "A richly decorated wooden chest.",
+    "state": "closed",
+    "token": "C",
+    "requires_key": true,
+    "state_descriptions": {
+      "closed": "A richly decorated wooden chest; it seems locked.",
+      "open": "A richly decorated wooden chest; it is open and shows its contents."
+    },
+    "possible_states": {
+      "closed": ["open"],
+      "open": ["closed"]
+    }
+  },
+  {
+    "name": "stall",
+    "type": "interactive_object",
+    "description": "A stall of a local merchant.",
+    "state": "open",
+    "token": "V",
+    "state_descriptions": {
+      "open": "A stall full of colorful and interesting goods.",
+      "closed": "A closed stall with its curtains drawn."
+    },
+    "possible_states": {
+      "open": ["closed"],
+      "closed": ["open"]
+    }
+  },
+  {
+    "name": "fountain",
+    "type": "interactive_object",
+    "description": "A stone fountain with fresh water.",
+    "state": "active",
+    "token": "W",
+    "state_descriptions": {
+      "active": "A stone fountain from which fresh, crystal-clear water flows.",
+      "inactive": "A dry stone fountain; it doesn't seem to work."
+    },
+    "possible_states": {
+      "active": ["inactive"],
+      "inactive": ["active"]
+    }
+  },
+  {
+    "name": "statue",
+    "type": "interactive_object",
+    "description": "A stone statue depicting a forgotten hero.",
+    "state": "intact",
+    "token": "to",
+    "state_descriptions": {
+      "intact": "A stone statue depicting a forgotten hero.",
+      "damaged": "A stone statue, partially damaged."
+    },
+    "possible_states": {
+      "intact": ["damaged"],
+      "damaged": ["intact"]
+    }
+  },
+  {
+    "name": "tavern_door",
+    "type": "door",
+    "description": "A sturdy door that leads to the tavern.",
+    "state": "closed",
+    "token": "D",
+    "requires_key": false,
+    "destination_position": "tavern",
+    "state_descriptions": {
+      "closed": "A sturdy door that leads to the tavern.",
+      "open": "A sturdy door open toward the tavern."
+    },
+    "possible_states": {
+      "closed": ["open"],
+      "open": ["closed"]
+    }
+  },
+  {
+    "name": "cellar_door",
+    "type": "door",
+    "description": "A wooden door leading to the cellar, secured by a padlock.",
+    "state": "closed",
+    "token": "D",
+    "requires_key": true,
+    "destination_position": "cellar",
+    "state_descriptions": {
+      "closed": "A wooden door leading to the cellar, secured by a padlock.",
+      "open": "An open wooden door that leads into the dark cellar."
+    },
+    "possible_states": {
+      "closed": ["open"],
+      "open": ["closed"]
+    }
+  },
+  {
+    "name": "floor_trap",
+    "type": "trap",
+    "description": "A section of the floor that looks suspicious.",
+    "state": "active",
+    "token": "T",
+    "damage": 8,
+    "saving_throw_difficulty": 12,
+    "state_descriptions": {
+      "active": "A section of the floor that looks suspicious.",
+      "deactivated": "A section of the floor with a deactivated spike trap."
+    },
+    "possible_states": {
+      "active": ["deactivated"],
+      "deactivated": ["active"]
+    }
+  },
+  {
+    "name": "magic_altar",
+    "type": "interactive_object",
+    "description": "A stone altar with strange arcane inscriptions.",
+    "state": "inactive",
+    "token": "M",
+    "state_descriptions": {
+      "inactive": "A stone altar with strange arcane inscriptions.",
+      "active": "A stone altar with arcane inscriptions emitting a blue glow."
+    },
+    "possible_states": {
+      "inactive": ["active"],
+      "active": ["inactive"]
+    }
+  },
+  {
+    "name": "exit_door",
+    "type": "door",
+    "description": "A massive door that leads outside the cellar.",
+    "state": "closed",
+    "token": "D",
+    "requires_key": false,
+    "destination_position": "market",
+    "state_descriptions": {
+      "closed": "A massive door that leads outside the cellar.",
+      "open": "A massive door open to the outside."
+    },
+    "possible_states": {
+      "closed": ["open"],
+      "open": ["closed"]
+    }
+  }
+] 
