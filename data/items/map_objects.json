@@ -1,0 +1,68 @@
+{
+  "tavern": [
+    {
+      "name": "counter",
+      "position": [3, 2]
+    },
+    {
+      "name": "fireplace",
+      "position": [9, 1]
+    },
+    {
+      "name": "table",
+      "position": [7, 5]
+    },
+    {
+      "name": "chair",
+      "position": [6, 5]
+    },
+    {
+      "name": "barrel",
+      "position": [1, 1]
+    },
+    {
+      "name": "stairs",
+      "position": [9, 9]
+    },
+    {
+      "name": "cellar_door",
+      "position": [22, 9]
+    }
+  ],
+  "market": [
+    {
+      "name": "stall",
+      "position": [3, 3]
+    },
+    {
+      "name": "fountain",
+      "position": [10, 5]
+    },
+    {
+      "name": "statue",
+      "position": [7, 7]
+    },
+    {
+      "name": "tavern_door",
+      "position": [12, 1]
+    }
+  ],
+  "cellar": [
+    {
+      "name": "hidden_chest",
+      "position": [8, 10]
+    },
+    {
+      "name": "floor_trap",
+      "position": [10, 5]
+    },
+    {
+      "name": "magic_altar",
+      "position": [15, 3]
+    },
+    {
+      "name": "exit_door",
+      "position": [18, 7]
+    }
+  ]
+} 

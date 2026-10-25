@@ -1,99 +1,99 @@
 [
   {
-    "id": "primo_passo",
-    "nome": "Primo Passo",
-    "descrizione": "Muoviti per la prima volta",
-    "icona": "achievement_movimento.png",
-    "difficolta": "facile",
-    "punteggio": 5,
-    "condizione": {
-      "tipo": "movimento",
-      "valore": 1
+    "id": "first_step",
+    "name": "First Step",
+    "description": "Move for the first time",
+    "icon": "achievement_movement.png",
+    "difficulty": "easy",
+    "score": 5,
+    "condition": {
+      "type": "movement",
+      "value": 1
     }
   },
   {
-    "id": "primo_sangue",
-    "nome": "Primo Sangue",
-    "descrizione": "Vinci il tuo primo combattimento",
-    "icona": "achievement_combattimento.png",
-    "difficolta": "facile",
-    "punteggio": 10,
-    "condizione": {
-      "tipo": "combattimento_vittoria",
-      "valore": 1
+    "id": "first_blood",
+    "name": "First Blood",
+    "description": "Win your first fight",
+    "icon": "achievement_combat.png",
+    "difficulty": "easy",
+    "score": 10,
+    "condition": {
+      "type": "combat_victory",
+      "value": 1
     }
   },
   {
-    "id": "collezionista",
-    "nome": "Collezionista",
-    "descrizione": "Raccogli 20 oggetti diversi",
-    "icona": "achievement_oggetti.png",
-    "difficolta": "media",
-    "punteggio": 20,
-    "condizione": {
-      "tipo": "oggetti_raccolti_unici",
-      "valore": 20
+    "id": "collector",
+    "name": "Collector",
+    "description": "Collect 20 different items",
+    "icon": "achievement_items.png",
+    "difficulty": "medium",
+    "score": 20,
+    "condition": {
+      "type": "unique_items_collected",
+      "value": 20
     }
   },
   {
-    "id": "esploratore",
-    "nome": "Esploratore",
-    "descrizione": "Visita tutte le aree della mappa",
-    "icona": "achievement_mappa.png",
-    "difficolta": "difficile",
-    "punteggio": 50,
-    "condizione": {
-      "tipo": "aree_visitate",
-      "valore": "tutte"
+    "id": "explorer",
+    "name": "Explorer",
+    "description": "Visit every area of the map",
+    "icon": "achievement_map.png",
+    "difficulty": "hard",
+    "score": 50,
+    "condition": {
+      "type": "areas_visited",
+      "value": "all"
     }
   },
   {
-    "id": "maestro_armi",
-    "nome": "Maestro delle Armi",
-    "descrizione": "Equipaggia un'arma leggendaria",
-    "icona": "achievement_equipaggiamento.png",
-    "difficolta": "difficile",
-    "punteggio": 30,
-    "condizione": {
-      "tipo": "equipaggia_oggetto",
-      "rarita": "leggendario",
-      "categoria": "arma"
+    "id": "weapon_master",
+    "name": "Weapon Master",
+    "description": "Equip a legendary weapon",
+    "icon": "achievement_equipment.png",
+    "difficulty": "hard",
+    "score": 30,
+    "condition": {
+      "type": "equip_item",
+      "rarity": "legendary",
+      "category": "weapon"
     }
   },
   {
-    "id": "ricco_sfondato",
-    "nome": "Ricco Sfondato",
-    "descrizione": "Accumula 1000 monete d'oro",
-    "icona": "achievement_oro.png",
-    "difficolta": "media",
-    "punteggio": 25,
-    "condizione": {
-      "tipo": "monete",
-      "valore": 1000
+    "id": "filthy_rich",
+    "name": "Filthy Rich",
+    "description": "Accumulate 1000 gold coins",
+    "icon": "achievement_gold.png",
+    "difficulty": "medium",
+    "score": 25,
+    "condition": {
+      "type": "coins",
+      "value": 1000
     }
   },
   {
-    "id": "invincibile",
-    "nome": "Invincibile",
-    "descrizione": "Vinci 10 combattimenti senza subire danni",
-    "icona": "achievement_difesa.png",
-    "difficolta": "difficile",
-    "punteggio": 40,
-    "condizione": {
-      "tipo": "combattimenti_senza_danni",
-      "valore": 10
+    "id": "invincible",
+    "name": "Invincible",
+    "description": "Win 10 fights without taking damage",
+    "icon": "achievement_defense.png",
+    "difficulty": "hard",
+    "score": 40,
+    "condition": {
+      "type": "combat_without_damage",
+      "value": 10
     }
   },
   {
-    "id": "diplomazia",
-    "nome": "Diplomatico",
-    "descrizione": "Completa una missione senza combattere",
-    "icona": "achievement_dialogo.png",
-    "difficolta": "media",
-    "punteggio": 20,
-    "condizione": {
-      "tipo": "missione_senza_combattimenti",
-      "valore": 1
+    "id": "diplomacy",
+    "name": "Diplomat",
+    "description": "Complete a quest without fighting",
+    "icon": "achievement_dialogue.png",
+    "difficulty": "medium",
+    "score": 20,
+    "condition": {
+      "type": "quest_without_combat",
+      "value": 1
     }
   }
 ] 

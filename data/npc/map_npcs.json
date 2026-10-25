@@ -1,0 +1,40 @@
+{
+  "tavern": [
+    {
+      "name": "Durnan",
+      "position": [6, 6]
+    },
+    {
+      "name": "Elminster",
+      "position": [12, 12]
+    },
+    {
+      "name": "Mirt",
+      "position": [7, 7]
+    }
+  ],
+  "market": [
+    {
+      "name": "Herald",
+      "position": [2, 3]
+    },
+    {
+      "name": "Violet",
+      "position": [12, 3]
+    },
+    {
+      "name": "Gundren",
+      "position": [5, 8]
+    }
+  ],
+  "cellar": [
+    {
+      "name": "Specter",
+      "position": [5, 5]
+    },
+    {
+      "name": "Cultist",
+      "position": [12, 8]
+    }
+  ]
+} 

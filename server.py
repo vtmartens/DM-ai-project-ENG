@@ -8,1309 +8,1355 @@ import datetime
 import logging
 from flask_cors import CORS
 
-from core.stato_gioco import StatoGioco
-from entities.giocatore import Giocatore
-from states.taverna import TavernaState
+from core.game_state import GameState
+from entities.player import Player
+from states.tavern import TavernState
 from util.data_manager import get_data_manager
 from util.config import SESSIONS_DIR, SAVE_DIR, BACKUPS_DIR, get_save_path, list_save_files, delete_save_file, get_session_path
 
-# Configura il logger
+# Configure the logger
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("gioco_rpg")
+logger = logging.getLogger("game_rpg")
 
 app = Flask(__name__)
-CORS(app)  # Abilita CORS per consentire richieste da frontend
+CORS(app)  # Enable CORS to allow requests from the frontend
 
-# Assicurati che le directory esistano
+# Make sure the directories exist
 os.makedirs(SESSIONS_DIR, exist_ok=True)
 os.makedirs(SAVE_DIR, exist_ok=True)
 os.makedirs(BACKUPS_DIR, exist_ok=True)
 
-# Directory per gli asset grafici
+# Directory for the graphic assets
 ASSETS_DIR = "assets"
 os.makedirs(ASSETS_DIR, exist_ok=True)
 
-# Dizionario per memorizzare le sessioni attive in memoria
-sessioni_attive = {}  # {uuid: StatoGioco}
+# Dictionary to store the active sessions in memory
+active_sessions = {}  # {uuid: GameState}
 
-# Dizionario per memorizzare le notifiche di sistema
-notifiche_sistema = {}  # {uuid: [lista di notifiche]}
+# Dictionary to store the system notifications
+system_notifications = {}  # {uuid: [list of notifications]}
 
-def salva_sessione(id_sessione, sessione):
-    """Salva una sessione su disco"""
-    percorso = get_session_path(id_sessione)
-    with open(percorso, 'wb') as f:
-        pickle.dump(sessione, f)
+def save_session(session_id, session):
+    """Save a session to disk"""
+    path = get_session_path(session_id)
+    with open(path, 'wb') as f:
+        pickle.dump(session, f)
 
-def carica_sessione(id_sessione):
-    """Carica una sessione da disco"""
-    percorso = get_session_path(id_sessione)
-    if os.path.exists(percorso):
-        with open(percorso, 'rb') as f:
+def load_session(session_id):
+    """Load a session from disk"""
+    path = get_session_path(session_id)
+    if os.path.exists(path):
+        with open(path, 'rb') as f:
             return pickle.load(f)
     return None
 
-def aggiungi_notifica(id_sessione, tipo, messaggio, data=None):
-    """Aggiunge una notifica al sistema"""
-    if id_sessione not in notifiche_sistema:
-        notifiche_sistema[id_sessione] = []
+def add_notification(session_id, type, message, data=None):
+    """Add a notification to the system"""
+    if session_id not in system_notifications:
+        system_notifications[session_id] = []
     
-    notifica = {
+    notification = {
         "id": str(uuid4()),
-        "tipo": tipo,  # "info", "warning", "achievement", "quest", "combat", ecc.
-        "messaggio": messaggio,
+        "type": type,  # "info", "warning", "achievement", "quest", "combat", etc.
+        "message": message,
         "data": data or {},
         "timestamp": time.time(),
-        "letta": False
+        "read": False
     }
     
-    notifiche_sistema[id_sessione].append(notifica)
-    return notifica
+    system_notifications[session_id].append(notification)
+    return notification
 
 @app.route("/")
 def home():
-    """Pagina principale"""
+    """Main page"""
     return jsonify({
-        "messaggio": "Server RPG attivo",
+        "message": "RPG server active",
         "endpoints": {
-            "POST /inizia": "Crea una nuova partita",
-            "POST /comando": "Invia un comando alla partita",
-            "GET /stato": "Ottieni lo stato attuale della partita",
-            "POST /salva": "Salva la partita corrente",
-            "POST /carica": "Carica una partita esistente",
-            "GET /mappa": "Ottieni informazioni sulla mappa",
-            "POST /muovi": "Muovi il giocatore in una direzione",
-            "GET /inventario": "Ottieni l'inventario del giocatore",
-            "GET /statistiche": "Ottieni le statistiche del giocatore",
-            "GET /posizione": "Ottieni la posizione del giocatore",
-            "GET /missioni": "Ottieni le missioni attive/completate",
-            "GET /classi": "Ottieni informazioni sulle classi disponibili",
-            "GET /salvataggi": "Ottieni la lista dei salvataggi disponibili",
-            "GET /combattimento": "Ottieni lo stato del combattimento attuale",
-            "POST /azione_combattimento": "Esegui un'azione di combattimento",
-            "GET /npc": "Ottieni informazioni sugli NPC nella posizione attuale",
-            "GET /log": "Ottieni il log degli eventi recenti",
-            "POST /equipaggiamento": "Gestisci l'equipaggiamento del giocatore",
-            "GET /azioni_disponibili": "Ottieni le azioni disponibili nel contesto attuale",
-            "POST /dialogo": "Gestisci il dialogo con un NPC",
-            "POST /esplora": "Esplora l'ambiente circostante",
-            "POST /preferenze": "Salva le preferenze dell'utente",
-            "POST /elimina_salvataggio": "Elimina un salvataggio",
-            "GET /notifiche": "Ottieni le notifiche non lette",
-            "POST /leggi_notifica": "Segna una notifica come letta",
-            "GET /asset": "Ottieni un asset grafico",
-            "GET /assets_info": "Ottieni informazioni sugli asset disponibili",
-            "GET /tutorial": "Ottieni informazioni sui tutorial",
-            "GET /achievements": "Ottieni gli achievement del giocatore",
-            "GET /oggetto_dettagli": "Ottieni dettagli su un oggetto specifico",
-            "GET /abilita": "Ottieni le abilità del giocatore",
-            "POST /usa_abilita": "Usa un'abilità del giocatore",
-            "POST /esporta_salvataggio": "Esporta un salvataggio come file",
-            "POST /importa_salvataggio": "Importa un salvataggio da file"
+            "POST /start": "Create a new game",
+            "POST /command": "Send a command to the game",
+            "GET /state": "Get the current game state",
+            "POST /save": "Save the current game",
+            "POST /load": "Load an existing game",
+            "GET /map": "Get information about the map",
+            "POST /move": "Move the player in a direction",
+            "GET /inventory": "Get the player's inventory",
+            "GET /stats": "Get the player's stats",
+            "GET /position": "Get the player's position",
+            "GET /missions": "Get active/completed quests",
+            "GET /classes": "Get information about the available classes",
+            "GET /saves": "Get the list of available saves",
+            "GET /combat": "Get the current combat state",
+            "POST /combat_action": "Perform a combat action",
+            "GET /npcs": "Get information about the NPCs in the current location",
+            "GET /log": "Get the log of recent events",
+            "POST /equipment": "Manage the player's equipment",
+            "GET /available_actions": "Get the actions available in the current context",
+            "POST /dialogue": "Manage dialogue with an NPC",
+            "POST /explore": "Explore the surrounding environment",
+            "POST /preferences": "Save the user's preferences",
+            "POST /delete_save": "Delete a save",
+            "GET /notifications": "Get unread notifications",
+            "POST /read_notification": "Mark a notification as read",
+            "GET /asset": "Get a graphic asset",
+            "GET /assets_info": "Get information about the available assets",
+            "GET /tutorial": "Get information about the tutorials",
+            "GET /achievements": "Get the player's achievements",
+            "GET /item_details": "Get details about a specific item",
+            "GET /abilities": "Get the player's abilities",
+            "POST /use_ability": "Use a player ability",
+            "POST /export_save": "Export a save as a file",
+            "POST /import_save": "Import a save from a file"
         }
     })
 
-@app.route("/inizia", methods=["POST"])
-def inizia_gioco():
-    """Inizia una nuova sessione di gioco"""
-    # Estrai i dati dalla richiesta
+@app.route("/start", methods=["POST"])
+def start_game():
+    """Start a new game session"""
+    # Extract the data from the request
     data = request.json or {}
-    nome = data.get("nome", "Avventuriero")
-    classe = data.get("classe", "guerriero").lower()
+    name = data.get("name", "Adventurer")
+    char_class = data.get("char_class", "fighter").lower()
     
-    # Crea un nuovo ID di sessione
-    id_sessione = str(uuid4())
+    # Create a new session ID
+    session_id = str(uuid4())
     
-    # Crea un nuovo giocatore
-    giocatore = Giocatore(nome, classe)
+    # Create a new player
+    player = Player(name, char_class)
     
-    # Crea una nuova sessione di gioco
-    sessione = StatoGioco(giocatore, TavernaState())
-    sessioni_attive[id_sessione] = sessione
+    # Create a new game session
+    session = GameState(player, TavernState())
+    active_sessions[session_id] = session
     
-    # Esegui il primo comando vuoto per ottenere l'output iniziale
-    sessione.processa_comando("")
+    # Run the first empty command to get the initial output
+    session.process_command("")
     
-    # Salva la sessione su disco
-    salva_sessione(id_sessione, sessione)
+    # Save the session to disk
+    save_session(session_id, session)
     
-    # Ottieni lo stato iniziale
-    stato = sessione.get_stato_attuale()
+    # Get the initial state
+    state = session.get_current_state()
     
     return jsonify({
-        "id_sessione": id_sessione, 
-        "messaggio": "Gioco iniziato",
-        "stato": stato
+        "session_id": session_id, 
+        "message": "Game started",
+        "state": state
     })
 
-@app.route("/comando", methods=["POST"])
-def esegui_comando():
-    """Elabora un comando inviato dal client"""
-    # Estrai i dati dalla richiesta
+@app.route("/command", methods=["POST"])
+def run_command():
+    """Process a command sent by the client"""
+    # Extract the data from the request
     data = request.json or {}
-    id_sessione = data.get("id_sessione")
-    comando = data.get("comando", "")
+    session_id = data.get("session_id")
+    command = data.get("command", "")
     
-    # Verifica che l'ID sessione sia stato fornito
-    if not id_sessione:
-        return jsonify({"errore": "ID sessione non fornito"}), 400
+    # Check that the session ID was provided
+    if not session_id:
+        return jsonify({"error": "Session ID not provided"}), 400
     
-    # Controlla se la sessione è attiva in memoria
-    sessione = sessioni_attive.get(id_sessione)
+    # Check whether the session is active in memory
+    session = active_sessions.get(session_id)
     
-    # Se non è in memoria, prova a caricarla da disco
-    if not sessione:
-        sessione = carica_sessione(id_sessione)
-        if sessione:
-            # Se trovata su disco, caricala in memoria
-            sessioni_attive[id_sessione] = sessione
+    # If it is not in memory, try loading it from disk
+    if not session:
+        session = load_session(session_id)
+        if session:
+            # If found on disk, load it into memory
+            active_sessions[session_id] = session
     
-    # Se ancora non trovata, restituisci errore
-    if not sessione:
-        return jsonify({"errore": "Sessione non trovata"}), 404
+    # If it is still not found, return an error
+    if not session:
+        return jsonify({"error": "Session not found"}), 404
     
-    # Elabora il comando
-    sessione.processa_comando(comando)
+    # Process the command
+    session.process_command(command)
     
-    # Salva la sessione aggiornata
-    salva_sessione(id_sessione, sessione)
+    # Save the updated session
+    save_session(session_id, session)
     
-    # Ottieni lo stato corrente
-    stato_attuale = sessione.get_stato_attuale()
+    # Get the current state
+    current_state = session.get_current_state()
     
-    # Ottieni il nome dello stato corrente
-    stato_nome = "NessunoStato"
-    if sessione.game.stato_corrente():
-        stato_nome = type(sessione.game.stato_corrente()).__name__
+    # Get the name of the current state
+    state_name = "NoneState"
+    if session.game.current_state():
+        state_name = type(session.game.current_state()).__name__
     
-    # Ottieni l'output strutturato
-    output_strutturato = sessione.io_buffer.get_output_structured()
+    # Get the structured output
+    structured_output = session.io_buffer.get_structured_output()
     
-    # Pulisci il buffer dei messaggi
-    sessione.io_buffer.clear()
+    # Clear the message buffer
+    session.io_buffer.clear()
     
-    # Controlla se il gioco è terminato
-    gioco_terminato = not sessione.game.attivo
+    # Check whether the game has ended
+    game_finished = not session.game.active
     
-    # Restituisci lo stato aggiornato
+    # Return the updated state
     return jsonify({
-        "output": output_strutturato,
-        "stato": stato_attuale,
-        "stato_nome": stato_nome,
-        "fine": gioco_terminato
+        "output": structured_output,
+        "state": current_state,
+        "state_name": state_name,
+        "end": game_finished
     })
 
-@app.route("/stato", methods=["GET"])
-def ottieni_stato():
-    """Ottieni lo stato attuale della sessione"""
-    # Estrai l'ID sessione dalla query string
-    id_sessione = request.args.get("id_sessione")
+@app.route("/state", methods=["GET"])
+def get_state():
+    """Get the current state of the session"""
+    # Extract the session ID from the query string
+    session_id = request.args.get("session_id")
     
-    # Verifica che l'ID sessione sia stato fornito
-    if not id_sessione:
-        return jsonify({"errore": "ID sessione non fornito"}), 400
+    # Check that the session ID was provided
+    if not session_id:
+        return jsonify({"error": "Session ID not provided"}), 400
     
-    # Cerca la sessione in memoria o su disco
-    sessione = sessioni_attive.get(id_sessione) or carica_sessione(id_sessione)
+    # Look for the session in memory or on disk
+    session = active_sessions.get(session_id) or load_session(session_id)
     
-    if not sessione:
-        return jsonify({"errore": "Sessione non trovata"}), 404
+    if not session:
+        return jsonify({"error": "Session not found"}), 404
     
-    # Restituisci lo stato attuale
-    return jsonify(sessione.get_stato_attuale())
+    # Return the current state
+    return jsonify(session.get_current_state())
 
-@app.route("/salva", methods=["POST"])
-def salva_partita():
-    """Salva la partita su file"""
-    # Estrai i dati dalla richiesta
+@app.route("/save", methods=["POST"])
+def save_game():
+    """Save the game to a file"""
+    # Extract the data from the request
     data = request.json or {}
-    id_sessione = data.get("id_sessione")
-    nome_file = data.get("nome_file", "salvataggio.json")
+    session_id = data.get("session_id")
+    file_name = data.get("file_name", "save.json")
     
-    # Verifica che l'ID sessione sia stato fornito
-    if not id_sessione:
-        return jsonify({"errore": "ID sessione non fornito"}), 400
+    # Check that the session ID was provided
+    if not session_id:
+        return jsonify({"error": "Session ID not provided"}), 400
     
-    # Cerca la sessione
-    sessione = sessioni_attive.get(id_sessione) or carica_sessione(id_sessione)
+    # Look for the session
+    session = active_sessions.get(session_id) or load_session(session_id)
     
-    if not sessione:
-        return jsonify({"errore": "Sessione non trovata"}), 404
+    if not session:
+        return jsonify({"error": "Session not found"}), 404
     
-    # Salva la partita
+    # Save the game
     try:
-        # Ottieni il percorso completo tramite il modulo di configurazione
-        percorso = get_save_path(nome_file)
-        sessione.salva(percorso)
-        logger.info(f"Partita salvata in {percorso}")
-        return jsonify({"messaggio": f"Partita salvata in {nome_file}"})
+        # Get the full path through the config module
+        path = get_save_path(file_name)
+        session.save(path)
+        logger.info(f"Game saved to {path}")
+        return jsonify({"message": f"Game saved to {file_name}"})
     except Exception as e:
-        logger.error(f"Errore durante il salvataggio: {str(e)}")
-        return jsonify({"errore": f"Errore durante il salvataggio: {str(e)}"}), 500
+        logger.error(f"Error while saving: {str(e)}")
+        return jsonify({"error": f"Error while saving: {str(e)}"}), 500
 
-@app.route("/carica", methods=["POST"])
-def carica_partita():
-    """Carica una partita da file"""
-    # Estrai i dati dalla richiesta
+@app.route("/load", methods=["POST"])
+def load_game():
+    """Load a game from a file"""
+    # Extract the data from the request
     data = request.json or {}
-    id_sessione = data.get("id_sessione")
-    nome_file = data.get("nome_file", "salvataggio.json")
+    session_id = data.get("session_id")
+    file_name = data.get("file_name", "save.json")
     
-    # Verifica che l'ID sessione sia stato fornito
-    if not id_sessione:
-        return jsonify({"errore": "ID sessione non fornito"}), 400
+    # Check that the session ID was provided
+    if not session_id:
+        return jsonify({"error": "Session ID not provided"}), 400
     
-    # Cerca la sessione o creane una nuova
-    sessione = sessioni_attive.get(id_sessione) or carica_sessione(id_sessione)
+    # Look for the session or create a new one
+    session = active_sessions.get(session_id) or load_session(session_id)
     
-    if not sessione:
-        return jsonify({"errore": "Sessione non trovata"}), 404
+    if not session:
+        return jsonify({"error": "Session not found"}), 404
     
-    # Carica la partita
+    # Load the game
     try:
-        # Ottieni il percorso completo tramite il modulo di configurazione
-        percorso = get_save_path(nome_file)
+        # Get the full path through the config module
+        path = get_save_path(file_name)
         
-        if not os.path.exists(percorso):
-            return jsonify({"errore": f"File di salvataggio non trovato: {nome_file}"}), 404
+        if not os.path.exists(path):
+            return jsonify({"error": f"Save file not found: {file_name}"}), 404
             
-        risultato = sessione.carica(percorso)
+        result = session.load(path)
         
-        if risultato:
-            # Salva la sessione aggiornata
-            sessioni_attive[id_sessione] = sessione
-            salva_sessione(id_sessione, sessione)
+        if result:
+            # Save the updated session
+            active_sessions[session_id] = session
+            save_session(session_id, session)
             
-            # Ottieni informazioni sul giocatore
-            stato = sessione.get_stato_attuale()
+            # Get information about the player
+            state = session.get_current_state()
             
             return jsonify({
-                "messaggio": f"Partita caricata da {nome_file}",
-                "giocatore": stato.get("giocatore", {})
+                "message": f"Game loaded from {file_name}",
+                "player": state.get("player", {})
             })
         else:
-            return jsonify({"errore": "Errore durante il caricamento"}), 500
+            return jsonify({"error": "Error while loading"}), 500
     except Exception as e:
-        logger.error(f"Errore durante il caricamento della partita: {str(e)}")
-        return jsonify({"errore": f"Errore durante il caricamento: {str(e)}"}), 500
+        logger.error(f"Error while loading the game: {str(e)}")
+        return jsonify({"error": f"Error while loading: {str(e)}"}), 500
 
-@app.route("/mappa", methods=["GET"])
-def ottieni_mappa():
-    """Ottieni informazioni sulla mappa attuale"""
-    # Estrai l'ID sessione dalla query string
-    id_sessione = request.args.get("id_sessione")
-    
-    # Verifica che l'ID sessione sia stato fornito
-    if not id_sessione:
-        return jsonify({"errore": "ID sessione non fornito"}), 400
-    
-    # Cerca la sessione
-    sessione = sessioni_attive.get(id_sessione) or carica_sessione(id_sessione)
-    
-    if not sessione:
-        return jsonify({"errore": "Sessione non trovata"}), 404
-    
-    # Ottieni informazioni sulla mappa
-    info_posizione = sessione.ottieni_posizione_giocatore()
-    
-    if not info_posizione:
-        return jsonify({"errore": "Posizione del giocatore non disponibile"}), 404
-    
-    return jsonify(info_posizione)
+def _json_safe_position(info):
+    """Convert Game.get_player_position() into something jsonify can serialize.
 
-@app.route("/muovi", methods=["POST"])
-def muovi_giocatore():
-    """Muovi il giocatore nella direzione specificata"""
-    # Estrai i dati dalla richiesta
+    That method returns nearby_items / nearby_npcs as {(x, y): object}, and a tuple key
+    makes jsonify raise "keys must be str, int, float, bool or None, not tuple"; the
+    objects are not serializable either. Neither /map nor /position worked because of
+    this. The engine's own return value is left untouched.
+    """
+    if not isinstance(info, dict):
+        return info
+    out = dict(info)
+    for key in ("nearby_items", "nearby_npcs"):
+        value = out.get(key)
+        if isinstance(value, dict):
+            out[key] = [
+                {
+                    "position": list(pos) if isinstance(pos, tuple) else pos,
+                    "name": getattr(obj, "name", str(obj)),
+                    "type": getattr(obj, "type", None),
+                }
+                for pos, obj in value.items()
+            ]
+    return out
+
+@app.route("/map", methods=["GET"])
+def get_map():
+    """Get information about the current map"""
+    # Extract the session ID from the query string
+    session_id = request.args.get("session_id")
+    
+    # Check that the session ID was provided
+    if not session_id:
+        return jsonify({"error": "Session ID not provided"}), 400
+    
+    # Look for the session
+    session = active_sessions.get(session_id) or load_session(session_id)
+    
+    if not session:
+        return jsonify({"error": "Session not found"}), 404
+    
+    # Get information about the map
+    position_info = session.get_player_position()
+    
+    if not position_info:
+        return jsonify({"error": "Player position not available"}), 404
+    
+    return jsonify(_json_safe_position(position_info))
+
+@app.route("/move", methods=["POST"])
+def move_player():
+    """Move the player in the specified direction"""
+    # Extract the data from the request
     data = request.json or {}
-    id_sessione = data.get("id_sessione")
-    direzione = data.get("direzione")
+    session_id = data.get("session_id")
+    direction = data.get("direction")
     
-    # Verifica che l'ID sessione e la direzione siano stati forniti
-    if not id_sessione:
-        return jsonify({"errore": "ID sessione non fornito"}), 400
-    if not direzione:
-        return jsonify({"errore": "Direzione non fornita"}), 400
+    # Check that both the session ID and the direction were provided
+    if not session_id:
+        return jsonify({"error": "Session ID not provided"}), 400
+    if not direction:
+        return jsonify({"error": "Direction not provided"}), 400
     
-    # Cerca la sessione
-    sessione = sessioni_attive.get(id_sessione) or carica_sessione(id_sessione)
+    # Look for the session
+    session = active_sessions.get(session_id) or load_session(session_id)
     
-    if not sessione:
-        return jsonify({"errore": "Sessione non trovata"}), 404
+    if not session:
+        return jsonify({"error": "Session not found"}), 404
     
-    # Muovi il giocatore
-    spostamento = sessione.muovi_giocatore(direzione)
+    # Move the player
+    movement = session.move_player(direction)
     
-    # Salva la sessione aggiornata
-    salva_sessione(id_sessione, sessione)
+    # Save the updated session
+    save_session(session_id, session)
     
-    # Restituisci lo stato aggiornato
+    # Return the updated state
     return jsonify({
-        "spostamento": spostamento,
-        "stato": sessione.get_stato_attuale()
+        "movement": movement,
+        "state": session.get_current_state()
     })
 
-@app.route("/inventario", methods=["GET"])
-def ottieni_inventario():
-    """Ottieni l'inventario del giocatore"""
-    id_sessione = request.args.get("id_sessione")
+@app.route("/inventory", methods=["GET"])
+def get_inventory():
+    """Get the player's inventory"""
+    session_id = request.args.get("session_id")
     
-    if not id_sessione:
-        return jsonify({"errore": "ID sessione non fornito"}), 400
+    if not session_id:
+        return jsonify({"error": "Session ID not provided"}), 400
     
-    sessione = sessioni_attive.get(id_sessione) or carica_sessione(id_sessione)
+    session = active_sessions.get(session_id) or load_session(session_id)
     
-    if not sessione:
-        return jsonify({"errore": "Sessione non trovata"}), 404
+    if not session:
+        return jsonify({"error": "Session not found"}), 404
     
-    # Ottieni lo stato completo e estrai solo le informazioni sull'inventario
-    stato = sessione.get_stato_attuale()
-    
-    return jsonify({
-        "inventario": stato.get("inventario", []),
-        "equipaggiamento": stato.get("equipaggiamento", {})
-    })
-
-@app.route("/statistiche", methods=["GET"])
-def ottieni_statistiche():
-    """Ottieni le statistiche del giocatore"""
-    id_sessione = request.args.get("id_sessione")
-    
-    if not id_sessione:
-        return jsonify({"errore": "ID sessione non fornito"}), 400
-    
-    sessione = sessioni_attive.get(id_sessione) or carica_sessione(id_sessione)
-    
-    if not sessione:
-        return jsonify({"errore": "Sessione non trovata"}), 404
-    
-    # Ottieni lo stato completo e estrai solo le statistiche
-    stato = sessione.get_stato_attuale()
+    # Get the full state and extract only the inventory information
+    state = session.get_current_state()
     
     return jsonify({
-        "nome": stato.get("nome", ""),
-        "classe": stato.get("classe", ""),
-        "hp": stato.get("hp", 0),
-        "max_hp": stato.get("max_hp", 0),
-        "statistiche": stato.get("statistiche", {})
+        "inventory": state.get("inventory", []),
+        "equipment": state.get("equipment", {})
     })
 
-@app.route("/posizione", methods=["GET"])
-def ottieni_posizione():
-    """Ottieni la posizione attuale del giocatore"""
-    id_sessione = request.args.get("id_sessione")
+@app.route("/stats", methods=["GET"])
+def get_stats():
+    """Get the player's stats"""
+    session_id = request.args.get("session_id")
     
-    if not id_sessione:
-        return jsonify({"errore": "ID sessione non fornito"}), 400
+    if not session_id:
+        return jsonify({"error": "Session ID not provided"}), 400
     
-    sessione = sessioni_attive.get(id_sessione) or carica_sessione(id_sessione)
+    session = active_sessions.get(session_id) or load_session(session_id)
     
-    if not sessione:
-        return jsonify({"errore": "Sessione non trovata"}), 404
+    if not session:
+        return jsonify({"error": "Session not found"}), 404
     
-    # Usa il metodo esistente per ottenere la posizione
-    info_posizione = sessione.ottieni_posizione_giocatore()
+    # Get the full state and extract only the stats
+    state = session.get_current_state()
     
-    if not info_posizione:
-        return jsonify({"errore": "Posizione del giocatore non disponibile"}), 404
-    
-    return jsonify(info_posizione)
+    return jsonify({
+        "name": state.get("name", ""),
+        "char_class": state.get("char_class", ""),
+        "hp": state.get("hp", 0),
+        "max_hp": state.get("max_hp", 0),
+        "stats": state.get("stats", {})
+    })
 
-@app.route("/classi", methods=["GET"])
-def ottieni_classi():
-    """Ottieni informazioni sulle classi di personaggio disponibili"""
-    # Usa il gestore dati per caricare le classi dal file esterno
+@app.route("/position", methods=["GET"])
+def get_position():
+    """Get the player's current position"""
+    session_id = request.args.get("session_id")
+    
+    if not session_id:
+        return jsonify({"error": "Session ID not provided"}), 400
+    
+    session = active_sessions.get(session_id) or load_session(session_id)
+    
+    if not session:
+        return jsonify({"error": "Session not found"}), 404
+    
+    # Use the existing method to get the position
+    position_info = session.get_player_position()
+    
+    if not position_info:
+        return jsonify({"error": "Player position not available"}), 404
+    
+    return jsonify(_json_safe_position(position_info))
+
+@app.route("/classes", methods=["GET"])
+def get_classes():
+    """Get information about the available character classes"""
+    # Use the data manager to load the classes from the external file
     return jsonify(get_data_manager().get_classes())
 
-@app.route("/missioni", methods=["GET"])
-def ottieni_missioni():
-    """Ottieni l'elenco delle missioni attive e completate del giocatore"""
-    id_sessione = request.args.get("id_sessione")
+@app.route("/missions", methods=["GET"])
+def get_quests():
+    """Get the list of the player's active and completed quests"""
+    session_id = request.args.get("session_id")
     
-    if not id_sessione:
-        return jsonify({"errore": "ID sessione non fornito"}), 400
+    if not session_id:
+        return jsonify({"error": "Session ID not provided"}), 400
     
-    sessione = sessioni_attive.get(id_sessione) or carica_sessione(id_sessione)
+    session = active_sessions.get(session_id) or load_session(session_id)
     
-    if not sessione:
-        return jsonify({"errore": "Sessione non trovata"}), 404
+    if not session:
+        return jsonify({"error": "Session not found"}), 404
     
-    # Questa funzione presuppone che lo stato del gioco tenga traccia delle missioni
-    # Implementa la logica per estrarre le missioni dallo stato del gioco
-    stato = sessione.get_stato_attuale()
-    missioni = {
-        "attive": stato.get("missioni_attive", []),
-        "completate": stato.get("missioni_completate", [])
+    # This function assumes the game state keeps track of quests
+    # Implement the logic to extract the quests from the game state
+    state = session.get_current_state()
+    quests = {
+        "active": state.get("active_quests", []),
+        "completed": state.get("completed_quests", [])
     }
     
-    return jsonify(missioni)
+    return jsonify(quests)
 
-@app.route("/combattimento", methods=["GET"])
-def ottieni_stato_combattimento():
-    """Ottieni lo stato del combattimento attuale"""
-    id_sessione = request.args.get("id_sessione")
+@app.route("/combat", methods=["GET"])
+def get_combat_state():
+    """Get the current combat state"""
+    session_id = request.args.get("session_id")
     
-    if not id_sessione:
-        return jsonify({"errore": "ID sessione non fornito"}), 400
+    if not session_id:
+        return jsonify({"error": "Session ID not provided"}), 400
     
-    sessione = sessioni_attive.get(id_sessione) or carica_sessione(id_sessione)
+    session = active_sessions.get(session_id) or load_session(session_id)
     
-    if not sessione:
-        return jsonify({"errore": "Sessione non trovata"}), 404
+    if not session:
+        return jsonify({"error": "Session not found"}), 404
     
-    # Questa funzione presuppone che il gioco abbia uno stato di combattimento
-    stato = sessione.get_stato_attuale()
-    combattimento = stato.get("combattimento", {})
+    # This function assumes the game has a combat state
+    state = session.get_current_state()
+    combat = state.get("combat", {})
     
-    # Verifica se il personaggio è in combattimento
-    # Il valore predefinito dipende dalla struttura utilizzata dal gioco
-    in_combattimento = combattimento.get("attivo", False)
+    # Check whether the character is in combat
+    # The default value depends on the structure used by the game
+    in_combat = combat.get("active", False)
     
-    if not in_combattimento:
-        return jsonify({"in_combattimento": False})
+    if not in_combat:
+        return jsonify({"in_combat": False})
     
     return jsonify({
-        "in_combattimento": True,
-        "round": combattimento.get("round", 1),
-        "turno_di": combattimento.get("turno_di", "giocatore"),
-        "nemici": combattimento.get("nemici", []),
-        "azioni_disponibili": combattimento.get("azioni_disponibili", [])
+        "in_combat": True,
+        "round": combat.get("round", 1),
+        "turn_of": combat.get("turn_of", "player"),
+        "enemies": combat.get("enemies", []),
+        "available_actions": combat.get("available_actions", [])
     })
 
-@app.route("/azione_combattimento", methods=["POST"])
-def esegui_azione_combattimento():
-    """Esegui un'azione di combattimento"""
-    # Estrai i dati dalla richiesta
+@app.route("/combat_action", methods=["POST"])
+def run_combat_action():
+    """Perform a combat action"""
+    # Extract the data from the request
     data = request.json or {}
-    id_sessione = data.get("id_sessione")
-    azione = data.get("azione", "")
-    bersaglio = data.get("bersaglio", "")
-    parametri = data.get("parametri", {})
+    session_id = data.get("session_id")
+    action = data.get("action", "")
+    target = data.get("target", "")
+    parameters = data.get("parameters", {})
     
-    if not id_sessione:
-        return jsonify({"errore": "ID sessione non fornito"}), 400
+    if not session_id:
+        return jsonify({"error": "Session ID not provided"}), 400
     
-    if not azione:
-        return jsonify({"errore": "Azione non specificata"}), 400
+    if not action:
+        return jsonify({"error": "Action not specified"}), 400
     
-    sessione = sessioni_attive.get(id_sessione) or carica_sessione(id_sessione)
+    session = active_sessions.get(session_id) or load_session(session_id)
     
-    if not sessione:
-        return jsonify({"errore": "Sessione non trovata"}), 404
+    if not session:
+        return jsonify({"error": "Session not found"}), 404
     
-    # Costruisci un comando formattato per l'azione di combattimento
-    comando = f"{azione}"
-    if bersaglio:
-        comando += f" {bersaglio}"
+    # Build a formatted command for the combat action
+    command = f"{action}"
+    if target:
+        command += f" {target}"
     
-    # Elabora il comando come un normale comando di gioco
-    sessione.processa_comando(comando)
+    # Process the command like a normal game command
+    session.process_command(command)
     
-    # Salva la sessione aggiornata
-    salva_sessione(id_sessione, sessione)
+    # Save the updated session
+    save_session(session_id, session)
     
-    # Ottieni l'output strutturato
-    output_strutturato = sessione.io_buffer.get_output_structured()
+    # Get the structured output
+    structured_output = session.io_buffer.get_structured_output()
     
-    # Pulisci il buffer dei messaggi
-    sessione.io_buffer.clear()
+    # Clear the message buffer
+    session.io_buffer.clear()
     
-    # Ottieni lo stato aggiornato del combattimento
-    stato = sessione.get_stato_attuale()
-    combattimento = stato.get("combattimento", {})
+    # Get the updated combat state
+    state = session.get_current_state()
+    combat = state.get("combat", {})
     
     return jsonify({
-        "output": output_strutturato,
-        "stato": stato,
-        "combattimento": combattimento
+        "output": structured_output,
+        "state": state,
+        "combat": combat
     })
 
-@app.route("/npc", methods=["GET"])
-def ottieni_npc():
-    """Ottieni informazioni sugli NPC nella posizione attuale"""
-    id_sessione = request.args.get("id_sessione")
+@app.route("/npcs", methods=["GET"])
+def get_npc():
+    """Get information about the NPCs in the current location"""
+    session_id = request.args.get("session_id")
     
-    if not id_sessione:
-        return jsonify({"errore": "ID sessione non fornito"}), 400
+    if not session_id:
+        return jsonify({"error": "Session ID not provided"}), 400
     
-    sessione = sessioni_attive.get(id_sessione) or carica_sessione(id_sessione)
+    session = active_sessions.get(session_id) or load_session(session_id)
     
-    if not sessione:
-        return jsonify({"errore": "Sessione non trovata"}), 404
+    if not session:
+        return jsonify({"error": "Session not found"}), 404
     
-    # Questa funzione presuppone che lo stato del gioco tenga traccia degli NPC
-    stato = sessione.get_stato_attuale()
-    npc = stato.get("npc_presenti", [])
+    # This function assumes the game state keeps track of the NPCs
+    state = session.get_current_state()
+    npc = state.get("present_npc", [])
     
     return jsonify(npc)
 
-@app.route("/oggetto", methods=["POST"])
-def interagisci_oggetto():
-    """Interagisci con un oggetto nell'inventario o nell'ambiente"""
-    # Estrai i dati dalla richiesta
+@app.route("/item", methods=["POST"])
+def interact_with_item():
+    """Interact with an item in the inventory or the environment"""
+    # Extract the data from the request
     data = request.json or {}
-    id_sessione = data.get("id_sessione")
-    oggetto = data.get("oggetto", "")
-    azione = data.get("azione", "usa")
+    session_id = data.get("session_id")
+    item = data.get("item", "")
+    action = data.get("action", "use")
     
-    if not id_sessione:
-        return jsonify({"errore": "ID sessione non fornito"}), 400
+    if not session_id:
+        return jsonify({"error": "Session ID not provided"}), 400
     
-    if not oggetto:
-        return jsonify({"errore": "Oggetto non specificato"}), 400
+    if not item:
+        return jsonify({"error": "Item not specified"}), 400
     
-    sessione = sessioni_attive.get(id_sessione) or carica_sessione(id_sessione)
+    session = active_sessions.get(session_id) or load_session(session_id)
     
-    if not sessione:
-        return jsonify({"errore": "Sessione non trovata"}), 404
+    if not session:
+        return jsonify({"error": "Session not found"}), 404
     
-    # Costruisci il comando per l'interazione con l'oggetto
-    comando = f"{azione} {oggetto}"
+    # Build the command for interacting with the item
+    command = f"{action} {item}"
     
-    # Elabora il comando
-    sessione.processa_comando(comando)
+    # Process the command
+    session.process_command(command)
     
-    # Salva la sessione aggiornata
-    salva_sessione(id_sessione, sessione)
+    # Save the updated session
+    save_session(session_id, session)
     
-    # Ottieni l'output strutturato
-    output_strutturato = sessione.io_buffer.get_output_structured()
+    # Get the structured output
+    structured_output = session.io_buffer.get_structured_output()
     
-    # Pulisci il buffer dei messaggi
-    sessione.io_buffer.clear()
+    # Clear the message buffer
+    session.io_buffer.clear()
     
-    # Ottieni lo stato aggiornato
-    stato = sessione.get_stato_attuale()
+    # Get the updated state
+    state = session.get_current_state()
     
     return jsonify({
-        "output": output_strutturato,
-        "stato": stato
+        "output": structured_output,
+        "state": state
     })
 
-@app.route("/salvataggi", methods=["GET"])
-def elenca_salvataggi():
-    """Ottieni la lista dei salvataggi disponibili"""
+@app.route("/saves", methods=["GET"])
+def list_saves_legacy():
+    """Get the list of available saves"""
     try:
-        # Ottieni tutti i file di salvataggio
-        salvataggi = []
+        # Get all the save files
+        saves = []
         for file in os.listdir(SAVE_DIR):
             if file.endswith(".json"):
-                percorso = get_save_path(file)
+                path = get_save_path(file)
                 try:
-                    with open(percorso, 'r') as f:
-                        dati = json.load(f)
-                        # Estrai le informazioni rilevanti dal salvataggio
-                        info_salvataggio = {
-                            "nome_file": file,
-                            "nome_personaggio": dati.get("giocatore", {}).get("nome", "Sconosciuto"),
-                            "classe": dati.get("giocatore", {}).get("classe", "Sconosciuto"),
-                            "livello": dati.get("giocatore", {}).get("livello", 1),
-                            "data_salvataggio": dati.get("metadata", {}).get("data_salvataggio", "Sconosciuta")
+                    with open(path, 'r') as f:
+                        data = json.load(f)
+                        # Extract the relevant information from the save
+                        save_info = {
+                            "file_name": file,
+                            "character_name": data.get("player", {}).get("name", "Unknown"),
+                            "char_class": data.get("player", {}).get("char_class", "Unknown"),
+                            "level": data.get("player", {}).get("level", 1),
+                            "save_date": data.get("metadata", {}).get("save_date", "Unknown")
                         }
-                        salvataggi.append(info_salvataggio)
+                        saves.append(save_info)
                 except Exception as e:
-                    # Se un file è corrotto, lo saltiamo
+                    # If a file is corrupted, we skip it
                     continue
         
-        return jsonify(salvataggi)
+        return jsonify(saves)
     except Exception as e:
-        return jsonify({"errore": f"Errore durante l'enumerazione dei salvataggi: {str(e)}"}), 500
+        return jsonify({"error": f"Error while listing the saves: {str(e)}"}), 500
 
 @app.route("/log", methods=["GET"])
-def ottieni_log():
-    """Ottieni il log degli eventi recenti"""
-    id_sessione = request.args.get("id_sessione")
+def get_log():
+    """Get the log of recent events"""
+    session_id = request.args.get("session_id")
     
-    if not id_sessione:
-        return jsonify({"errore": "ID sessione non fornito"}), 400
+    if not session_id:
+        return jsonify({"error": "Session ID not provided"}), 400
     
-    sessione = sessioni_attive.get(id_sessione) or carica_sessione(id_sessione)
+    session = active_sessions.get(session_id) or load_session(session_id)
     
-    if not sessione:
-        return jsonify({"errore": "Sessione non trovata"}), 404
+    if not session:
+        return jsonify({"error": "Session not found"}), 404
     
-    # Questa funzione presuppone che il gioco tenga traccia di un log di eventi
-    stato = sessione.get_stato_attuale()
-    log = stato.get("log_eventi", [])
+    # This function assumes the game keeps a log of events
+    state = session.get_current_state()
+    log = state.get("log_events", [])
     
-    # Limitiamo il numero di eventi restituiti
-    max_eventi = int(request.args.get("max", 50))
-    log = log[-max_eventi:] if len(log) > max_eventi else log
+    # Limit the number of events returned
+    max_events = int(request.args.get("max", 50))
+    log = log[-max_events:] if len(log) > max_events else log
     
     return jsonify({
-        "eventi": log
+        "events": log
     })
 
-@app.route("/equipaggiamento", methods=["POST"])
-def gestisci_equipaggiamento():
-    """Gestisci l'equipaggiamento del giocatore"""
-    # Estrai i dati dalla richiesta
+@app.route("/equipment", methods=["POST"])
+def manage_equipment():
+    """Manage the player's equipment"""
+    # Extract the data from the request
     data = request.json or {}
-    id_sessione = data.get("id_sessione")
-    azione = data.get("azione", "")  # "equip", "unequip", "examine"
-    oggetto = data.get("oggetto", "")
-    slot = data.get("slot", "")  # es. "arma", "armatura", "anello", ecc.
+    session_id = data.get("session_id")
+    action = data.get("action", "")  # "equip", "unequip", "examine"
+    item = data.get("item", "")
+    slot = data.get("slot", "")  # e.g. "weapon", "armor", "ring", etc.
     
-    if not id_sessione:
-        return jsonify({"errore": "ID sessione non fornito"}), 400
+    if not session_id:
+        return jsonify({"error": "Session ID not provided"}), 400
     
-    if not oggetto:
-        return jsonify({"errore": "Oggetto non specificato"}), 400
+    if not item:
+        return jsonify({"error": "Item not specified"}), 400
     
-    if not azione:
-        return jsonify({"errore": "Azione non specificata"}), 400
+    if not action:
+        return jsonify({"error": "Action not specified"}), 400
     
-    sessione = sessioni_attive.get(id_sessione) or carica_sessione(id_sessione)
+    session = active_sessions.get(session_id) or load_session(session_id)
     
-    if not sessione:
-        return jsonify({"errore": "Sessione non trovata"}), 404
+    if not session:
+        return jsonify({"error": "Session not found"}), 404
     
-    # Costruisci il comando appropriato in base all'azione richiesta
-    if azione == "equip":
-        comando = f"equipaggia {oggetto}"
+    # Build the appropriate command based on the requested action
+    if action == "equip":
+        command = f"equip {item}"
         if slot:
-            comando += f" {slot}"
-    elif azione == "unequip":
-        comando = f"rimuovi {oggetto}"
-    elif azione == "examine":
-        comando = f"esamina {oggetto}"
+            command += f" {slot}"
+    elif action == "unequip":
+        command = f"remove {item}"
+    elif action == "examine":
+        command = f"examine {item}"
     else:
-        return jsonify({"errore": "Azione non valida"}), 400
+        return jsonify({"error": "Invalid action"}), 400
     
-    # Elabora il comando
-    sessione.processa_comando(comando)
+    # Process the command
+    session.process_command(command)
     
-    # Salva la sessione aggiornata
-    salva_sessione(id_sessione, sessione)
+    # Save the updated session
+    save_session(session_id, session)
     
-    # Ottieni l'output strutturato
-    output_strutturato = sessione.io_buffer.get_output_structured()
+    # Get the structured output
+    structured_output = session.io_buffer.get_structured_output()
     
-    # Pulisci il buffer dei messaggi
-    sessione.io_buffer.clear()
+    # Clear the message buffer
+    session.io_buffer.clear()
     
-    # Ottieni lo stato aggiornato
-    stato = sessione.get_stato_attuale()
+    # Get the updated state
+    state = session.get_current_state()
     
     return jsonify({
-        "output": output_strutturato,
-        "stato": stato,
-        "equipaggiamento": stato.get("equipaggiamento", {})
+        "output": structured_output,
+        "state": state,
+        "equipment": state.get("equipment", {})
     })
 
-@app.route("/azioni_disponibili", methods=["GET"])
-def ottieni_azioni_disponibili():
-    """Ottieni le azioni disponibili nel contesto attuale"""
-    id_sessione = request.args.get("id_sessione")
+@app.route("/available_actions", methods=["GET"])
+def get_available_actions():
+    """Get the actions available in the current context"""
+    session_id = request.args.get("session_id")
     
-    if not id_sessione:
-        return jsonify({"errore": "ID sessione non fornito"}), 400
+    if not session_id:
+        return jsonify({"error": "Session ID not provided"}), 400
     
-    sessione = sessioni_attive.get(id_sessione) or carica_sessione(id_sessione)
+    session = active_sessions.get(session_id) or load_session(session_id)
     
-    if not sessione:
-        return jsonify({"errore": "Sessione non trovata"}), 404
+    if not session:
+        return jsonify({"error": "Session not found"}), 404
     
-    # Questa funzione presuppone che il gioco possa restituire le azioni disponibili
-    # nel contesto attuale (ad es. in base allo stato, posizione, NPC presenti, ecc.)
-    stato = sessione.get_stato_attuale()
+    # This function assumes the game can return the available actions
+    # in the current context (e.g. based on state, position, present NPCs, etc.)
+    state = session.get_current_state()
     
-    # Ottieni il nome dello stato corrente
-    stato_nome = "NessunoStato"
-    if sessione.game.stato_corrente():
-        stato_nome = type(sessione.game.stato_corrente()).__name__
+    # Get the name of the current state
+    state_name = "NoneState"
+    if session.game.current_state():
+        state_name = type(session.game.current_state()).__name__
     
-    # Definisci azioni diverse in base al contesto
-    azioni_contesto = {
-        "base": ["esamina", "raccogli", "parla", "usa", "guarda"],
-        "combattimento": ["attacca", "difendi", "scappa", "usa oggetto"],
-        "dialogo": ["parla", "chiedi", "offri", "addio"],
-        "commercio": ["compra", "vendi", "esamina", "esci"],
-        "inventario": ["usa", "equipaggia", "getta", "esamina"]
+    # Define different actions depending on the context
+    actions_context = {
+        "base": ["examine", "pick_up", "talk", "use", "look"],
+        "combat": ["attack", "defend", "run", "use item"],
+        "dialogue": ["talk", "ask", "offer", "goodbye"],
+        "commerce": ["buy", "sell", "examine", "exit"],
+        "inventory": ["use", "equip", "drop", "examine"]
     }
     
-    # Le azioni disponibili possono essere estratte dallo stato o dedotte dal contesto
-    azioni = []
+    # The available actions can be extracted from the state or inferred from the context
+    actions = []
     
-    # Se il gioco fornisce direttamente le azioni disponibili, usale
-    if "azioni_disponibili" in stato:
-        azioni = stato["azioni_disponibili"]
+    # If the game provides the available actions directly, use them
+    if "available_actions" in state:
+        actions = state["available_actions"]
     else:
-        # Altrimenti, deduci le azioni in base al contesto
-        if "combattimento" in stato and stato["combattimento"].get("attivo", False):
-            azioni = azioni_contesto["combattimento"]
-        elif stato_nome == "DialogoState":
-            azioni = azioni_contesto["dialogo"]
-        elif stato_nome == "CommercioState":
-            azioni = azioni_contesto["commercio"]
+        # Otherwise, infer the actions from the context
+        if "combat" in state and state["combat"].get("active", False):
+            actions = actions_context["combat"]
+        elif state_name == "DialogueState":
+            actions = actions_context["dialogue"]
+        elif state_name == "CommercioState":
+            actions = actions_context["commerce"]
         else:
-            azioni = azioni_contesto["base"]
+            actions = actions_context["base"]
     
-    # Aggiungi informazioni sui bersagli validi per le azioni
-    bersagli = {
-        "oggetti": stato.get("oggetti_ambiente", []),
-        "npc": stato.get("npc_presenti", []),
-        "direzioni": stato.get("uscite", [])
+    # Add information about the valid targets for the actions
+    targets = {
+        "items": state.get("items_environment", []),
+        "npc": state.get("present_npc", []),
+        "directions": state.get("exits", [])
     }
     
     return jsonify({
-        "azioni": azioni,
-        "bersagli": bersagli,
-        "contesto": stato_nome
+        "actions": actions,
+        "targets": targets,
+        "context": state_name
     })
 
-@app.route("/dialogo", methods=["POST"])
-def gestisci_dialogo():
-    """Gestisci il dialogo con un NPC"""
-    # Estrai i dati dalla richiesta
+@app.route("/dialogue", methods=["POST"])
+def manage_dialogue():
+    """Manage dialogue with an NPC"""
+    # Extract the data from the request
     data = request.json or {}
-    id_sessione = data.get("id_sessione")
+    session_id = data.get("session_id")
     npc = data.get("npc", "")
-    opzione = data.get("opzione", "")
+    option = data.get("option", "")
     
-    if not id_sessione:
-        return jsonify({"errore": "ID sessione non fornito"}), 400
+    if not session_id:
+        return jsonify({"error": "Session ID not provided"}), 400
     
     if not npc:
-        return jsonify({"errore": "NPC non specificato"}), 400
+        return jsonify({"error": "NPC not specified"}), 400
     
-    sessione = sessioni_attive.get(id_sessione) or carica_sessione(id_sessione)
+    session = active_sessions.get(session_id) or load_session(session_id)
     
-    if not sessione:
-        return jsonify({"errore": "Sessione non trovata"}), 404
+    if not session:
+        return jsonify({"error": "Session not found"}), 404
     
-    # Costruisci il comando di dialogo
-    if opzione:
-        comando = f"parla {npc} {opzione}"
+    # Build the dialogue command
+    if option:
+        command = f"talk {npc} {option}"
     else:
-        comando = f"parla {npc}"
+        command = f"talk {npc}"
     
-    # Elabora il comando
-    sessione.processa_comando(comando)
+    # Process the command
+    session.process_command(command)
     
-    # Salva la sessione aggiornata
-    salva_sessione(id_sessione, sessione)
+    # Save the updated session
+    save_session(session_id, session)
     
-    # Ottieni l'output strutturato
-    output_strutturato = sessione.io_buffer.get_output_structured()
+    # Get the structured output
+    structured_output = session.io_buffer.get_structured_output()
     
-    # Pulisci il buffer dei messaggi
-    sessione.io_buffer.clear()
+    # Clear the message buffer
+    session.io_buffer.clear()
     
-    # Ottieni lo stato aggiornato
-    stato = sessione.get_stato_attuale()
+    # Get the updated state
+    state = session.get_current_state()
     
-    # Estrai le opzioni di dialogo disponibili se presenti
-    opzioni_dialogo = []
-    if "dialogo" in stato and "opzioni" in stato["dialogo"]:
-        opzioni_dialogo = stato["dialogo"]["opzioni"]
-    
-    return jsonify({
-        "output": output_strutturato,
-        "stato": stato,
-        "opzioni_dialogo": opzioni_dialogo
-    })
-
-@app.route("/esplora", methods=["POST"])
-def esplora_ambiente():
-    """Esplora l'ambiente circostante"""
-    # Estrai i dati dalla richiesta
-    data = request.json or {}
-    id_sessione = data.get("id_sessione")
-    
-    if not id_sessione:
-        return jsonify({"errore": "ID sessione non fornito"}), 400
-    
-    sessione = sessioni_attive.get(id_sessione) or carica_sessione(id_sessione)
-    
-    if not sessione:
-        return jsonify({"errore": "Sessione non trovata"}), 404
-    
-    # Esegui un comando "guarda" o "esplora"
-    sessione.processa_comando("guarda")
-    
-    # Salva la sessione aggiornata
-    salva_sessione(id_sessione, sessione)
-    
-    # Ottieni l'output strutturato
-    output_strutturato = sessione.io_buffer.get_output_structured()
-    
-    # Pulisci il buffer dei messaggi
-    sessione.io_buffer.clear()
-    
-    # Ottieni lo stato aggiornato
-    stato = sessione.get_stato_attuale()
+    # Extract the available dialogue options, if any
+    options_dialogue = []
+    if "dialogue" in state and "options" in state["dialogue"]:
+        options_dialogue = state["dialogue"]["options"]
     
     return jsonify({
-        "output": output_strutturato,
-        "stato": stato,
-        "oggetti": stato.get("oggetti_ambiente", []),
-        "uscite": stato.get("uscite", []),
-        "npc": stato.get("npc_presenti", [])
+        "output": structured_output,
+        "state": state,
+        "options_dialogue": options_dialogue
     })
 
-@app.route("/preferenze", methods=["POST"])
-def salva_preferenze():
-    """Salva le preferenze dell'utente"""
-    # Estrai i dati dalla richiesta
+@app.route("/explore", methods=["POST"])
+def explore_environment():
+    """Explore the surrounding environment"""
+    # Extract the data from the request
     data = request.json or {}
-    id_sessione = data.get("id_sessione")
-    preferenze = data.get("preferenze", {})
+    session_id = data.get("session_id")
     
-    if not id_sessione:
-        return jsonify({"errore": "ID sessione non fornito"}), 400
+    if not session_id:
+        return jsonify({"error": "Session ID not provided"}), 400
     
-    sessione = sessioni_attive.get(id_sessione) or carica_sessione(id_sessione)
+    session = active_sessions.get(session_id) or load_session(session_id)
     
-    if not sessione:
-        return jsonify({"errore": "Sessione non trovata"}), 404
+    if not session:
+        return jsonify({"error": "Session not found"}), 404
     
-    # Salva le preferenze nel contesto della sessione
-    # Questa operazione presuppone che StatoGioco abbia un modo per gestire le preferenze
+    # Run a "look" or "explore" command
+    session.process_command("look")
+    
+    # Save the updated session
+    save_session(session_id, session)
+    
+    # Get the structured output
+    structured_output = session.io_buffer.get_structured_output()
+    
+    # Clear the message buffer
+    session.io_buffer.clear()
+    
+    # Get the updated state
+    state = session.get_current_state()
+    
+    return jsonify({
+        "output": structured_output,
+        "state": state,
+        "items": state.get("items_environment", []),
+        "exits": state.get("exits", []),
+        "npc": state.get("present_npc", [])
+    })
+
+@app.route("/preferences", methods=["POST"])
+def save_preferences():
+    """Save the user's preferences"""
+    # Extract the data from the request
+    data = request.json or {}
+    session_id = data.get("session_id")
+    preferences = data.get("preferences", {})
+    
+    if not session_id:
+        return jsonify({"error": "Session ID not provided"}), 400
+    
+    session = active_sessions.get(session_id) or load_session(session_id)
+    
+    if not session:
+        return jsonify({"error": "Session not found"}), 404
+    
+    # Save the preferences in the session context
+    # This operation assumes GameState has a way to manage preferences
     try:
-        sessione.salva_preferenze(preferenze)
-        salva_sessione(id_sessione, sessione)
-        return jsonify({"messaggio": "Preferenze salvate con successo"})
+        session.save_preferences(preferences)
+        save_session(session_id, session)
+        return jsonify({"message": "Preferences saved successfully"})
     except Exception as e:
-        return jsonify({"errore": f"Errore durante il salvataggio delle preferenze: {str(e)}"}), 500
+        return jsonify({"error": f"Error while saving the preferences: {str(e)}"}), 500
 
-@app.route("/elimina_salvataggio", methods=["POST"])
-def elimina_salvataggio():
-    """Elimina un salvataggio"""
-    # Estrai i dati dalla richiesta
+@app.route("/delete_save", methods=["POST"])
+def delete_save():
+    """Delete a save"""
+    # Extract the data from the request
     data = request.json or {}
-    nome_file = data.get("nome_file")
+    file_name = data.get("file_name")
     
-    if not nome_file:
-        return jsonify({"errore": "Nome file non fornito"}), 400
+    if not file_name:
+        return jsonify({"error": "File name not provided"}), 400
     
-    # Utilizza la funzione del modulo config
+    # Use the function from the config module
     try:
-        if delete_save_file(nome_file):
-            return jsonify({"messaggio": f"Salvataggio {nome_file} eliminato con successo"})
+        if delete_save_file(file_name):
+            return jsonify({"message": f"Save {file_name} deleted successfully"})
         else:
-            return jsonify({"errore": "File di salvataggio non trovato"}), 404
+            return jsonify({"error": "Save file not found"}), 404
     except Exception as e:
-        logger.error(f"Errore durante l'eliminazione del salvataggio: {str(e)}")
-        return jsonify({"errore": f"Errore durante l'eliminazione del salvataggio: {str(e)}"}), 500
+        logger.error(f"Error while deleting the save: {str(e)}")
+        return jsonify({"error": f"Error while deleting the save: {str(e)}"}), 500
 
-@app.route("/notifiche", methods=["GET"])
-def ottieni_notifiche():
-    """Ottieni le notifiche per la sessione corrente"""
-    id_sessione = request.args.get("id_sessione")
+@app.route("/notifications", methods=["GET"])
+def get_notifications():
+    """Get the notifications for the current session"""
+    session_id = request.args.get("session_id")
     
-    if not id_sessione:
-        return jsonify({"errore": "ID sessione non fornito"}), 400
+    if not session_id:
+        return jsonify({"error": "Session ID not provided"}), 400
     
-    # Inizializza l'array di notifiche se non esiste
-    if id_sessione not in notifiche_sistema:
-        notifiche_sistema[id_sessione] = []
+    # Initialize the notifications array if it does not exist
+    if session_id not in system_notifications:
+        system_notifications[session_id] = []
     
-    # Filtra le notifiche in base ai parametri
-    solo_non_lette = request.args.get("solo_non_lette", "true").lower() == "true"
-    tipo = request.args.get("tipo")
-    limite = int(request.args.get("limite", 50))
+    # Filter the notifications based on the parameters
+    only_unread = request.args.get("only_unread", "true").lower() == "true"
+    type = request.args.get("type")
+    limit = int(request.args.get("limit", 50))
     
-    notifiche = notifiche_sistema[id_sessione]
+    notifications = system_notifications[session_id]
     
-    # Applica i filtri
-    if solo_non_lette:
-        notifiche = [n for n in notifiche if not n.get("letta", False)]
+    # Apply the filters
+    if only_unread:
+        notifications = [n for n in notifications if not n.get("read", False)]
     
-    if tipo:
-        notifiche = [n for n in notifiche if n.get("tipo") == tipo]
+    if type:
+        notifications = [n for n in notifications if n.get("type") == type]
     
-    # Limita il numero di notifiche
-    notifiche = notifiche[-limite:] if len(notifiche) > limite else notifiche
+    # Limit the number of notifications
+    notifications = notifications[-limit:] if len(notifications) > limit else notifications
     
     return jsonify({
-        "notifiche": notifiche,
-        "totale_non_lette": len([n for n in notifiche_sistema[id_sessione] if not n.get("letta", False)])
+        "notifications": notifications,
+        "total_read_not": len([n for n in system_notifications[session_id] if not n.get("read", False)])
     })
 
-@app.route("/leggi_notifica", methods=["POST"])
-def leggi_notifica():
-    """Segna una notifica come letta"""
+@app.route("/read_notification", methods=["POST"])
+def read_notification():
+    """Mark a notification as read"""
     data = request.json or {}
-    id_sessione = data.get("id_sessione")
-    id_notifica = data.get("id_notifica")
-    tutte = data.get("tutte", False)
+    session_id = data.get("session_id")
+    notification_id = data.get("notification_id")
+    all = data.get("all", False)
     
-    if not id_sessione:
-        return jsonify({"errore": "ID sessione non fornito"}), 400
+    if not session_id:
+        return jsonify({"error": "Session ID not provided"}), 400
     
-    if id_sessione not in notifiche_sistema:
-        return jsonify({"errore": "Nessuna notifica trovata per questa sessione"}), 404
+    if session_id not in system_notifications:
+        return jsonify({"error": "No notifications found for this session"}), 404
     
-    if tutte:
-        # Segna tutte le notifiche come lette
-        for notifica in notifiche_sistema[id_sessione]:
-            notifica["letta"] = True
-        return jsonify({"messaggio": "Tutte le notifiche segnate come lette"})
+    if all:
+        # Mark all the notifications as read
+        for notification in system_notifications[session_id]:
+            notification["read"] = True
+        return jsonify({"message": "All notifications marked as read"})
     
-    if not id_notifica:
-        return jsonify({"errore": "ID notifica non fornito"}), 400
+    if not notification_id:
+        return jsonify({"error": "Notification ID not provided"}), 400
     
-    # Cerca la notifica specifica
-    for notifica in notifiche_sistema[id_sessione]:
-        if notifica["id"] == id_notifica:
-            notifica["letta"] = True
-            return jsonify({"messaggio": "Notifica segnata come letta"})
+    # Look for the specific notification
+    for notification in system_notifications[session_id]:
+        if notification["id"] == notification_id:
+            notification["read"] = True
+            return jsonify({"message": "Notification marked as read"})
     
-    return jsonify({"errore": "Notifica non trovata"}), 404
+    return jsonify({"error": "Notification not found"}), 404
 
-@app.route("/asset/<path:nome_file>", methods=["GET"])
-def ottieni_asset(nome_file):
-    """Ottieni un asset grafico"""
-    return send_from_directory(ASSETS_DIR, nome_file)
+@app.route("/asset/<path:file_name>", methods=["GET"])
+def get_asset(file_name):
+    """Get a graphic asset"""
+    return send_from_directory(ASSETS_DIR, file_name)
 
 @app.route("/assets_info", methods=["GET"])
-def ottieni_info_assets():
-    """Ottieni informazioni sugli asset disponibili"""
-    tipo = request.args.get("tipo")  # es. "personaggio", "ambiente", "oggetto", "nemico"
+def get_assets_info():
+    """Get information about the available assets"""
+    type = request.args.get("type")  # e.g. "character", "environment", "item", "enemy"
     
-    # Usa il gestore dati per caricare le informazioni sugli asset
-    assets = get_data_manager().get_asset_info(tipo)
+    # Use the data manager to load the asset information
+    assets = get_data_manager().get_asset_info(type)
     
     return jsonify({
         "assets": assets
     })
 
 @app.route("/tutorial", methods=["GET"])
-def ottieni_tutorial():
-    """Ottieni informazioni sui tutorial disponibili"""
-    id_sessione = request.args.get("id_sessione")
-    tipo = request.args.get("tipo")  # es. "combattimento", "inventario", "dialogo"
+def get_tutorial():
+    """Get information about the available tutorials"""
+    session_id = request.args.get("session_id")
+    type = request.args.get("type")  # e.g. "combat", "inventory", "dialogue"
     
-    if not id_sessione:
-        return jsonify({"errore": "ID sessione non fornito"}), 400
+    if not session_id:
+        return jsonify({"error": "Session ID not provided"}), 400
     
-    # Verifica che la sessione esista
-    sessione = sessioni_attive.get(id_sessione) or carica_sessione(id_sessione)
-    if not sessione:
-        return jsonify({"errore": "Sessione non trovata"}), 404
+    # Check that the session exists
+    session = active_sessions.get(session_id) or load_session(session_id)
+    if not session:
+        return jsonify({"error": "Session not found"}), 404
     
-    # Carica i tutorial dal file esterno utilizzando il gestore dati
+    # Load the tutorials from the external file using the data manager
     tutorial = get_data_manager().get_tutorials()
     
-    # Se viene specificato un tipo, restituisci solo quel tutorial
-    if tipo and tipo in tutorial:
-        return jsonify(tutorial[tipo])
+    # If a type is specified, return only that tutorial
+    if type and type in tutorial:
+        return jsonify(tutorial[type])
     
-    # Altrimenti, restituisci tutti i tutorial
+    # Otherwise, return all the tutorials
     return jsonify(tutorial)
 
 @app.route("/achievements", methods=["GET"])
-def ottieni_achievements():
-    """Ottieni gli achievement del giocatore"""
-    id_sessione = request.args.get("id_sessione")
+def get_achievements():
+    """Get the player's achievements"""
+    session_id = request.args.get("session_id")
     
-    if not id_sessione:
-        return jsonify({"errore": "ID sessione non fornito"}), 400
+    if not session_id:
+        return jsonify({"error": "Session ID not provided"}), 400
     
-    # Verifica che la sessione esista
-    sessione = sessioni_attive.get(id_sessione) or carica_sessione(id_sessione)
-    if not sessione:
-        return jsonify({"errore": "Sessione non trovata"}), 404
+    # Check that the session exists
+    session = active_sessions.get(session_id) or load_session(session_id)
+    if not session:
+        return jsonify({"error": "Session not found"}), 404
     
-    # In un'implementazione reale, questi dati verrebbero estratti dallo stato del gioco
-    stato = sessione.get_stato_attuale()
+    # In a real implementation, these data would be extracted from the game state
+    state = session.get_current_state()
     
-    # Carica tutti gli achievement possibili dal file esterno
-    tutti_achievements = get_data_manager().get_achievements()
+    # Load all the possible achievements from the external file
+    all_achievements = get_data_manager().get_achievements()
     
-    # Ottieni gli achievement sbloccati dal giocatore
-    achievements_sbloccati = stato.get("achievements", [])
+    # Get the achievements unlocked by the player
+    unlocked_achievements = state.get("achievements", [])
     
-    # Aggiorna lo stato di sblocco per ogni achievement
-    for achievement in tutti_achievements:
-        achievement["sbloccato"] = achievement["id"] in achievements_sbloccati
+    # Update the unlock status for each achievement
+    for achievement in all_achievements:
+        achievement["unlocked"] = achievement["id"] in unlocked_achievements
         
-        # Se è sbloccato, aggiungi la data di sblocco
-        if achievement["sbloccato"] and "timestamp_achievements" in stato:
-            timestamp = stato["timestamp_achievements"].get(achievement["id"])
+        # If it is unlocked, add the unlock date
+        if achievement["unlocked"] and "timestamp_achievements" in state:
+            timestamp = state["timestamp_achievements"].get(achievement["id"])
             if timestamp:
-                achievement["data_sblocco"] = datetime.datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")
+                achievement["unlock_date"] = datetime.datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")
     
     return jsonify({
-        "achievements": tutti_achievements,
-        "totale": len(tutti_achievements),
-        "sbloccati": len(achievements_sbloccati)
+        "achievements": all_achievements,
+        "total": len(all_achievements),
+        "unlocked": len(unlocked_achievements)
     })
 
-@app.route("/oggetto_dettagli", methods=["GET"])
-def ottieni_dettagli_oggetto():
-    """Ottieni dettagli su un oggetto specifico"""
-    id_sessione = request.args.get("id_sessione")
-    id_oggetto = request.args.get("id_oggetto")
-    nome_oggetto = request.args.get("nome_oggetto")
+@app.route("/item_details", methods=["GET"])
+def get_item_details():
+    """Get details about a specific item"""
+    session_id = request.args.get("session_id")
+    item_id = request.args.get("item_id")
+    object_name = request.args.get("object_name")
     
-    if not id_sessione:
-        return jsonify({"errore": "ID sessione non fornito"}), 400
+    if not session_id:
+        return jsonify({"error": "Session ID not provided"}), 400
     
-    if not id_oggetto and not nome_oggetto:
-        return jsonify({"errore": "ID oggetto o nome oggetto non fornito"}), 400
+    if not item_id and not object_name:
+        return jsonify({"error": "Item ID or item name not provided"}), 400
     
-    # Verifica che la sessione esista
-    sessione = sessioni_attive.get(id_sessione) or carica_sessione(id_sessione)
-    if not sessione:
-        return jsonify({"errore": "Sessione non trovata"}), 404
+    # Check that the session exists
+    session = active_sessions.get(session_id) or load_session(session_id)
+    if not session:
+        return jsonify({"error": "Session not found"}), 404
     
-    # Ottieni l'inventario del giocatore
-    stato = sessione.get_stato_attuale()
-    inventario = stato.get("inventario", [])
+    # Get the player's inventory
+    state = session.get_current_state()
+    inventory = state.get("inventory", [])
     
-    # Cerca l'oggetto nell'inventario
-    oggetto = None
-    for item in inventario:
-        if (id_oggetto and item.get("id") == id_oggetto) or (nome_oggetto and item.get("nome") == nome_oggetto):
-            oggetto = item
-            break
-    
-    if not oggetto:
-        return jsonify({"errore": "Oggetto non trovato nell'inventario"}), 404
-    
-    # Se l'oggetto è stato trovato, arricchisci i dettagli
-    oggetto_dettagliato = oggetto.copy()
-    
-    # Aggiungi informazioni su come ottenere l'asset dell'oggetto
-    oggetto_dettagliato["asset_url"] = f"/asset/oggetti/{oggetto.get('asset', 'oggetto_default.png')}"
-    
-    # Aggiungi possibili utilizzi dell'oggetto
-    oggetto_dettagliato["utilizzi"] = []
-    
-    if oggetto.get("tipo") == "arma":
-        oggetto_dettagliato["utilizzi"].append({"azione": "equipaggia", "descrizione": "Equipaggia quest'arma"})
-        oggetto_dettagliato["utilizzi"].append({"azione": "esamina", "descrizione": "Esamina l'arma in dettaglio"})
-    elif oggetto.get("tipo") == "pozione":
-        oggetto_dettagliato["utilizzi"].append({"azione": "usa", "descrizione": "Bevi la pozione"})
-        oggetto_dettagliato["utilizzi"].append({"azione": "esamina", "descrizione": "Esamina la pozione in dettaglio"})
-    elif oggetto.get("tipo") == "cibo":
-        oggetto_dettagliato["utilizzi"].append({"azione": "mangia", "descrizione": "Mangia il cibo"})
-        oggetto_dettagliato["utilizzi"].append({"azione": "esamina", "descrizione": "Esamina il cibo in dettaglio"})
-    
-    # Aggiungi sempre l'opzione di scartare
-    oggetto_dettagliato["utilizzi"].append({"azione": "getta", "descrizione": "Getta l'oggetto"})
-    
-    return jsonify(oggetto_dettagliato)
+    # The state view returns the inventory as plain name strings, so those entries carry no
+    # "type" or "description" to report. Prefer the player's real item objects (they do),
+    # fall back to the name list, then normalise to a dict -- the rest of this handler
+    # expects one (item.copy(), item.get(...)).
+    player = getattr(session.game, "player", None)
+    objects = list(getattr(player, "inventory", None) or [])
+    matched = None
+    if objects:
+        for obj in objects:
+            obj_name = obj if isinstance(obj, str) else getattr(obj, "name", None)
+            if item_id and getattr(obj, "id", None) == item_id:
+                matched = obj
+                break
+            if object_name and obj_name == object_name:
+                matched = obj
+                break
+    elif object_name and object_name in inventory:
+        matched = object_name
 
-@app.route("/abilita", methods=["GET"])
-def ottieni_abilita():
-    """Ottieni le abilità del giocatore"""
-    id_sessione = request.args.get("id_sessione")
-    
-    if not id_sessione:
-        return jsonify({"errore": "ID sessione non fornito"}), 400
-    
-    # Verifica che la sessione esista
-    sessione = sessioni_attive.get(id_sessione) or carica_sessione(id_sessione)
-    if not sessione:
-        return jsonify({"errore": "Sessione non trovata"}), 404
-    
-    # Ottieni le abilità del giocatore
-    stato = sessione.get_stato_attuale()
-    abilita = stato.get("abilita", [])
-    
-    return jsonify({
-        "abilita": abilita,
-        "mana_attuale": stato.get("mana", 0),
-        "mana_massimo": stato.get("mana_max", 0)
-    })
+    if matched is None:
+        return jsonify({"error": "Item not found in the inventory"}), 404
 
-@app.route("/usa_abilita", methods=["POST"])
-def usa_abilita():
-    """Usa un'abilità del giocatore"""
-    data = request.json or {}
-    id_sessione = data.get("id_sessione")
-    id_abilita = data.get("id_abilita")
-    nome_abilita = data.get("nome_abilita")
-    bersaglio = data.get("bersaglio", "")
-    
-    if not id_sessione:
-        return jsonify({"errore": "ID sessione non fornito"}), 400
-    
-    if not id_abilita and not nome_abilita:
-        return jsonify({"errore": "ID abilità o nome abilità non fornito"}), 400
-    
-    # Verifica che la sessione esista
-    sessione = sessioni_attive.get(id_sessione) or carica_sessione(id_sessione)
-    if not sessione:
-        return jsonify({"errore": "Sessione non trovata"}), 404
-    
-    # Costruisci il comando per l'abilità
-    comando = f"usa_abilita "
-    if id_abilita:
-        comando += id_abilita
+    if isinstance(matched, str):
+        item = {"name": matched}
+    elif hasattr(matched, "to_dict"):
+        item = matched.to_dict()
     else:
-        comando += nome_abilita
+        item = {"name": str(matched)}
     
-    if bersaglio:
-        comando += f" {bersaglio}"
+    if not item:
+        return jsonify({"error": "Item not found in the inventory"}), 404
     
-    # Elabora il comando
-    sessione.processa_comando(comando)
+    # If the item was found, enrich the details
+    detailed_item = item.copy()
     
-    # Salva la sessione aggiornata
-    salva_sessione(id_sessione, sessione)
+    # Add information about how to get the item's asset
+    detailed_item["asset_url"] = f"/asset/items/{item.get('asset', 'item_default.png')}"
     
-    # Ottieni l'output strutturato
-    output_strutturato = sessione.io_buffer.get_output_structured()
+    # Add the possible uses of the item
+    detailed_item["uses"] = []
     
-    # Pulisci il buffer dei messaggi
-    sessione.io_buffer.clear()
+    if item.get("type") == "weapon":
+        detailed_item["uses"].append({"action": "equip", "description": "Equip this weapon"})
+        detailed_item["uses"].append({"action": "examine", "description": "Examine the weapon in detail"})
+    elif item.get("type") == "potion":
+        detailed_item["uses"].append({"action": "use", "description": "Drink the potion"})
+        detailed_item["uses"].append({"action": "examine", "description": "Examine the potion in detail"})
+    elif item.get("type") == "food":
+        detailed_item["uses"].append({"action": "eat", "description": "Eat the food"})
+        detailed_item["uses"].append({"action": "examine", "description": "Examine the food in detail"})
     
-    # Ottieni lo stato aggiornato
-    stato = sessione.get_stato_attuale()
+    # Always add the option to discard
+    detailed_item["uses"].append({"action": "drop", "description": "Drop the item"})
+    
+    return jsonify(detailed_item)
+
+@app.route("/abilities", methods=["GET"])
+def get_ability():
+    """Get the player's abilities"""
+    session_id = request.args.get("session_id")
+    
+    if not session_id:
+        return jsonify({"error": "Session ID not provided"}), 400
+    
+    # Check that the session exists
+    session = active_sessions.get(session_id) or load_session(session_id)
+    if not session:
+        return jsonify({"error": "Session not found"}), 404
+    
+    # Get the player's abilities
+    state = session.get_current_state()
+    ability = state.get("ability", [])
     
     return jsonify({
-        "output": output_strutturato,
-        "stato": stato,
-        "mana_attuale": stato.get("mana", 0),
-        "uso_riuscito": not "errore" in output_strutturato
+        "ability": ability,
+        "current_mana": state.get("mana", 0),
+        "max_mana": state.get("mana_max", 0)
     })
 
-@app.route("/esporta_salvataggio", methods=["POST"])
-def esporta_salvataggio():
-    """Esporta un salvataggio come file scaricabile"""
+@app.route("/use_ability", methods=["POST"])
+def use_ability():
+    """Use a player ability"""
     data = request.json or {}
-    id_sessione = data.get("id_sessione")
-    nome_file = data.get("nome_file")
+    session_id = data.get("session_id")
+    ability_id = data.get("ability_id")
+    ability_name = data.get("ability_name")
+    target = data.get("target", "")
     
-    if not id_sessione:
-        return jsonify({"errore": "ID sessione non fornito"}), 400
+    if not session_id:
+        return jsonify({"error": "Session ID not provided"}), 400
     
-    if not nome_file:
-        # Genera un nome file basato sulla data e ora
-        nome_file = f"salvataggio_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    if not ability_id and not ability_name:
+        return jsonify({"error": "Ability ID or ability name not provided"}), 400
     
-    # Assicurati che il nome file abbia l'estensione .json
-    if not nome_file.endswith(".json"):
-        nome_file += ".json"
+    # Check that the session exists
+    session = active_sessions.get(session_id) or load_session(session_id)
+    if not session:
+        return jsonify({"error": "Session not found"}), 404
     
-    # Verifica che la sessione esista
-    sessione = sessioni_attive.get(id_sessione) or carica_sessione(id_sessione)
-    if not sessione:
-        return jsonify({"errore": "Sessione non trovata"}), 404
+    # Build the command for the ability
+    command = f"use_ability "
+    if ability_id:
+        command += ability_id
+    else:
+        command += ability_name
     
-    # Salva temporaneamente il file
-    percorso_temp = os.path.join(SAVE_DIR, nome_file)
+    if target:
+        command += f" {target}"
+    
+    # Process the command
+    session.process_command(command)
+    
+    # Save the updated session
+    save_session(session_id, session)
+    
+    # Get the structured output
+    structured_output = session.io_buffer.get_structured_output()
+    
+    # Clear the message buffer
+    session.io_buffer.clear()
+    
+    # Get the updated state
+    state = session.get_current_state()
+    
+    return jsonify({
+        "output": structured_output,
+        "state": state,
+        "current_mana": state.get("mana", 0),
+        "succeeded": not "error" in structured_output
+    })
+
+@app.route("/export_save", methods=["POST"])
+def export_save():
+    """Export a save as a downloadable file"""
+    data = request.json or {}
+    session_id = data.get("session_id")
+    file_name = data.get("file_name")
+    
+    if not session_id:
+        return jsonify({"error": "Session ID not provided"}), 400
+    
+    if not file_name:
+        # Generate a file name based on the date and time
+        file_name = f"save_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    
+    # Make sure the file name has the .json extension
+    if not file_name.endswith(".json"):
+        file_name += ".json"
+    
+    # Check that the session exists
+    session = active_sessions.get(session_id) or load_session(session_id)
+    if not session:
+        return jsonify({"error": "Session not found"}), 404
+    
+    # Save the file temporarily
+    temp_path = os.path.join(SAVE_DIR, file_name)
     try:
-        sessione.salva(percorso_temp)
+        session.save(temp_path)
         
-        # Invia il file al client
+        # Send the file to the client
         return send_file(
-            percorso_temp,
+            temp_path,
             as_attachment=True,
-            download_name=nome_file,
+            download_name=file_name,
             mimetype="application/json"
         )
     except Exception as e:
-        return jsonify({"errore": f"Errore durante l'esportazione: {str(e)}"}), 500
+        return jsonify({"error": f"Error while exporting: {str(e)}"}), 500
 
-@app.route("/importa_salvataggio", methods=["POST"])
-def importa_salvataggio():
-    """Importa un salvataggio da file"""
+@app.route("/import_save", methods=["POST"])
+def import_save():
+    """Import a save from a file"""
     if "file" not in request.files:
-        return jsonify({"errore": "Nessun file caricato"}), 400
+        return jsonify({"error": "No file uploaded"}), 400
     
     file = request.files["file"]
     
     if file.filename == "":
-        return jsonify({"errore": "Nessun file selezionato"}), 400
+        return jsonify({"error": "No file selected"}), 400
     
     if not file.filename.endswith(".json"):
-        return jsonify({"errore": "Il file deve essere in formato JSON"}), 400
+        return jsonify({"error": "The file must be in JSON format"}), 400
     
-    # Salva il file caricato
-    nome_file = file.filename
-    percorso = os.path.join(SAVE_DIR, nome_file)
+    # Save the uploaded file
+    file_name = file.filename
+    path = os.path.join(SAVE_DIR, file_name)
     
     try:
-        file.save(percorso)
+        file.save(path)
         
-        # Carica il salvataggio per verificare che sia valido
-        with open(percorso, 'r') as f:
-            dati_salvati = json.load(f)
+        # Load the save to verify that it is valid
+        with open(path, 'r') as f:
+            saved_data = json.load(f)
         
-        # Crea un nuovo ID di sessione
-        id_sessione = str(uuid4())
+        # Create a new session ID
+        session_id = str(uuid4())
         
-        # Creiamo un giocatore dal salvataggio
-        from entities.giocatore import Giocatore
-        giocatore = Giocatore.from_dict(dati_salvati["giocatore"])
+        # Create a player from the save
+        from entities.player import Player
+        player = Player.from_dict(saved_data["player"])
         
-        # Creiamo una sessione temporanea con uno stato nullo
-        sessione = StatoGioco(giocatore, None)
+        # Create a temporary session with a null state
+        session = GameState(player, None)
         
-        # Carichiamo il gioco completo (incluso lo stack degli stati)
-        if sessione.game.carica(percorso):
-            # Memorizza la sessione
-            sessioni_attive[id_sessione] = sessione
-            salva_sessione(id_sessione, sessione)
+        # Load the full game (including the state stack)
+        if session.game.load(path):
+            # Store the session
+            active_sessions[session_id] = session
+            save_session(session_id, session)
             
-            # Ottieni lo stato iniziale
-            stato = sessione.get_stato_attuale()
+            # Get the initial state
+            state = session.get_current_state()
             
             return jsonify({
-                "id_sessione": id_sessione,
-                "messaggio": f"Salvataggio importato da {nome_file}",
-                "stato": stato
+                "session_id": session_id,
+                "message": f"Save imported from {file_name}",
+                "state": state
             })
         else:
-            # Se il caricamento fallisce, elimina il file
-            os.remove(percorso)
-            return jsonify({"errore": "Il file di salvataggio non è valido"}), 400
+            # If loading fails, delete the file
+            os.remove(path)
+            return jsonify({"error": "The save file is not valid"}), 400
         
     except Exception as e:
-        # Se c'è un errore, elimina il file se esiste
-        if os.path.exists(percorso):
-            os.remove(percorso)
-        return jsonify({"errore": f"Errore durante l'importazione: {str(e)}"}), 500
+        # If there is an error, delete the file if it exists
+        if os.path.exists(path):
+            os.remove(path)
+        return jsonify({"error": f"Error while importing: {str(e)}"}), 500
 
-@app.route("/lista_salvataggi", methods=["GET"])
-def lista_salvataggi():
-    """Restituisce la lista dei salvataggi disponibili"""
+@app.route("/list_saves", methods=["GET"])
+def list_saves():
+    """Return the list of available saves"""
     try:
-        # Ottieni tutti i file di salvataggio
-        salvataggi = []
+        # Get all the save files
+        saves = []
         for file in list_save_files():
-            percorso = get_save_path(file)
+            path = get_save_path(file)
             try:
-                with open(percorso, 'r', encoding='utf-8') as f:
+                with open(path, 'r', encoding='utf-8') as f:
                     data = json.load(f)
                     
-                # Estrai informazioni rilevanti
+                # Extract the relevant information
                 timestamp = data.get("timestamp", 0)
-                versione = data.get("versione_gioco", "sconosciuta")
-                nome_giocatore = data.get("giocatore", {}).get("nome", "Sconosciuto")
-                livello = data.get("giocatore", {}).get("livello", 1)
-                classe = data.get("giocatore", {}).get("classe", "sconosciuto")
-                mappa = data.get("mappa_corrente", "sconosciuta")
+                version = data.get("game_version", "unknown")
+                player_name = data.get("player", {}).get("name", "Unknown")
+                level = data.get("player", {}).get("level", 1)
+                char_class = data.get("player", {}).get("char_class", "unknown")
+                map = data.get("current_map", "unknown")
                 
-                # Converti timestamp in data leggibile
-                data_ora = datetime.datetime.fromtimestamp(timestamp).strftime("%d/%m/%Y %H:%M:%S")
+                # Convert the timestamp into a readable date
+                datetime_now = datetime.datetime.fromtimestamp(timestamp).strftime("%d/%m/%Y %H:%M:%S")
                 
-                salvataggi.append({
+                saves.append({
                     "file": file,
-                    "giocatore": nome_giocatore,
-                    "livello": livello,
-                    "classe": classe,
-                    "mappa": mappa,
-                    "data": data_ora,
-                    "versione": versione
+                    "player": player_name,
+                    "level": level,
+                    "char_class": char_class,
+                    "map": map,
+                    "data": datetime_now,
+                    "version": version
                 })
             except Exception as e:
-                # Salvataggio corrotto o non valido
-                salvataggi.append({
+                # Corrupted or invalid save
+                saves.append({
                     "file": file,
-                    "giocatore": "Salvataggio corrotto",
-                    "errore": str(e)
+                    "player": "Corrupted save",
+                    "error": str(e)
                 })
                 
-        return jsonify({"salvataggi": salvataggi})
+        return jsonify({"saves": saves})
     except Exception as e:
-        logger.error(f"Errore nella lettura dei salvataggi: {str(e)}")
-        return jsonify({"errore": f"Errore nella lettura dei salvataggi: {str(e)}"}), 500
+        logger.error(f"Error while reading the saves: {str(e)}")
+        return jsonify({"error": f"Error while reading the saves: {str(e)}"}), 500
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0") 

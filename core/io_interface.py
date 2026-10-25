@@ -1,71 +1,71 @@
 from abc import ABC, abstractmethod
 
-# Interfaccia astratta per I/O del gioco
+# Abstract interface for game I/O
 class GameIO(ABC):
     def __init__(self):
-        self.ultimo_input = None
+        self.last_input = None
     
     @abstractmethod
-    def mostra_messaggio(self, testo: str):
-        """Mostra un messaggio narrativo del gioco"""
+    def show_message(self, text: str):
+        """Shows a narrative message from the game"""
         pass
 
     @abstractmethod
-    def messaggio_sistema(self, testo: str):
-        """Mostra un messaggio tecnico/di sistema"""
+    def system_message(self, text: str):
+        """Shows a technical/system message"""
         pass
         
     @abstractmethod
-    def messaggio_errore(self, testo: str):
-        """Mostra un messaggio di errore"""
+    def error_message(self, text: str):
+        """Shows an error message"""
         pass
 
     @abstractmethod
-    def richiedi_input(self, prompt: str = "") -> str:
+    def request_input(self, prompt: str = "") -> str:
         pass
     
-    def get_ultimo_input(self) -> str:
-        """Restituisce l'ultimo input inserito"""
-        return self.ultimo_input
+    def get_last_input(self) -> str:
+        """Returns the last input entered"""
+        return self.last_input
         
-    def get_output_structured(self) -> list:
+    def get_structured_output(self) -> list:
         """
-        Restituisce l'output strutturato in formato lista di dizionari
+        Returns the structured output in the form of a list of dictionaries
         [
-            {"tipo": "sistema", "testo": "Hai aperto il forziere"},
-            {"tipo": "narrativo", "testo": "Dentro trovi una pergamena"}
+            {"type": "system", "text": "You opened the chest"},
+            {"type": "narrative", "text": "Inside you find a scroll"}
         ]
         """
-        # Implementazione di default vuota
+        # Empty default implementation
         return []
 
-# Implementazione base per terminale
+# Base implementation for the terminal
 class TerminalIO(GameIO):
     def __init__(self):
         super().__init__()
         self.buffer = []
         
-    def mostra_messaggio(self, testo: str):
-        print(testo)
-        self.buffer.append({"tipo": "narrativo", "testo": testo})
+    def show_message(self, text: str):
+        print(text)
+        self.buffer.append({"type": "narrative", "text": text})
         
-    def messaggio_sistema(self, testo: str):
-        print(f"[SISTEMA] {testo}")
-        self.buffer.append({"tipo": "sistema", "testo": testo})
+    def system_message(self, text: str):
+        print(f"[SYSTEM] {text}")
+        self.buffer.append({"type": "system", "text": text})
         
-    def messaggio_errore(self, testo: str):
-        print(f"[ERRORE] {testo}")
-        self.buffer.append({"tipo": "errore", "testo": testo})
+    def error_message(self, text: str):
+        print(f"[ERROR] {text}")
+        self.buffer.append({"type": "error", "text": text})
 
-    def richiedi_input(self, prompt: str = "") -> str:
-        self.ultimo_input = input(prompt)
-        self.buffer.append({"tipo": "prompt", "testo": prompt})
-        return self.ultimo_input
+    def request_input(self, prompt: str = "") -> str:
+        self.last_input = input(prompt)
+        self.buffer.append({"type": "prompt", "text": prompt})
+        return self.last_input
         
-    def get_output_structured(self) -> list:
-        """Restituisce l'output strutturato come lista di dizionari"""
+    def get_structured_output(self) -> list:
+        """Returns the structured output as a list of dictionaries"""
         return self.buffer
         
     def clear(self):
-        """Pulisce il buffer dei messaggi"""
+        """Clears the message buffer"""
         self.buffer = []

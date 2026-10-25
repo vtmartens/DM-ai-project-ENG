@@ -1,0 +1,44 @@
+[
+  {
+    "name": "Leather Armor",
+    "type": "armor",
+    "effect": {"defense": 2},
+    "value": 20,
+    "description": "A light leather armor that offers basic protection"
+  },
+  {
+    "name": "Chainmail",
+    "type": "armor",
+    "effect": {"defense": 4},
+    "value": 45,
+    "description": "Armor of interwoven metal rings that protects against blows"
+  },
+  {
+    "name": "Plate Armor",
+    "type": "armor",
+    "effect": {"defense": 6, "strength": -1},
+    "value": 80,
+    "description": "Heavy armor of metal plates; it offers great protection but reduces mobility"
+  },
+  {
+    "name": "Wizard's Robe",
+    "type": "armor",
+    "effect": {"defense": 1, "intelligence": 2},
+    "value": 60,
+    "description": "An enchanted robe that improves magical ability"
+  },
+  {
+    "name": "Shadow Cloak",
+    "type": "armor",
+    "effect": {"defense": 3, "dexterity": 1},
+    "value": 50,
+    "description": "A dark cloak that helps you hide in the shadows"
+  },
+  {
+    "name": "Scale Armor",
+    "type": "armor",
+    "effect": {"defense": 5},
+    "value": 70,
+    "description": "Armor made of small overlapping metal scales"
+  }
+] 

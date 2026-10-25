@@ -1,0 +1,51 @@
+[
+  {
+    "name": "Ring of Strength",
+    "type": "accessory",
+    "effect": {"strength": 1},
+    "value": 50,
+    "description": "A ring that increases the strength of its wearer"
+  },
+  {
+    "name": "Amulet of Protection",
+    "type": "accessory",
+    "effect": {"defense": 2},
+    "value": 60,
+    "description": "A magic amulet that protects its wearer"
+  },
+  {
+    "name": "Thief's Gloves",
+    "type": "accessory",
+    "effect": {"dexterity": 2},
+    "value": 45,
+    "description": "Light gloves that increase the agility of the hands"
+  },
+  {
+    "name": "Crown of the Mind",
+    "type": "accessory",
+    "effect": {"intelligence": 2, "wisdom": 1},
+    "value": 75,
+    "description": "A crown that improves mental faculties"
+  },
+  {
+    "name": "Boots of Speed",
+    "type": "accessory",
+    "effect": {"dexterity": 1, "initiative": 2},
+    "value": 55,
+    "description": "Boots that let you move more quickly"
+  },
+  {
+    "name": "Belt of the Giant",
+    "type": "accessory",
+    "effect": {"strength": 3, "constitution": 1},
+    "value": 85,
+    "description": "A magic belt that grants superhuman strength"
+  },
+  {
+    "name": "Earrings of Charisma",
+    "type": "accessory",
+    "effect": {"charisma": 2},
+    "value": 40,
+    "description": "Earrings that increase presence and social influence"
+  }
+] 

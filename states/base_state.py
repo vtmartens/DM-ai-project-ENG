@@ -1,257 +1,257 @@
 class BaseState:
     """
-    Classe base per tutti gli stati del gioco.
-    Ogni stato specifico deve ereditare da questa classe e implementare il metodo esegui().
+    Base class for all game states.
+    Every specific state must inherit from this class and implement the run() method.
     """
     def __init__(self):
-        """Inizializza lo stato base"""
-        # Contesto di gioco
-        self.gioco = None
+        """Initialize the base state"""
+        # Game context
+        self.game = None
         
-    def set_game_context(self, gioco):
+    def set_game_context(self, game):
         """
-        Imposta il contesto di gioco per questo stato.
+        Set the game context for this state.
         
         Args:
-            gioco: L'istanza del gioco
+            game: The game instance
         """
-        self.gioco = gioco
+        self.game = game
     
-    def esegui(self, gioco=None):
+    def run(self, game=None):
         """
-        Metodo principale che viene chiamato quando lo stato è attivo.
-        Deve essere implementato da ogni classe figlia.
+        Main method called when the state is active.
+        Must be implemented by every child class.
         
         Args:
-            gioco: L'istanza del gioco che contiene lo stato corrente e il giocatore
+            game: The game instance containing the current state and the player
         """
-        # Usa il contesto memorizzato se disponibile
-        game_ctx = gioco if gioco else getattr(self, 'gioco', None)
+        # Use the stored context if available
+        game_ctx = game if game else getattr(self, 'game', None)
         if not game_ctx:
-            raise ValueError("Contesto di gioco non disponibile. Usa set_game_context() prima di eseguire.")
+            raise ValueError("Game context not available. Use set_game_context() before running.")
             
-        raise NotImplementedError("Ogni stato deve implementare esegui()")
+        raise NotImplementedError("Every state must implement run()")
     
-    def entra(self, gioco=None):
+    def enter(self, game=None):
         """
-        Metodo chiamato quando si entra nello stato.
-        Può essere sovrascritto per inizializzare lo stato.
+        Method called when entering the state.
+        Can be overridden to initialize the state.
         
         Args:
-            gioco: L'istanza del gioco
+            game: The game instance
         """
-        # Memorizza il contesto se fornito
-        if gioco:
-            self.set_game_context(gioco)
+        # Store the context if provided
+        if game:
+            self.set_game_context(game)
     
-    def esci(self, gioco=None):
+    def exit(self, game=None):
         """
-        Metodo chiamato quando si esce dallo stato.
-        Può essere sovrascritto per pulire o salvare dati.
+        Method called when exiting the state.
+        Can be overridden to clean up or save data.
         
         Args:
-            gioco: L'istanza del gioco
+            game: The game instance
         """
         pass
 
-    def pausa(self, gioco=None):
+    def pause(self, game=None):
         """
-        Metodo chiamato quando lo stato viene temporaneamente sospeso
-        perché un nuovo stato viene messo sopra di esso.
-        Può essere sovrascritto per gestire la sospensione temporanea.
+        Method called when the state is temporarily suspended
+        because a new state is pushed on top of it.
+        Can be overridden to handle the temporary suspension.
         
         Args:
-            gioco: L'istanza del gioco
+            game: The game instance
         """
         pass
 
-    def riprendi(self, gioco=None):
+    def resume(self, game=None):
         """
-        Metodo chiamato quando lo stato torna ad essere attivo
-        dopo essere stato in pausa.
-        Può essere sovrascritto per gestire la ripresa dello stato.
+        Method called when the state becomes active again
+        after being paused.
+        Can be overridden to handle the resumption of the state.
         
         Args:
-            gioco: L'istanza del gioco
+            game: The game instance
         """
         pass
         
-    # Metodi di utilità per le mappe
+    # Utility methods for maps
     
-    def ottieni_mappa_corrente(self, gioco=None):
+    def get_current_map(self, game=None):
         """
-        Ottiene la mappa corrente dove si trova il giocatore.
+        Get the current map where the player is located.
         
         Args:
-            gioco: L'istanza del gioco (opzionale se il contesto è già memorizzato)
+            game: The game instance (optional if the context is already stored)
             
         Returns:
-            Mappa: L'oggetto mappa attuale o None se non disponibile
+            Map: The current map object, or None if not available
         """
-        # Usa il contesto memorizzato se disponibile
-        game_ctx = gioco if gioco else getattr(self, 'gioco', None)
-        if not game_ctx or not game_ctx.giocatore.mappa_corrente:
+        # Use the stored context if available
+        game_ctx = game if game else getattr(self, 'game', None)
+        if not game_ctx or not game_ctx.player.current_map:
             return None
             
-        return game_ctx.gestore_mappe.ottieni_mappa(game_ctx.giocatore.mappa_corrente)
+        return game_ctx.map_manager.get_map(game_ctx.player.current_map)
     
-    def ottieni_oggetti_vicini(self, gioco=None, raggio=1):
+    def get_nearby_items(self, game=None, radius=1):
         """
-        Ottiene gli oggetti vicini al giocatore entro un certo raggio.
+        Get the items near the player within a certain radius.
         
         Args:
-            gioco: L'istanza del gioco (opzionale se il contesto è già memorizzato)
-            raggio (int): Raggio di ricerca
+            game: The game instance (optional if the context is already stored)
+            radius (int): Search radius
             
         Returns:
-            dict: Dizionario di oggetti vicini o dict vuoto se non disponibili
+            dict: Dictionary of nearby items, or an empty dict if not available
         """
-        # Usa il contesto memorizzato se disponibile
-        game_ctx = gioco if gioco else getattr(self, 'gioco', None)
-        if not game_ctx or not game_ctx.giocatore.mappa_corrente:
+        # Use the stored context if available
+        game_ctx = game if game else getattr(self, 'game', None)
+        if not game_ctx or not game_ctx.player.current_map:
             return {}
             
-        return game_ctx.giocatore.ottieni_oggetti_vicini(game_ctx.gestore_mappe, raggio)
+        return game_ctx.player.get_nearby_items(game_ctx.map_manager, radius)
     
-    def ottieni_npg_vicini(self, gioco=None, raggio=1):
+    def get_nearby_npcs(self, game=None, radius=1):
         """
-        Ottiene gli NPG vicini al giocatore entro un certo raggio.
+        Get the NPCs near the player within a certain radius.
         
         Args:
-            gioco: L'istanza del gioco (opzionale se il contesto è già memorizzato)
-            raggio (int): Raggio di ricerca
+            game: The game instance (optional if the context is already stored)
+            radius (int): Search radius
             
         Returns:
-            dict: Dizionario di NPG vicini o dict vuoto se non disponibili
+            dict: Dictionary of nearby NPCs, or an empty dict if not available
         """
-        # Usa il contesto memorizzato se disponibile
-        game_ctx = gioco if gioco else getattr(self, 'gioco', None)
-        if not game_ctx or not game_ctx.giocatore.mappa_corrente:
+        # Use the stored context if available
+        game_ctx = game if game else getattr(self, 'game', None)
+        if not game_ctx or not game_ctx.player.current_map:
             return {}
             
-        return game_ctx.giocatore.ottieni_npg_vicini(game_ctx.gestore_mappe, raggio)
+        return game_ctx.player.get_nearby_npcs(game_ctx.map_manager, radius)
     
-    def muovi_giocatore(self, direzione, gioco=None):
+    def move_player(self, direction, game=None):
         """
-        Muove il giocatore in una direzione.
+        Move the player in a direction.
         
         Args:
-            direzione (str): Una delle direzioni "nord", "sud", "est", "ovest"
-            gioco: L'istanza del gioco (opzionale se il contesto è già memorizzato)
+            direction (str): One of the directions "north", "south", "east", "west"
+            game: The game instance (optional if the context is already stored)
             
         Returns:
-            bool: True se il movimento è avvenuto, False altrimenti
+            bool: True if the movement happened, False otherwise
         """
-        # Usa il contesto memorizzato se disponibile
-        game_ctx = gioco if gioco else getattr(self, 'gioco', None)
+        # Use the stored context if available
+        game_ctx = game if game else getattr(self, 'game', None)
         if not game_ctx:
             return False
             
-        return game_ctx.muovi_giocatore(direzione)
+        return game_ctx.move_player(direction)
     
-    def interagisci_con_oggetto_adiacente(self, gioco=None):
+    def interact_with_adjacent_item(self, game=None):
         """
-        Fa interagire il giocatore con un oggetto adiacente.
+        Make the player interact with an adjacent object.
         
         Args:
-            gioco: L'istanza del gioco (opzionale se il contesto è già memorizzato)
+            game: The game instance (optional if the context is already stored)
             
         Returns:
-            bool: True se l'interazione è avvenuta, False altrimenti
+            bool: True if the interaction happened, False otherwise
         """
-        # Usa il contesto memorizzato se disponibile
-        game_ctx = gioco if gioco else getattr(self, 'gioco', None)
-        if not game_ctx or not game_ctx.giocatore.mappa_corrente:
+        # Use the stored context if available
+        game_ctx = game if game else getattr(self, 'game', None)
+        if not game_ctx or not game_ctx.player.current_map:
             return False
             
-        return game_ctx.giocatore.interagisci_con_oggetto_adiacente(game_ctx.gestore_mappe, game_ctx)
+        return game_ctx.player.interact_with_adjacent_item(game_ctx.map_manager, game_ctx)
     
-    def interagisci_con_npg_adiacente(self, gioco=None):
+    def interact_with_adjacent_npc(self, game=None):
         """
-        Fa interagire il giocatore con un NPG adiacente.
+        Make the player interact with an adjacent NPC.
         
         Args:
-            gioco: L'istanza del gioco (opzionale se il contesto è già memorizzato)
+            game: The game instance (optional if the context is already stored)
             
         Returns:
-            bool: True se l'interazione è avvenuta, False altrimenti
+            bool: True if the interaction happened, False otherwise
         """
-        # Usa il contesto memorizzato se disponibile
-        game_ctx = gioco if gioco else getattr(self, 'gioco', None)
-        if not game_ctx or not game_ctx.giocatore.mappa_corrente:
+        # Use the stored context if available
+        game_ctx = game if game else getattr(self, 'game', None)
+        if not game_ctx or not game_ctx.player.current_map:
             return False
             
-        return game_ctx.giocatore.interagisci_con_npg_adiacente(game_ctx.gestore_mappe, game_ctx)
+        return game_ctx.player.interact_with_adjacent_npc(game_ctx.map_manager, game_ctx)
     
-    def visualizza_mappa(self, gioco=None):
+    def display_map(self, game=None):
         """
-        Visualizza la mappa corrente.
+        Display the current map.
         
         Args:
-            gioco: L'istanza del gioco (opzionale se il contesto è già memorizzato)
+            game: The game instance (optional if the context is already stored)
             
         Returns:
-            str: Rappresentazione ASCII della mappa o None se non disponibile
+            str: ASCII representation of the map, or None if not available
         """
-        # Usa il contesto memorizzato se disponibile
-        game_ctx = gioco if gioco else getattr(self, 'gioco', None)
+        # Use the stored context if available
+        game_ctx = game if game else getattr(self, 'game', None)
         if not game_ctx:
             return None
             
-        mappa = self.ottieni_mappa_corrente(game_ctx)
-        if mappa:
-            return mappa.genera_rappresentazione_ascii((game_ctx.giocatore.x, game_ctx.giocatore.y))
+        map = self.get_current_map(game_ctx)
+        if map:
+            return map.generate_ascii_representation((game_ctx.player.x, game_ctx.player.y))
         return None
     
-    def cambia_mappa(self, mappa_dest, x=None, y=None, gioco=None):
+    def change_map(self, map_dest, x=None, y=None, game=None):
         """
-        Cambia la mappa corrente del giocatore.
+        Change the player's current map.
         
         Args:
-            mappa_dest (str): Nome della mappa di destinazione
-            x, y (int, optional): Coordinate di destinazione
-            gioco: L'istanza del gioco (opzionale se il contesto è già memorizzato)
+            map_dest (str): Name of the destination map
+            x, y (int, optional): Destination coordinates
+            game: The game instance (optional if the context is already stored)
             
         Returns:
-            bool: True se il cambio mappa è avvenuto, False altrimenti
+            bool: True if the map change happened, False otherwise
         """
-        # Usa il contesto memorizzato se disponibile
-        game_ctx = gioco if gioco else getattr(self, 'gioco', None)
+        # Use the stored context if available
+        game_ctx = game if game else getattr(self, 'game', None)
         if not game_ctx:
             return False
             
-        return game_ctx.cambia_mappa(mappa_dest, x, y)
+        return game_ctx.change_map(map_dest, x, y)
 
     def to_dict(self):
         """
-        Converte lo stato in un dizionario per la serializzazione.
-        Salva automaticamente gli attributi base e permette l'estensione nelle sottoclassi.
+        Convert the state into a dictionary for serialization.
+        Automatically saves the base attributes and allows extension in subclasses.
         
         Returns:
-            dict: Rappresentazione dello stato in formato dizionario
+            dict: Dictionary representation of the state
         """
-        # Salva il tipo dello stato per la ricostruzione
+        # Save the state type for reconstruction
         data = {
             "type": self.__class__.__name__
         }
         
-        # Aggiungi automaticamente tutti gli attributi serializzabili
+        # Automatically add all serializable attributes
         for attr_name, attr_value in self.__dict__.items():
-            # Ignora attributi privati o funzioni
+            # Ignore private attributes or functions
             if attr_name.startswith('_') or callable(attr_value):
                 continue
                 
-            # Gestisci tipi base serializzabili
+            # Handle serializable base types
             if isinstance(attr_value, (str, int, float, bool, type(None))):
                 data[attr_name] = attr_value
-            # Gestisci oggetti con to_dict()
+            # Handle objects with to_dict()
             elif hasattr(attr_value, 'to_dict') and callable(getattr(attr_value, 'to_dict')):
                 try:
                     data[attr_name] = attr_value.to_dict()
                 except:
-                    # Se il to_dict() fallisce, ignora questo attributo
+                    # If to_dict() fails, ignore this attribute
                     pass
-            # Gestisci liste di oggetti
+            # Handle lists of objects
             elif isinstance(attr_value, list):
                 serialized_list = []
                 try:
@@ -260,30 +260,30 @@ class BaseState:
                             serialized_list.append(item.to_dict())
                         elif isinstance(item, (str, int, float, bool, type(None))):
                             serialized_list.append(item)
-                        # Ignora gli elementi che non possono essere serializzati
-                    if serialized_list:  # Aggiungi solo se la lista non è vuota
+                        # Ignore elements that cannot be serialized
+                    if serialized_list:  # Add only if the list is not empty
                         data[attr_name] = serialized_list
                 except:
-                    # Se c'è un errore di serializzazione, ignora questo attributo
+                    # If there is a serialization error, ignore this attribute
                     pass
-            # Gestisci dizionari di oggetti
+            # Handle dictionaries of objects
             elif isinstance(attr_value, dict):
                 serialized_dict = {}
                 try:
                     for key, value in attr_value.items():
-                        # Converti la chiave a stringa per assicurare compatibilità JSON
+                        # Convert the key to a string to ensure JSON compatibility
                         str_key = str(key)
                         if hasattr(value, 'to_dict') and callable(getattr(value, 'to_dict')):
                             serialized_dict[str_key] = value.to_dict()
                         elif isinstance(value, (str, int, float, bool, type(None))):
                             serialized_dict[str_key] = value
-                        # Ignora i valori che non possono essere serializzati
-                    if serialized_dict:  # Aggiungi solo se il dict non è vuoto
+                        # Ignore values that cannot be serialized
+                    if serialized_dict:  # Add only if the dict is not empty
                         data[attr_name] = serialized_dict
                 except:
-                    # Se c'è un errore di serializzazione, ignora questo attributo
+                    # If there is a serialization error, ignore this attribute
                     pass
-            # Gestisci tuple (convertendole in liste)
+            # Handle tuples (converting them to lists)
             elif isinstance(attr_value, tuple):
                 try:
                     data[attr_name] = list(attr_value)
@@ -295,160 +295,160 @@ class BaseState:
     @classmethod
     def from_dict(cls, data):
         """
-        Crea un'istanza di stato da un dizionario.
+        Create a state instance from a dictionary.
         
         Args:
-            data (dict): Dizionario con i dati dello stato
+            data (dict): Dictionary with the state data
             
         Returns:
-            BaseState: Nuova istanza di stato o istanza di base in caso di errore
+            BaseState: New state instance, or base instance in case of error
         """
-        # Se c'è un tipo specifico, crea l'istanza appropriata
+        # If there is a specific type, create the appropriate instance
         state_type = data.get("type")
         if state_type != cls.__name__:
-            # Importazione dinamica dello stato corretto
+            # Dynamic import of the correct state
             import importlib
             import traceback
             
             try:
-                # Cerca in tutti i moduli states
-                # Correzione: mappatura esplicita dei nomi delle classi ai moduli
+                # Search in all states modules
+                # Fix: explicit mapping of class names to modules
                 state_module_map = {
-                    "TavernaState": "taverna",
-                    "MercatoState": "mercato",
-                    "CombattimentoState": "combattimento",
-                    "DialogoState": "dialogo",
-                    "GestioneInventarioState": "gestione_inventario",
-                    "ProvaAbilitaState": "prova_abilita",
-                    "MappaState": "mappa_state",
-                    "SceltaMappaState": "scelta_mappa_state",
+                    "TavernState": "tavern",
+                    "MarketState": "market",
+                    "CombatState": "combat",
+                    "DialogueState": "dialogue",
+                    "InventoryManagementState": "inventory_management",
+                    "AbilityCheckState": "ability_check",
+                    "MapState": "map_state",
+                    "MapSelectionState": "map_selection_state",
                     "MenuState": "menu"
                 }
                 
-                # Usa la mappatura se disponibile, altrimenti fallback al nome in minuscolo
+                # Use the mapping if available, otherwise fall back to the lowercase name
                 module_suffix = state_module_map.get(state_type, state_type.lower())
                 module_name = f"states.{module_suffix}"
                 
                 module = importlib.import_module(module_name)
                 state_class = getattr(module, state_type)
                 
-                # Crea l'istanza usando il metodo from_dict della classe
+                # Create the instance using the class's from_dict method
                 if hasattr(state_class, 'from_dict'):
                     return state_class.from_dict(data)
                 else:
-                    # Se non ha un metodo from_dict, crea un'istanza di default
+                    # If it has no from_dict method, create a default instance
                     return state_class()
             except (ImportError, AttributeError) as e:
-                # Log dell'errore per debug
-                print(f"Errore durante il caricamento dello stato {state_type}: {e}")
+                # Log the error for debugging
+                print(f"Error while loading state {state_type}: {e}")
                 print(traceback.format_exc())
-                # Fallback a un'istanza base invece di None
+                # Fall back to a base instance instead of None
                 return cls()
             except Exception as e:
-                # Cattura qualsiasi altro errore imprevisto
-                print(f"Errore imprevisto durante il caricamento dello stato: {e}")
+                # Catch any other unexpected error
+                print(f"Unexpected error while loading state: {e}")
                 print(traceback.format_exc())
                 return cls()
         
-        # Istanza base
+        # Base instance
         return cls()
 
 class BaseGameState(BaseState):
     """
-    Classe base per gli stati di gioco che richiedono funzionalità avanzate.
-    Estende BaseState aggiungendo funzionalità specifiche per il gioco.
+    Base class for game states that require advanced functionality.
+    Extends BaseState by adding game-specific functionality.
     """
-    def __init__(self, gioco=None):
+    def __init__(self, game=None):
         """
-        Inizializza lo stato base di gioco.
+        Initialize the base game state.
         
         Args:
-            gioco: L'istanza del gioco (opzionale)
+            game: The game instance (optional)
         """
         super().__init__()
-        if gioco:
-            self.set_game_context(gioco)
+        if game:
+            self.set_game_context(game)
         
-        # Attributi specifici per lo stato di gioco
-        self.nome_stato = "base_game_state"
+        # Attributes specific to the game state
+        self.state_name = "base_game_state"
         self.is_active = False
-        self.ultima_azione = None
+        self.last_action = None
         
     def _init_commands(self):
         """
-        Metodo per inizializzare i comandi e le mappature dello stato.
-        Questa è un'implementazione di base vuota che le sottoclassi possono sovrascrivere.
+        Method to initialize the state's commands and mappings.
+        This is an empty base implementation that subclasses can override.
         """
-        # Implementazione di base vuota
+        # Empty base implementation
         pass
         
-    def entra(self, gioco=None):
+    def enter(self, game=None):
         """
-        Metodo chiamato quando si entra nello stato di gioco.
+        Method called when entering the game state.
         
         Args:
-            gioco: L'istanza del gioco (opzionale)
+            game: The game instance (optional)
         """
-        super().entra(gioco)
+        super().enter(game)
         self.is_active = True
         
-    def esci(self, gioco=None):
+    def exit(self, game=None):
         """
-        Metodo chiamato quando si esce dallo stato di gioco.
+        Method called when exiting the game state.
         
         Args:
-            gioco: L'istanza del gioco (opzionale)
+            game: The game instance (optional)
         """
-        super().esci(gioco)
+        super().exit(game)
         self.is_active = False
         
-    def esegui(self, gioco=None):
+    def run(self, game=None):
         """
-        Metodo principale che viene chiamato quando lo stato è attivo.
-        Implementazione di base che può essere sovrascritto dalle classi figlie.
+        Main method called when the state is active.
+        Base implementation that can be overridden by child classes.
         
         Args:
-            gioco: L'istanza del gioco che contiene lo stato corrente e il giocatore
+            game: The game instance containing the current state and the player
         """
-        game_ctx = gioco if gioco else getattr(self, 'gioco', None)
+        game_ctx = game if game else getattr(self, 'game', None)
         if not game_ctx:
-            raise ValueError("Contesto di gioco non disponibile per BaseGameState")
+            raise ValueError("Game context not available for BaseGameState")
         
-        # Implementazione di base
-        game_ctx.io.mostra_messaggio(f"Stato {self.nome_stato} attivo.")
+        # Base implementation
+        game_ctx.io.show_message(f"State {self.state_name} active.")
         
     def to_dict(self):
         """
-        Converte lo stato in un dizionario per la serializzazione.
+        Convert the state into a dictionary for serialization.
         
         Returns:
-            dict: Rappresentazione dello stato in formato dizionario
+            dict: Dictionary representation of the state
         """
-        # Dizionario base che contiene le informazioni sullo stato
+        # Base dictionary containing the state information
         return {
             "type": self.__class__.__name__,
-            "nome_stato": self.nome_stato
+            "state_name": self.state_name
         }
         
     @classmethod
     def from_dict(cls, data, game=None):
         """
-        Crea un'istanza dello stato da un dizionario.
-        Implementazione di base, le sottoclassi dovrebbero estenderla.
+        Create a state instance from a dictionary.
+        Base implementation; subclasses should extend it.
         
         Args:
-            data (dict): Dizionario con i dati dello stato
-            game: Istanza del gioco (opzionale)
+            data (dict): Dictionary with the state data
+            game: Game instance (optional)
             
         Returns:
-            BaseGameState: Nuova istanza dello stato
+            BaseGameState: New instance of the state
         """
         if game is not None:
             state = cls(game)
         else:
-            # Creiamo un oggetto senza chiamare __init__ per evitare errori
+            # Create an object without calling __init__ to avoid errors
             state = object.__new__(cls)
-            state.game = None  # Sarà impostato più tardi
-            state.nome_stato = data.get("nome_stato", "sconosciuto")
+            state.game = None  # It will be set later
+            state.state_name = data.get("state_name", "unknown")
             
         return state
