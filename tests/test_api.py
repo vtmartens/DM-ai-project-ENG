@@ -838,6 +838,28 @@ def test_second_choice_enters_dialogue(client):
     assert {"index", "text", "target"} <= set(dialogue["options"][0])
 
 
+def test_web_dialogue_options_are_not_repeated_in_the_log(client):
+    response = client.post(
+        "/start", json={"name": "Buttons", "char_class": "fighter"}
+    )
+    session_id = response.get_json()["session_id"]
+
+    client.post("/command", json={"session_id": session_id, "command": "1"})
+    command = client.post(
+        "/command", json={"session_id": session_id, "command": "1"}
+    ).get_json()
+    texts = [message["text"] for message in command["output"]]
+    option_lines = {
+        f"{option['index']}. {option['text']}"
+        for option in command["state"]["dialogue"]["options"]
+    }
+
+    assert command["state"]["dialogue"]["options"]
+    assert not any(text.strip() == "Options:" for text in texts)
+    assert not any(text.strip() in option_lines for text in texts)
+    assert not any("Choose an option" in text for text in texts)
+
+
 def test_explore_returns_real_nearby_targets(client):
     session_id = _start(client)
 

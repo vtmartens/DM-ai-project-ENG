@@ -473,6 +473,10 @@ Returns `output`, `state`, and:
 }
 ```
 
+For web sessions, `output` contains the NPC text and consequences but not the numbered
+choice list or “Choose an option” prompt; render `state.dialogue.options` as buttons
+instead. Terminal-style IO still logs the numbered choices.
+
 #### `POST /explore`
 
 ```json

@@ -38,6 +38,10 @@ class NarratingIO(GameIO):
     def pause_for_confirmation(self) -> bool:
         return getattr(self.base, "pause_for_confirmation", True)
 
+    @property
+    def dialogue_options_in_log(self) -> bool:
+        return getattr(self.base, "dialogue_options_in_log", True)
+
     def show_message(self, text: str) -> None:
         # Hold the engine text until the turn is flushed so the Dungeon Master
         # narration can be emitted *before* the NPC dialogue and options.

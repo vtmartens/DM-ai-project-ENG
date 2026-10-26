@@ -63,14 +63,18 @@ class DialogueState(BaseState):
             game.pop_state()  # Exit the current state
             return self.return_state or "map"
         
-        # Show the dialogue options
-        io.show_message("\nOptions:")
-        
-        for i, (text, _) in enumerate(conversation_data["options"], 1):
-            io.show_message(f"{i}. {text}")
-        
+        # The web client draws these as buttons in its dialogue card; only
+        # terminal-style clients also need the numbered copy in the log.
+        options_in_log = getattr(io, "dialogue_options_in_log", True)
+        if options_in_log:
+            io.show_message("\nOptions:")
+            for i, (text, _) in enumerate(conversation_data["options"], 1):
+                io.show_message(f"{i}. {text}")
+
         # Get the user's choice
-        selection_input = io.request_input("\nChoose an option: ")
+        selection_input = io.request_input(
+            "\nChoose an option: " if options_in_log else ""
+        )
         
         # Convert the input to a number
         try:

@@ -47,7 +47,8 @@ You can also set `localStorage["dm_api_base"]`.
 - Combat card with enemy name/HP and the current round (from `state.combat`).
 - Clickable dialogue options (from `state.dialogue`), in addition to typing numbers. The
   play area puts the Adventure log (with the DM narration first) at the top, and the NPC
-  dialogue/options card below it.
+  dialogue/options card below it. The log keeps the NPC text and consequences but omits
+  the numbered choice list, which is shown only as buttons in the dialogue card.
 - Inventory list with item details and use/equip actions.
 - Save button that writes a timestamped save.
 - Light/dark theme, persisted through `POST /preferences` when a session exists.

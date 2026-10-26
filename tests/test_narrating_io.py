@@ -46,6 +46,16 @@ def test_web_narration_does_not_pause_for_confirmation():
     assert io.pause_for_confirmation is False
 
 
+def test_dialogue_options_are_only_logged_for_terminal_style_io():
+    from core.game_state import WebGameIO
+
+    web = NarratingIO(WebGameIO(), NullNarrator())
+    terminal = NarratingIO(RecordingIO(), NullNarrator())
+
+    assert web.dialogue_options_in_log is False
+    assert terminal.dialogue_options_in_log is True
+
+
 def test_map_messages_are_not_narrated(recording_io):
     narrator = FakeNarrator()
     io = NarratingIO(recording_io, narrator)

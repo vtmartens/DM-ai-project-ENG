@@ -30,7 +30,11 @@ class WebGameIO(GameIO):
     @property
     def pause_for_confirmation(self) -> bool:
         return False
-    
+
+    @property
+    def dialogue_options_in_log(self) -> bool:
+        return False
+
     def system_message(self, text: str):
         """Stores a system message in the buffer"""
         self.buffer.append({"type": "system", "text": text})

@@ -61,6 +61,15 @@ class GameIO(ABC):
         """
         return True
 
+    @property
+    def dialogue_options_in_log(self) -> bool:
+        """Whether dialogue choices are also written into the text log.
+
+        The web client renders choices as buttons in the dialogue card and only
+        needs the NPC's text in the adventure log.
+        """
+        return True
+
     def flush(self):
         """Emits any buffered output. The default implementation does nothing."""
         pass
