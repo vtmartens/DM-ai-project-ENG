@@ -507,6 +507,40 @@ def test_leave_market_returns_to_the_tavern_exit(client):
     assert result["state"]["position"]["y"] == 13
 
 
+@pytest.mark.parametrize("command", ["leave cellar", "go to exit"])
+def test_cellar_exit_returns_to_the_market(client, command):
+    """The cellar's exit_door object must not shadow its map exit."""
+    session_id = _start(client)
+
+    client.post("/command", json={"session_id": session_id, "command": "go to cellar"})
+    result = client.post(
+        "/command", json={"session_id": session_id, "command": command}
+    ).get_json()
+    texts = [message["text"] for message in result["output"]]
+
+    assert result["state"]["state"] == "MarketState"
+    assert result["state"]["position"]["map"] == "market"
+    assert result["state"]["position"]["x"] == 14
+    assert result["state"]["position"]["y"] == 5
+    assert any("You move to exit to market" in text for text in texts)
+    assert any("You leave through the exit to market" in text for text in texts)
+    assert not any("You move to exit_door" in text for text in texts)
+
+
+def test_unknown_go_target_does_not_fall_back_to_a_map_exit(client):
+    session_id = _start(client)
+
+    result = client.post(
+        "/command", json={"session_id": session_id, "command": "go to nowhere"}
+    ).get_json()
+    texts = [message["text"] for message in result["output"]]
+
+    assert result["state"]["position"]["map"] == "tavern"
+    assert result["state"]["position"]["x"] == 5
+    assert result["state"]["position"]["y"] == 5
+    assert any("There is no place called nowhere" in text for text in texts)
+
+
 def test_map_view_shows_the_tavern_exit(client):
     session_id = _start(client)
 

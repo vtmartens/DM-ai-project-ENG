@@ -10,6 +10,8 @@ from __future__ import annotations
 import re
 from collections import deque
 
+GENERIC_EXIT_TARGETS = {"exit", "door", "way out", "leave", ""}
+
 TARGETED_PATTERNS = (
     ("talk", r"^(?:talk|speak|chat|converse)(?:\s+(?:to|with))?\s+(.+)$"),
     ("attack", r"^(?:attack|fight|hit|kill|challenge)\s+(?:the\s+|a\s+|an\s+)?(.+)$"),
@@ -225,7 +227,7 @@ def resolve_map_door(game, target):
         return None
 
     wanted = normalize_name(target)
-    generic = wanted in {"exit", "door", "way out", "leave", ""}
+    generic = wanted in GENERIC_EXIT_TARGETS
 
     if not generic:
         for position, destination in current_map.doors.items():
@@ -237,6 +239,7 @@ def resolve_map_door(game, target):
                 or wanted in normalize_name(destination_name)
             ):
                 return position, destination_name, label
+        return None
 
     player = game.player
     position, destination = min(
@@ -334,6 +337,18 @@ def handle_targeted_command(game, action, target, extra_npcs=()) -> bool:
         return True
 
     if action == "go":
+        # A generic exit target always means a map exit, even on maps that also
+        # contain an object named "exit_door" (as the cellar does).
+        if normalize_name(target) in GENERIC_EXIT_TARGETS:
+            door = resolve_map_door(game, target)
+            if door is not None:
+                position, destination, label = door
+                if not leave_through_door(game, position, destination, label):
+                    game.io.show_message(
+                        f"You cannot find a path to the {label}."
+                    )
+                return True
+
         destination = resolve_map(game, target)
         if destination is not None:
             from states.map_selection_state import MapSelectionState
