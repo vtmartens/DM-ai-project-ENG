@@ -1,5 +1,10 @@
 from abc import ABC, abstractmethod
 
+
+class NeedsInput(Exception):
+    """Raised by non-blocking IO when a state must wait for the next command."""
+
+
 # Abstract interface for game I/O
 class GameIO(ABC):
     def __init__(self):

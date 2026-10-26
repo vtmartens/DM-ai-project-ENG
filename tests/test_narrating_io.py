@@ -185,7 +185,7 @@ def test_web_command_appends_narration_end_to_end(monkeypatch):
     monkeypatch.setattr(ai_io, "create_narrator_from_env", lambda: FakeNarrator())
     session = GameState(Player("Aria", "fighter"), TavernState())
 
-    session.process_command("")
+    session.process_command("", provide_input=False)
 
     messages = session.io_buffer.get_structured_output()
     assert {"type": "narration", "text": "The hearth crackles."} in messages

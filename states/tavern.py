@@ -139,23 +139,29 @@ class TavernState(BaseGameState):
             self.run(game)
 
     def _main_show_menu(self, game):
-        game.io.show_message("\nYou are in the tavern. What do you want to do?")
-        game.io.show_message("1. Talk to someone")
-        game.io.show_message("2. Travel to another area")
-        game.io.show_message("3. Show stats")
-        game.io.show_message("4. Fight an enemy")
-        game.io.show_message("5. Challenge an NPC")
-        game.io.show_message("6. Explore objects in the tavern")
-        game.io.show_message("7. Show inventory")
-        game.io.show_message("8. Ability check")
-        game.io.show_message("9. Display map")
-        game.io.show_message("10. Move on the map")
-        game.io.show_message("11. Interact with the environment")
-        game.io.show_message("12. Save game")
-        game.io.show_message("13. Exit the game")
+        # The web session opens by rendering this menu with no command pending.
+        # On the next run the same menu would otherwise be printed again; keep
+        # the flag until a command is consumed.
+        if not self.contextual_data.get("main_menu_rendered"):
+            game.io.show_message("\nYou are in the tavern. What do you want to do?")
+            game.io.show_message("1. Talk to someone")
+            game.io.show_message("2. Travel to another area")
+            game.io.show_message("3. Show stats")
+            game.io.show_message("4. Fight an enemy")
+            game.io.show_message("5. Challenge an NPC")
+            game.io.show_message("6. Explore objects in the tavern")
+            game.io.show_message("7. Show inventory")
+            game.io.show_message("8. Ability check")
+            game.io.show_message("9. Display map")
+            game.io.show_message("10. Move on the map")
+            game.io.show_message("11. Interact with the environment")
+            game.io.show_message("12. Save game")
+            game.io.show_message("13. Exit the game")
+            self.contextual_data["main_menu_rendered"] = True
 
         # Gets the command from input and stores it
         self.last_input = game.io.request_input("Choice: ")
+        self.contextual_data["main_menu_rendered"] = False
         self.phase = "process_selection"
 
     def _process_selection(self, game):

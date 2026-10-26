@@ -110,10 +110,20 @@ conversation memory across turns. The narrator has no authority over game state.
     `ASSETS_DIR` is anchored to the repository root.
   - Import/export save filenames are sanitized and imports get unique names.
   - AI prose is tagged `{"type": "narration"}` so clients can style it separately.
+- `/app` redirects to `/app/` so the client's relative `styles.css`/`app.js` load.
+- Fixed the web session's off-by-one command pacing. `WebGameIO` now supplies each command
+  once and raises `NeedsInput` when a state must wait for the next one;
+  `GameState.process_command` runs the state until that point. A menu choice is processed
+  in the same request instead of one command late (previously the first choice produced
+  "I don't understand what you want to do with ''"). `TavernState` also avoids re-rendering
+  the opening menu, and the client collapses repeated menu blocks.
 - Verified live: `/app`, `/app/styles.css`, `/app/app.js`, `/start`, `/state`,
   `/abilities`, `/inventory`, `/available_actions`, `/command`, `/save`, `/list_saves` and
   a session-less `/load` all returned the expected data. With AI narration enabled,
   `/start` emitted exactly one `{"type": "narration"}` message containing real prose.
+- Verified in a real headless browser (Selenium): class selection, start, talk list,
+  Durnan's dialogue options, inventory item details, and AI narration all worked with no
+  empty-command errors.
 
 ## Fixed, at your request — these are deliberate behaviour changes
 
@@ -233,7 +243,7 @@ of these were introduced by the translation.
 | Residual Italian (glossary-derived denylist + accented characters) | 0 hits |
 | **Original Italian vs translated, identical input** | **46/46 placements, identical sequence** |
 | Flask API in-process (test client, no socket) | 31 × 200, 0 raised |
-| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, web client routes) | 143 passed |
+| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, web client routes) | 145 passed |
 | Live smoke test (Flask server, `/app`, start/state/abilities/inventory/actions/command/save/load) | passed |
 
 The last comparison is the strongest evidence: the pristine Italian code and the finished

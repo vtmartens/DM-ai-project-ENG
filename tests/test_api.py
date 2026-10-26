@@ -49,10 +49,13 @@ def test_classes_are_loaded_from_data(client):
 
 
 def test_web_client_and_its_assets_are_served(client):
-    page = client.get("/app")
+    redirect = client.get("/app")
+    page = client.get("/app/")
     styles = client.get("/app/styles.css")
     script = client.get("/app/app.js")
 
+    assert redirect.status_code == 302
+    assert redirect.headers["Location"].endswith("/app/")
     assert page.status_code == 200
     assert b"DM AI" in page.data
     assert styles.status_code == 200
@@ -199,6 +202,32 @@ def test_use_ability_is_explicitly_not_implemented(client):
 
     assert response.status_code == 501
     assert response.get_json()["implemented"] is False
+
+
+def test_command_does_not_repeat_the_opening_menu(client):
+    response = client.post("/start", json={"name": "Flow", "char_class": "fighter"})
+    session_id = response.get_json()["session_id"]
+
+    command = client.post(
+        "/command", json={"session_id": session_id, "command": "1"}
+    ).get_json()
+    texts = [message["text"] for message in command["output"]]
+
+    assert not any("You are in the tavern. What do you want to do?" in text for text in texts)
+    assert any("Who do you want to talk to?" in text for text in texts)
+
+
+def test_second_choice_enters_dialogue(client):
+    response = client.post("/start", json={"name": "Flow", "char_class": "fighter"})
+    session_id = response.get_json()["session_id"]
+
+    client.post("/command", json={"session_id": session_id, "command": "1"})
+    command = client.post(
+        "/command", json={"session_id": session_id, "command": "1"}
+    ).get_json()
+    texts = [message["text"] for message in command["output"]]
+
+    assert any("Welcome to the Yawning Portal" in text for text in texts)
 
 
 def test_explore_returns_real_nearby_targets(client):

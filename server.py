@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory, send_file
+from flask import Flask, jsonify, redirect, request, send_file, send_from_directory
 from uuid import uuid4
 import os
 import pickle
@@ -140,8 +140,8 @@ def start_game():
     session = GameState(player, TavernState())
     active_sessions[session_id] = session
     
-    # Run the first empty command to get the initial output
-    session.process_command("")
+    # Render the opening menu without consuming a command
+    session.process_command("", provide_input=False)
     structured_output = session.io_buffer.get_structured_output()
     session.io_buffer.clear()
 
@@ -986,6 +986,14 @@ def get_assets_info():
 
 @app.route("/app")
 def web_client():
+    """Redirect to the trailing-slash form so relative asset URLs resolve."""
+    if not (FRONTEND_DIR / "index.html").exists():
+        return jsonify({"error": "Web client not installed"}), 404
+    return redirect("/app/")
+
+
+@app.route("/app/")
+def web_client_index():
     """Serve the optional dependency-free web client."""
     if not (FRONTEND_DIR / "index.html").exists():
         return jsonify({"error": "Web client not installed"}), 404

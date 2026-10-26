@@ -491,8 +491,27 @@ function renderQuickActions(data) {
 /* --------------------------------------------------------------- log */
 
 function appendOutput(messages) {
-  for (const message of messages || []) {
-    appendMessage(message.text, message.type);
+  const incoming = (messages || []).filter((message) => message && message.text != null);
+  if (!incoming.length) return;
+
+  // The web runner re-renders the current menu before processing a command so
+  // that the state machine can consume it. Collapse that repeated block instead
+  // of showing the same menu twice.
+  const keyOf = (message) => `${message.type || "narrative"}\u0000${message.text}`;
+  const existing = store.log.map(keyOf);
+  const incomingKeys = incoming.map(keyOf);
+
+  let overlap = Math.min(existing.length, incomingKeys.length);
+  while (overlap > 0) {
+    const tail = existing.slice(-overlap);
+    const head = incomingKeys.slice(0, overlap);
+    if (tail.every((value, index) => value === head[index])) break;
+    overlap -= 1;
+  }
+
+  const start = overlap >= 3 ? overlap : 0;
+  for (let index = start; index < incoming.length; index += 1) {
+    appendMessage(incoming[index].text, incoming[index].type);
   }
 }
 
