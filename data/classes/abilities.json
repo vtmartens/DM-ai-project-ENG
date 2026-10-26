@@ -1,0 +1,91 @@
+{
+  "Powerful Blow": {
+    "id": "powerful_blow",
+    "class": "fighter",
+    "description": "A committed strike that adds 5 damage to your attack.",
+    "mana_cost": 0,
+    "combat_only": true,
+    "effect": {
+      "type": "damage",
+      "bonus": 5
+    }
+  },
+  "Parry": {
+    "id": "parry",
+    "class": "fighter",
+    "description": "Brace behind your weapon and reduce the next incoming attack by 5.",
+    "mana_cost": 0,
+    "combat_only": true,
+    "effect": {
+      "type": "guard",
+      "amount": 5
+    }
+  },
+  "Magic Missile": {
+    "id": "magic_missile",
+    "class": "wizard",
+    "description": "Unerring arcane force deals 8 damage to your opponent, ignoring armor.",
+    "mana_cost": 5,
+    "combat_only": true,
+    "ignore_defense": true,
+    "effect": {
+      "type": "damage",
+      "flat": 8
+    }
+  },
+  "Mage Shield": {
+    "id": "mage_shield",
+    "class": "wizard",
+    "description": "A shimmering ward absorbs up to 6 damage.",
+    "mana_cost": 5,
+    "combat_only": true,
+    "effect": {
+      "type": "shield",
+      "amount": 6
+    }
+  },
+  "Sneak Attack": {
+    "id": "sneak_attack",
+    "class": "rogue",
+    "description": "Strike a weak point for double your normal damage.",
+    "mana_cost": 2,
+    "combat_only": true,
+    "effect": {
+      "type": "damage",
+      "multiplier": 2
+    }
+  },
+  "Evade": {
+    "id": "evade",
+    "class": "rogue",
+    "description": "Slip aside and avoid the next enemy attack entirely.",
+    "mana_cost": 2,
+    "combat_only": true,
+    "effect": {
+      "type": "evade"
+    }
+  },
+  "Cure Wounds": {
+    "id": "cure_wounds",
+    "class": "cleric",
+    "description": "Channel divine power to recover 8 hit points.",
+    "mana_cost": 4,
+    "combat_only": false,
+    "effect": {
+      "type": "heal",
+      "amount": 8
+    }
+  },
+  "Blessing": {
+    "id": "blessing",
+    "class": "cleric",
+    "description": "A brief blessing adds 2 to your next damage and wards off 2 damage from the next attack.",
+    "mana_cost": 3,
+    "combat_only": true,
+    "effect": {
+      "type": "bless",
+      "attack": 2,
+      "defense": 2
+    }
+  }
+}

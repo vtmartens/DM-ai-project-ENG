@@ -36,7 +36,10 @@ You can also set `localStorage["dm_api_base"]`.
   to the nearest map exit, steps through it and enters the destination state.
 - Character panel: HP, level, gold, location, abilities, skills; ability scores show the
   base value with its effective modifier (for example `INT 16 (+4)`), matching the class
-  preview.
+  preview. Class abilities are clickable buttons with mana costs; unavailable abilities
+  (not enough mana, or combat-only outside combat) are disabled with an explanation.
+- Ability use goes through `POST /use_ability`; using one is a combat action, so the enemy
+  retaliates and victory/rewards resolve normally.
 - Map modal (`GET /map_view`) with the ASCII map, the player's position, and a token
   legend generated from the objects/NPCs actually on the map; characters are labelled
   `(NPC)` so it is clear who can be talked to. Map exits are shown as `>` and named in the

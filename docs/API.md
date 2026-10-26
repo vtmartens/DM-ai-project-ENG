@@ -18,9 +18,8 @@ Errors use a single shape:
 | Status | Meaning |
 |---|---|
 | `400` | Missing or invalid input |
-| `404` | Session, save, item or map not found |
+| `404` | Session, save, item, map or ability not found |
 | `409` | Save refused by the engine (combat, dialogue, market transaction) |
-| `501` | Explicitly not implemented (currently `POST /use_ability`) |
 | `500` | Unexpected server error |
 
 ## Message types
@@ -287,15 +286,51 @@ Returns the full class catalogue from `data/classes/classes.json`:
 ```json
 {
   "abilities": ["Magic Missile", "Mage Shield"],
+  "ability_details": [
+    {
+      "id": "magic_missile",
+      "name": "Magic Missile",
+      "class": "wizard",
+      "description": "Unerring arcane force deals 8 damage to your opponent, ignoring armor.",
+      "mana_cost": 5,
+      "combat_only": true,
+      "ignore_defense": true,
+      "effect": {"type": "damage", "flat": 8}
+    }
+  ],
   "skills": ["arcana", "history"],
   "skill_proficiencies": {"arcana": true, "history": true},
   "mana": 20,
-  "mana_max": 20
+  "mana_max": 20,
+  "in_combat": false
 }
 ```
 
-`POST /use_ability` returns `501` with `{"implemented": false}`: the engine has no ability
-execution yet. Clients should disable the action.
+`abilities` remains a name list for simple clients. `ability_details` carries the cost and
+context needed for buttons; `combat_only` abilities are refused outside combat, and
+`in_combat` reports the current context.
+
+#### `POST /use_ability`
+
+```json
+{"session_id": "uuid", "ability_id": "magic_missile"}
+```
+
+Use `ability_id` or `ability_name` (`"Magic Missile"`). The response has the same `output`,
+`state`, `state_name` and `end` fields as `POST /command`, plus:
+
+```json
+{
+  "used": true,
+  "combat": {"in_combat": true, "...": "..."},
+  "ability": {"name": "Magic Missile", "mana_cost": 5}
+}
+```
+
+An unknown ability is `404`. A known ability that cannot currently be used (no mana, or a
+combat-only ability outside combat) returns `200` with `"used": false` and an explanatory
+message in `output`. In combat the ability consumes the player's action, then the enemy
+retaliates or victory resolves normally.
 
 #### `GET /inventory?session_id=...`
 
@@ -454,7 +489,7 @@ Runs `look` and returns `output`, `state`, plus nearby `items`, `exits`, and `np
   "round": 1,
   "turn_of": "player",
   "enemies": [{"name": "Goblin", "hp": 10, "max_hp": 10}],
-  "available_actions": ["attack", "use item", "change equipment", "flee"]
+  "available_actions": ["attack", "use item", "use ability", "change equipment", "flee"]
 }
 ```
 
@@ -539,5 +574,6 @@ Serves `frontend/index.html` and its static files. See `frontend/README.md`.
 - `stats` are modifiers, not base scores.
 - Prefer `/list_saves` over `/saves`.
 - Handle `409` on save (combat/dialogue/market) as a normal refusal, not a crash.
-- `POST /use_ability` is `501` until ability execution exists.
+- `POST /use_ability` spends mana and consumes the combat turn; check `used` and render
+  `output` even when it is `false`.
 - Asset catalogues are empty; use CSS/placeholder art.

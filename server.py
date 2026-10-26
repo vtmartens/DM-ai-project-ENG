@@ -1209,13 +1209,37 @@ def use_ability():
     if not session:
         return jsonify({"error": "Session not found"}), 404
     
-    # The engine has no ability execution yet. Say so instead of pretending a
-    # command was processed.
+    from core.abilities import resolve_ability
+
+    name, definition = resolve_ability(
+        session.game.player, ability_name or ability_id
+    )
+    if not name:
+        return jsonify({"error": "Ability not found"}), 404
+
+    used = session.use_ability(name)
+    save_session(session_id, session)
+
+    current_state = session.get_current_state()
+    state_name = "NoneState"
+    if session.game.current_state():
+        state_name = type(session.game.current_state()).__name__
+
+    structured_output = session.io_buffer.get_structured_output()
+    session.io_buffer.clear()
+
     return jsonify({
-        "error": "Ability use is not implemented yet",
-        "implemented": False,
-        "abilities": session.get_abilities()["abilities"],
-    }), 501
+        "output": structured_output,
+        "state": current_state,
+        "state_name": state_name,
+        "end": not session.game.active,
+        "used": used,
+        "combat": session.get_combat_state(),
+        "ability": {
+            "name": name,
+            "mana_cost": definition.get("mana_cost", 0),
+        },
+    })
 
 @app.route("/export_save", methods=["POST"])
 def export_save():

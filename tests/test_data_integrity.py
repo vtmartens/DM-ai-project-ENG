@@ -89,6 +89,60 @@ def test_map_start_positions_are_walkable():
         )
 
 
+def test_class_ability_definitions_cover_special_abilities():
+    classes = _load(ROOT / "data" / "classes" / "classes.json")
+    abilities = _load(ROOT / "data" / "classes" / "abilities.json")
+
+    for class_name, data in classes.items():
+        for ability_name in data["special_abilities"]:
+            assert ability_name in abilities, (
+                f"{class_name}: {ability_name} has no ability definition"
+            )
+            assert abilities[ability_name]["class"] == class_name
+
+    defined_names = set(abilities)
+    special_names = {
+        name
+        for data in classes.values()
+        for name in data["special_abilities"]
+    }
+    assert defined_names == special_names
+
+
+def test_ability_definitions_are_well_formed():
+    abilities = _load(ROOT / "data" / "classes" / "abilities.json")
+    supported_effects = {"damage", "heal", "guard", "shield", "evade", "bless"}
+    ids = set()
+
+    for name, ability in abilities.items():
+        for field in (
+            "id",
+            "class",
+            "description",
+            "mana_cost",
+            "combat_only",
+            "effect",
+        ):
+            assert field in ability, f"{name} is missing {field}"
+        assert ability["id"] not in ids, f"duplicate ability id {ability['id']}"
+        ids.add(ability["id"])
+        assert isinstance(ability["mana_cost"], int) and ability["mana_cost"] >= 0
+        assert isinstance(ability["combat_only"], bool)
+
+        effect = ability["effect"]
+        assert effect.get("type") in supported_effects, (
+            f"{name} has unsupported effect {effect.get('type')!r}"
+        )
+        if effect["type"] == "damage":
+            assert any(key in effect for key in ("flat", "bonus", "multiplier"))
+        elif effect["type"] == "heal":
+            assert effect.get("amount", 0) > 0
+        elif effect["type"] in ("guard", "shield"):
+            assert effect.get("amount", 0) > 0
+        elif effect["type"] == "bless":
+            assert effect.get("attack", 0) > 0 or effect.get("defense", 0) > 0
+
+
 def test_npc_conversation_options_are_idempotent():
     from entities.npc import NPC
     from util.data_manager import get_data_manager

@@ -531,11 +531,33 @@ function renderAbilities(data) {
   el.abilitiesList.innerHTML = "";
   el.skillsList.innerHTML = "";
 
-  for (const ability of data.abilities || []) {
-    const tag = document.createElement("span");
-    tag.className = "tag ability";
-    tag.textContent = ability;
-    el.abilitiesList.appendChild(tag);
+  const details =
+    Array.isArray(data.ability_details) && data.ability_details.length
+      ? data.ability_details
+      : (data.abilities || []).map((name) => ({ name }));
+  const mana = Number(data.mana || 0);
+  const inCombat = Boolean(data.in_combat);
+
+  for (const ability of details) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "tag ability";
+    const cost = Number(ability.mana_cost || 0);
+    button.textContent = cost ? `${ability.name} · ${cost}` : ability.name;
+
+    const lacksMana = cost > mana;
+    const wrongContext = Boolean(ability.combat_only) && !inCombat;
+    button.disabled = lacksMana || wrongContext;
+    if (lacksMana) {
+      button.title = `${ability.name}: needs ${cost} mana (you have ${mana})`;
+    } else if (wrongContext) {
+      button.title = `${ability.name}: can only be used in combat`;
+    } else {
+      button.title = ability.description || ability.name;
+    }
+
+    button.addEventListener("click", () => useAbility(ability.name));
+    el.abilitiesList.appendChild(button);
   }
   if (!el.abilitiesList.children.length) {
     const note = document.createElement("span");
@@ -737,6 +759,38 @@ async function sendCommand(command) {
     if (data.end) {
       showToast("The game has ended. Start a new game to continue.", "error");
     }
+    refreshSidePanels(data.state);
+  } catch (error) {
+    appendMessage(error.message, "error");
+    scrollLogToBottom();
+    if (error.status === 404) {
+      clearSession();
+      showToast("Session expired. Start a new game.", "error");
+    }
+  } finally {
+    store.busy = false;
+    window.clearTimeout(thinkingTimer);
+    setBusy(false);
+    el.commandInput.focus({ preventScroll: true });
+  }
+}
+
+async function useAbility(name) {
+  if (!store.sessionId || store.busy) return;
+
+  store.busy = true;
+  setBusy(true, `Using ${name}…`);
+  thinkingTimer = window.setTimeout(() => {
+    if (store.busy) el.commandStatus.textContent = "The Dungeon Master is thinking…";
+  }, 600);
+
+  try {
+    const data = await api("/use_ability", {
+      method: "POST",
+      body: { session_id: store.sessionId, ability_name: name },
+    });
+    appendOutput(data.output || []);
+    if (data.state) renderState(data.state);
     refreshSidePanels(data.state);
   } catch (error) {
     appendMessage(error.message, "error");

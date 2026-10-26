@@ -15,6 +15,7 @@ GENERIC_EXIT_TARGETS = {"exit", "door", "way out", "leave", ""}
 TARGETED_PATTERNS = (
     ("talk", r"^(?:talk|speak|chat|converse)(?:\s+(?:to|with))?\s+(.+)$"),
     ("attack", r"^(?:attack|fight|hit|kill|challenge)\s+(?:the\s+|a\s+|an\s+)?(.+)$"),
+    ("ability", r"^(?:use\s+ability|cast(?:\s+spell)?)\s+(.+)$"),
     ("use", r"^(?:use|drink|quaff|consume)\s+(?:the\s+|a\s+|an\s+)?(.+)$"),
     ("equip", r"^(?:equip|wield|wear)\s+(?:the\s+|a\s+|an\s+)?(.+)$"),
     ("go", r"^(?:go|travel|walk|head|move|approach)(?:\s+to)?\s+(?:the\s+)?(.+)$"),
@@ -321,6 +322,16 @@ def handle_targeted_command(game, action, target, extra_npcs=()) -> bool:
         from states.combat import CombatState
 
         game.push_state(CombatState(hostile_npc=npc))
+        return True
+
+    if action == "ability":
+        from core.abilities import resolve_ability, use_ability
+
+        name, definition = resolve_ability(game.player, target)
+        if not name:
+            game.io.show_message(f"You don't know an ability called {target}.")
+            return False
+        use_ability(game, name, definition)
         return True
 
     if action in {"use", "equip"}:

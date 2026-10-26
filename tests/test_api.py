@@ -379,23 +379,141 @@ def test_abilities_expose_class_abilities_and_skills(client):
     session_id = _start(client)
 
     data = client.get("/abilities", query_string={"session_id": session_id}).get_json()
+    details = {ability["name"]: ability for ability in data["ability_details"]}
 
     assert "Powerful Blow" in data["abilities"]
     assert "athletics" in data["skills"]
     assert data["mana"] == 0
     assert data["mana_max"] == 0
+    assert data["in_combat"] is False
+    assert details["Powerful Blow"]["mana_cost"] == 0
+    assert details["Powerful Blow"]["combat_only"] is True
+    assert details["Powerful Blow"]["description"]
 
 
-def test_use_ability_is_explicitly_not_implemented(client):
+def test_use_ability_casts_magic_missile_in_combat(client):
+    import server
+
+    session_id = _start(client, char_class="wizard")
+    client.post("/command", json={"session_id": session_id, "command": "go to cellar"})
+    client.post(
+        "/command", json={"session_id": session_id, "command": "attack the Specter"}
+    )
+    session = server.active_sessions[session_id]
+    combat = session.game.current_state()
+    before_hp = combat.opponent.hp
+    before_mana = session.game.player.mana
+
+    response = client.post(
+        "/use_ability",
+        json={"session_id": session_id, "ability_id": "magic_missile"},
+    )
+    data = response.get_json()
+    texts = [message["text"] for message in data["output"]]
+
+    assert response.status_code == 200
+    assert data["used"] is True
+    assert combat.opponent.hp == before_hp - 8
+    assert session.game.player.mana == before_mana - 5
+    assert data["state"]["state"] == "CombatState"
+    assert data["combat"]["in_combat"] is True
+    assert any("Magic Missile" in text for text in texts)
+
+
+def test_use_ability_cure_wounds_outside_combat(client):
+    import server
+
+    session_id = _start(client, char_class="cleric")
+    session = server.active_sessions[session_id]
+    session.game.player.hp = 1
+    before_mana = session.game.player.mana
+
+    data = client.post(
+        "/use_ability",
+        json={"session_id": session_id, "ability_name": "Cure Wounds"},
+    ).get_json()
+
+    assert data["used"] is True
+    assert session.game.player.hp == min(session.game.player.hp_max, 9)
+    assert session.game.player.mana == before_mana - 4
+    assert data["state"]["state"] == "TavernState"
+
+
+def test_use_ability_unknown_ability_returns_404(client):
     session_id = _start(client)
 
     response = client.post(
         "/use_ability",
-        json={"session_id": session_id, "ability_name": "Powerful Blow"},
+        json={"session_id": session_id, "ability_name": "Fireball"},
     )
 
-    assert response.status_code == 501
-    assert response.get_json()["implemented"] is False
+    assert response.status_code == 404
+
+
+def test_use_ability_combat_only_outside_combat_is_refused(client):
+    session_id = _start(client)
+
+    data = client.post(
+        "/use_ability",
+        json={"session_id": session_id, "ability_name": "Powerful Blow"},
+    ).get_json()
+    texts = [message["text"] for message in data["output"]]
+
+    assert data["used"] is False
+    assert data["state"]["state"] == "TavernState"
+    assert any("can only be used in combat" in text for text in texts)
+
+
+def test_use_ability_without_mana_is_refused(client):
+    import server
+
+    session_id = _start(client, char_class="wizard")
+    client.post("/command", json={"session_id": session_id, "command": "go to cellar"})
+    client.post(
+        "/command", json={"session_id": session_id, "command": "attack the Specter"}
+    )
+    session = server.active_sessions[session_id]
+    combat = session.game.current_state()
+    session.game.player.mana = 0
+    before_hp = combat.opponent.hp
+
+    data = client.post(
+        "/use_ability",
+        json={"session_id": session_id, "ability_name": "Magic Missile"},
+    ).get_json()
+    texts = [message["text"] for message in data["output"]]
+
+    assert data["used"] is False
+    assert combat.opponent.hp == before_hp
+    assert session.game.player.mana == 0
+    assert any("need 5 mana" in text for text in texts)
+
+
+def test_combat_ability_menu_uses_a_class_ability(client):
+    import server
+
+    session_id = _start(client, char_class="wizard")
+    client.post("/command", json={"session_id": session_id, "command": "go to cellar"})
+    client.post(
+        "/command", json={"session_id": session_id, "command": "attack the Specter"}
+    )
+    session = server.active_sessions[session_id]
+    combat = session.game.current_state()
+    before_hp = combat.opponent.hp
+
+    menu = client.post(
+        "/command", json={"session_id": session_id, "command": "5"}
+    ).get_json()
+    result = client.post(
+        "/command", json={"session_id": session_id, "command": "1"}
+    ).get_json()
+    texts = [message["text"] for message in menu["output"]]
+
+    assert any("Which ability?" in text for text in texts)
+    assert any("Magic Missile" in text for text in texts)
+    assert session.game.player.mana == 15
+    assert combat.opponent.hp == before_hp - 8
+    assert result["state"]["state"] == "CombatState"
 
 
 def test_command_does_not_repeat_the_opening_menu(client):
@@ -806,7 +924,7 @@ def test_post_endpoints_never_raise(client, path, payload):
 
     response = client.post(path, json={"session_id": session_id, **payload})
 
-    # 501 is an intentional, explicit "not implemented" answer.
+    # These endpoints may refuse a request, but they must never crash.
     assert response.status_code != 500, (path, response.get_data(as_text=True))
 
 

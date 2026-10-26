@@ -227,12 +227,13 @@ class GameState:
 
         # Flush any buffered output (AI narration, when enabled) before reading it
         self.io_buffer.flush()
+        self._record_output()
 
-        # Store and return the output
+        return self.last_output
+
+    def _record_output(self):
+        """Stores the current buffer as ``last_output`` and appends it to the log."""
         self.last_output = self.io_buffer.get_output_text()
-
-        # Keep a rolling log of the events the engine emitted. The buffer is cleared
-        # at the start of every command, so without this the web API has no history.
         for message in self.io_buffer.get_structured_output():
             entry = dict(message)
             entry.setdefault("time", time.time())
@@ -240,7 +241,32 @@ class GameState:
         if len(self.event_log) > 500:
             del self.event_log[:-500]
 
-        return self.last_output
+    def use_ability(self, ability_name):
+        """Uses one of the player's class abilities; returns True when handled."""
+        from core.abilities import resolve_ability, use_ability
+
+        name, definition = resolve_ability(self.game.player, ability_name)
+        if not name:
+            return False
+
+        from states.combat import CombatState
+
+        current = self.game.current_state()
+        if isinstance(current, CombatState):
+            # Run the normal combat flow so retaliation and victory resolution
+            # happen after the ability. Reset a half-open combat submenu first.
+            if getattr(current, "phase", "selection") != "selection":
+                current.phase = "selection"
+                current.temporary_data.clear()
+            current.last_ability_used = None
+            self.process_command(f"use ability {name}")
+            return bool(getattr(current, "last_ability_used", False))
+
+        self.io_buffer.clear()
+        used = use_ability(self.game, name, definition)
+        self.io_buffer.flush()
+        self._record_output()
+        return used
 
     def get_log(self, max_events=50):
         """Returns the most recent structured events, oldest first."""
@@ -277,7 +303,13 @@ class GameState:
                         "max_hp": getattr(opponent, "hp_max", 0),
                     }
                 ],
-                "available_actions": ["attack", "use item", "change equipment", "flee"],
+                "available_actions": [
+                    "attack",
+                    "use item",
+                    "use ability",
+                    "change equipment",
+                    "flee",
+                ],
             }
         return {"in_combat": False}
 
@@ -334,10 +366,15 @@ class GameState:
 
     def get_abilities(self):
         """Returns the player's class abilities, skills and mana pool."""
+        from core.abilities import player_abilities
+        from states.combat import CombatState
+
         player = self.game.player
-        class_data = getattr(player, "classes_data", {}).get(player.char_class, {})
+        details = player_abilities(player)
+        current = self.game.current_state()
         return {
-            "abilities": list(class_data.get("special_abilities", [])),
+            "abilities": [ability["name"] for ability in details],
+            "ability_details": details,
             "skills": sorted(
                 skill
                 for skill, proficient in player.skill_proficiencies.items()
@@ -346,6 +383,7 @@ class GameState:
             "skill_proficiencies": dict(player.skill_proficiencies),
             "mana": getattr(player, "mana", 0),
             "mana_max": getattr(player, "mana_max", 0),
+            "in_combat": isinstance(current, CombatState),
         }
 
     def get_dialogue_state(self):

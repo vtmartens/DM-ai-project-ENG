@@ -24,6 +24,10 @@ class CombatState(BaseState):
         self.phase = "selection"
         # To store any temporary data between phases
         self.temporary_data = {}
+        # Ability effects that persist across turns (guard, shield, evade, bless)
+        self.effects = {}
+        # Result of the most recent ability attempt (used by POST /use_ability)
+        self.last_ability_used = None
         
     def run(self, game):
         player = game.player
@@ -48,6 +52,8 @@ class CombatState(BaseState):
             self._phase_use_item(player, game)
         elif self.phase == "change_equipment":
             self._phase_change_equipment(player, game)
+        elif self.phase == "use_ability":
+            self._phase_use_ability(player, game)
 
     def _phase_selection(self, player, game):
         """Action selection phase"""
@@ -57,6 +63,7 @@ class CombatState(BaseState):
         game.io.show_message("2. Use item")
         game.io.show_message("3. Change equipment")
         game.io.show_message("4. Flee")
+        game.io.show_message("5. Use ability")
         
         # Get the command from the input (already set by the web system)
         game.io.request_input("Choice: ")
@@ -84,12 +91,17 @@ class CombatState(BaseState):
             else:
                 return None
         
+        ability_name = self._parse_ability_command(player, selection_input)
+        if ability_name:
+            self._manage_ability(player, game, ability_name)
+            return
+
         # Process the textual or numeric command
-        if selection_input.isdigit() and selection_input in ["1", "2", "3", "4"]:
+        if selection_input.isdigit() and selection_input in ["1", "2", "3", "4", "5"]:
             selection = selection_input
         else:
             selection = process_command_combat(selection_input)
-        
+
         if selection == "1":
             self._manage_attack(player, game)
             # Move to the enemy attack phase if the opponent is still alive
@@ -113,6 +125,10 @@ class CombatState(BaseState):
                     self.phase = "enemy_attack"
                 else:
                     self.phase = "end_turn"
+        elif selection == "5":
+            self.phase = "use_ability"
+            self.temporary_data.clear()
+            return
         else:
             game.io.show_message(f"Invalid action: '{selection_input}'!")
             self.phase = "selection"  # Return to the selection phase
@@ -314,6 +330,84 @@ class CombatState(BaseState):
             else:
                 self.phase = "end_turn"
                 
+    def _parse_ability_command(self, player, command):
+        """Returns an ability name for 'use ability X', 'cast X' or a bare name."""
+        text = str(command or "").strip()
+        if not text:
+            return None
+
+        from core.abilities import resolve_ability
+
+        lowered = text.casefold()
+        for prefix in ("use ability ", "cast spell ", "cast ", "ability "):
+            if lowered.startswith(prefix):
+                name, _ = resolve_ability(player, text[len(prefix) :].strip())
+                return name
+
+        name, _ = resolve_ability(player, text)
+        return name
+
+    def _manage_ability(self, player, game, ability_name):
+        from core.abilities import resolve_ability, use_ability
+
+        name, definition = resolve_ability(player, ability_name)
+        if not name:
+            game.io.show_message(f"You don't know an ability called {ability_name}.")
+            self.phase = "selection"
+            return
+
+        used = use_ability(game, name, definition)
+        self.last_ability_used = used
+        if used:
+            self.phase = "enemy_attack" if self.opponent.hp > 0 else "end_turn"
+        else:
+            self.phase = "selection"
+
+    def _phase_use_ability(self, player, game):
+        """Choose and use a class ability."""
+        from core.abilities import player_abilities
+
+        options = self.temporary_data.get("ability_options")
+        if options is None:
+            options = player_abilities(player)
+            if not options:
+                game.io.show_message("\nYou have no abilities to use.")
+                self.phase = "selection"
+                return
+
+            self.temporary_data["ability_options"] = options
+            game.io.show_message("\nWhich ability?")
+            for index, ability in enumerate(options, 1):
+                cost = ability.get("mana_cost", 0)
+                game.io.show_message(
+                    f"{index}. {ability['name']} ({cost} mana) - "
+                    f"{ability.get('description', '')}"
+                )
+            game.io.show_message(f"{len(options) + 1}. Cancel")
+            game.io.request_input("Choice: ")
+            return
+
+        selection = str(game.io.last_input or "").strip()
+        self.temporary_data.pop("ability_options", None)
+        if selection == str(len(options) + 1) or selection.casefold() in {"cancel", "back"}:
+            self.phase = "selection"
+            return
+
+        chosen = None
+        if selection.isdigit():
+            index = int(selection) - 1
+            if 0 <= index < len(options):
+                chosen = options[index]["name"]
+        else:
+            chosen = self._parse_ability_command(player, selection)
+
+        if not chosen:
+            game.io.show_message("Invalid ability.")
+            self.phase = "selection"
+            return
+
+        self._manage_ability(player, game, chosen)
+
     def _show_state_combat(self, player, game):
         """Show the current combat state"""
         game.io.show_message("\n" + "="*60)
@@ -425,9 +519,15 @@ class CombatState(BaseState):
 
     def _manage_attack(self, player, game):
         """Handle the player's attack"""
+        if not isinstance(getattr(self, "effects", None), dict):
+            self.effects = {}
+
         # Use the player's effective strength, which includes weapon and accessory bonuses
-        damage = player.strength
-        
+        blessing = int(self.effects.pop("bless_attack", 0) or 0)
+        damage = player.strength + blessing
+        if blessing:
+            game.io.show_message(f"Your blessing adds {blessing} damage.")
+
         # Calculate criticals and special bonuses using the dice instead of direct random
         critical = False
         if self.dice_d100.roll() <= 10:  # 10% chance of a critical hit
@@ -451,13 +551,21 @@ class CombatState(BaseState):
                 game.io.show_message(f"\nYou attack {self.opponent.name} and deal {damage} damage!")
     
     def _attack_enemy(self, player, game):
-        """Handle the opponent's attack"""
+        """Handle the opponent's attack."""
+        if not isinstance(getattr(self, "effects", None), dict):
+            self.effects = {}
+        effects = self.effects
+
+        if effects.pop("evade", False):
+            game.io.show_message(f"\nYou evade {self.opponent.name}'s attack!")
+            return
+
         # For NPCs we use their strength, otherwise we use the enemy's damage
         if self.hostile_npc:
             damage = max(1, self.hostile_npc.strength if hasattr(self.hostile_npc, 'strength') else 3)
         else:
             damage = self.enemy.strength if hasattr(self.enemy, 'strength') else self.enemy.damage
-            
+
         # Attack description
         if hasattr(self.opponent, 'weapons') and self.opponent.weapons:
             import random
@@ -465,12 +573,38 @@ class CombatState(BaseState):
             game.io.show_message(f"\n{self.opponent.name} attacks you with {weapon}!")
         else:
             game.io.show_message(f"\n{self.opponent.name} attacks you!")
-        
-        # Take the player's defense into account (armor + base values)
-        effective_damage = max(1, damage - player.defense)
-        
-        game.io.show_message(f"You take {effective_damage} damage!")
-        player.wound(damage, game)
+
+        # Apply defense once here (take_damage() would subtract it again).
+        effective_damage = max(1, int(damage) - int(player.defense))
+
+        guard = int(effects.get("guard", 0) or 0)
+        if guard and effective_damage > 0:
+            absorbed = min(guard, effective_damage)
+            effective_damage -= absorbed
+            effects.pop("guard", None)
+            game.io.show_message(f"Your guard absorbs {absorbed} damage.")
+
+        bless = int(effects.get("bless_defense", 0) or 0)
+        if bless and effective_damage > 0:
+            absorbed = min(bless, effective_damage)
+            effective_damage -= absorbed
+            effects.pop("bless_defense", None)
+            game.io.show_message(f"Your blessing wards off {absorbed} damage.")
+
+        shield = int(effects.get("shield", 0) or 0)
+        if shield and effective_damage > 0:
+            absorbed = min(shield, effective_damage)
+            effective_damage -= absorbed
+            effects["shield"] = shield - absorbed
+            if effects["shield"] <= 0:
+                effects.pop("shield", None)
+            game.io.show_message(f"Your shield absorbs {absorbed} damage.")
+
+        if effective_damage > 0:
+            player.hp = max(0, player.hp - effective_damage)
+            game.io.show_message(f"You take {effective_damage} damage!")
+        else:
+            game.io.show_message("You take no damage.")
     
     def _apply_effect_item(self, player, item, game):
         """Apply the effect of an item"""
@@ -567,7 +701,8 @@ class CombatState(BaseState):
         state.turn = data.get("turn", 1)
         state.phase = data.get("phase", "selection")
         state.temporary_data = data.get("temporary_data", {})
-        
+        state.effects = data.get("effects", {})
+
         return state
         
     def to_dict(self):
@@ -580,7 +715,8 @@ class CombatState(BaseState):
         data = {
             "turn": self.turn,
             "phase": self.phase,
-            "temporary_data": self.temporary_data
+            "temporary_data": self.temporary_data,
+            "effects": dict(getattr(self, "effects", {}) or {}),
         }
         
         # Save the opponent
