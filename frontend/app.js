@@ -265,7 +265,7 @@ function enterGame(sessionId, state, output) {
 
   if (state) renderState(state);
   refreshSidePanels(state);
-  el.commandInput.focus();
+  el.commandInput.focus({ preventScroll: true });
 }
 
 /* ------------------------------------------------------------ session */
@@ -285,15 +285,21 @@ async function restoreSession() {
       const log = await api(`/log?session_id=${encodeURIComponent(store.sessionId)}&max=200`);
       el.log.innerHTML = "";
       store.log = [];
-      for (const message of log.events || []) appendMessage(message.text, message.type);
+      for (const message of log.events || []) {
+        appendMessage(message.text, message.type);
+      }
       if (!store.log.length) appendMessage("Session resumed.", "system");
+      renderDialogue(state.dialogue);
+      if (state.dialogue?.active) {
+        window.requestAnimationFrame(scrollLogToLatestNarration);
+      }
     } catch {
       appendMessage("Session resumed.", "system");
     }
     scrollLogToBottom();
 
     refreshSidePanels(state);
-    el.commandInput.focus();
+    el.commandInput.focus({ preventScroll: true });
     return true;
   } catch (error) {
     if (error.status === 404) {
@@ -362,6 +368,9 @@ function renderState(state) {
 
   renderCombat(state.combat);
   renderDialogue(state.dialogue);
+  if (state.dialogue?.active) {
+    window.requestAnimationFrame(scrollLogToLatestNarration);
+  }
 }
 
 function renderCombat(combat) {
@@ -620,6 +629,16 @@ function scrollLogToBottom() {
   });
 }
 
+function scrollLogToLatestNarration() {
+  const entries = el.log.querySelectorAll(".log-entry.narration");
+  const latest = entries[entries.length - 1];
+  if (!latest) return;
+
+  const logRect = el.log.getBoundingClientRect();
+  const entryRect = latest.getBoundingClientRect();
+  el.log.scrollTop = el.log.scrollTop + (entryRect.top - logRect.top) - 8;
+}
+
 function appendOutput(messages) {
   const incoming = (messages || []).filter((message) => message && message.text != null);
   if (!incoming.length) return;
@@ -730,7 +749,7 @@ async function sendCommand(command) {
     store.busy = false;
     window.clearTimeout(thinkingTimer);
     setBusy(false);
-    el.commandInput.focus();
+    el.commandInput.focus({ preventScroll: true });
   }
 }
 

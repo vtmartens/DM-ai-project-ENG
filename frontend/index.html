@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark light">
   <title>DM AI — Dungeon Master</title>
-  <link rel="stylesheet" href="styles.css?v=7">
+  <link rel="stylesheet" href="styles.css?v=11">
 </head>
 <body>
   <header class="topbar">
@@ -100,9 +100,6 @@
       </aside>
 
       <section class="play-area">
-        <section id="combat-card" class="card context-card hidden" aria-live="polite"></section>
-        <section id="dialogue-card" class="card context-card hidden" aria-live="polite"></section>
-
         <div class="card log-card">
           <div class="card-header">
             <h2>Adventure log</h2>
@@ -125,6 +122,8 @@
           <div id="quick-actions" class="quick-actions"></div>
         </div>
 
+        <section id="dialogue-card" class="card context-card hidden" aria-live="polite"></section>
+        <section id="combat-card" class="card context-card hidden" aria-live="polite"></section>
         <section id="item-panel" class="card item-panel hidden" aria-live="polite"></section>
       </section>
     </section>
@@ -156,6 +155,6 @@
 
   <div id="toast" class="toast hidden" role="status"></div>
 
-  <script src="app.js?v=7"></script>
+  <script src="app.js?v=11"></script>
 </body>
 </html>

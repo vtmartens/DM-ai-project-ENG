@@ -29,8 +29,8 @@ Endpoints that run a game command return `output`, a list of messages:
 
 ```json
 [
-  {"type": "narrative", "text": "You enter the tavern."},
   {"type": "narration", "text": "Warmth folds around you..."},
+  {"type": "narrative", "text": "You enter the tavern."},
   {"type": "system", "text": "Saved."},
   {"type": "error", "text": "Invalid choice."},
   {"type": "prompt", "text": "Choice: "},
@@ -38,10 +38,11 @@ Endpoints that run a game command return `output`, a list of messages:
 ]
 ```
 
-`narration` is only emitted when the server has AI narration enabled. `narrative` is the
-engine's own text and is authoritative; `narration` is optional prose and must never be
-treated as game state. `map` is preformatted ASCII; render it in a monospace, whitespace-
-preserving block.
+`narration` is only emitted when the server has AI narration enabled. When present, it is
+emitted **before** the engine `narrative` messages it was generated from, so clients that
+render in order show the DM paragraph first. `narrative` is the engine's own text and is
+authoritative; `narration` is optional prose and must never be treated as game state. `map`
+is preformatted ASCII; render it in a monospace, whitespace-preserving block.
 
 ## Session flow
 

@@ -40,7 +40,9 @@ You can also set `localStorage["dm_api_base"]`.
   legend generated from the objects/NPCs actually on the map; characters are labelled
   `(NPC)` so it is clear who can be talked to.
 - Combat card with enemy name/HP and the current round (from `state.combat`).
-- Clickable dialogue options (from `state.dialogue`), in addition to typing numbers.
+- Clickable dialogue options (from `state.dialogue`), in addition to typing numbers. The
+  play area puts the Adventure log (with the DM narration first) at the top, and the NPC
+  dialogue/options card below it.
 - Inventory list with item details and use/equip actions.
 - Save button that writes a timestamped save.
 - Light/dark theme, persisted through `POST /preferences` when a session exists.

@@ -57,17 +57,27 @@ def test_map_messages_are_not_narrated(recording_io):
     assert recording_io.messages[-1] == {"type": "map", "text": "###\n#P#\n###"}
 
 
-def test_engine_text_is_forwarded_immediately(recording_io):
+def test_engine_text_is_held_until_flush(recording_io):
     narrator = FakeNarrator()
     io = NarratingIO(recording_io, narrator)
 
     io.show_message("You enter the tavern.")
+    assert recording_io.text == ""
 
-    assert recording_io.text == "You enter the tavern."
-    assert narrator.calls == []
+    io.request_input("> ")
+
+    assert narrator.calls
+    assert recording_io.messages[0] == {
+        "type": "narration",
+        "text": "The torchlight wavers.",
+    }
+    assert recording_io.messages[1] == {
+        "type": "narrative",
+        "text": "You enter the tavern.",
+    }
 
 
-def test_narration_is_appended_once_before_the_prompt(recording_io):
+def test_narration_is_emitted_before_engine_text_and_prompt(recording_io):
     narrator = FakeNarrator()
     io = NarratingIO(recording_io, narrator)
     io.show_message("You enter the tavern.")
@@ -81,10 +91,13 @@ def test_narration_is_appended_once_before_the_prompt(recording_io):
         "You enter the tavern.",
         "1. Sit by the fire",
     ]
-    assert recording_io.messages[-2] == {
-        "type": "narration",
-        "text": "The torchlight wavers.",
-    }
+    assert [m["type"] for m in recording_io.messages] == [
+        "narration",
+        "narrative",
+        "narrative",
+        "prompt",
+    ]
+    assert recording_io.messages[0]["text"] == "The torchlight wavers."
     assert recording_io.messages[-1] == {"type": "prompt", "text": "> "}
 
 
@@ -107,11 +120,15 @@ def test_system_messages_flush_pending_and_are_not_narrated(recording_io):
     io.system_message("Saved.")
 
     assert len(narrator.calls) == 1
-    assert recording_io.messages[-1] == {"type": "system", "text": "Saved."}
-    assert recording_io.messages[-2] == {
+    assert recording_io.messages[0] == {
         "type": "narration",
         "text": "The torchlight wavers.",
     }
+    assert recording_io.messages[1] == {
+        "type": "narrative",
+        "text": "You gain 10 gold.",
+    }
+    assert recording_io.messages[-1] == {"type": "system", "text": "Saved."}
 
 
 def test_narrator_returning_none_adds_nothing(recording_io):
@@ -187,6 +204,7 @@ def test_pickle_round_trip_drops_and_rebuilds_the_narrator(monkeypatch):
     assert isinstance(restored, NarratingIO)
     assert isinstance(restored.narrator, RebuiltNarrator)
     restored.show_message("After the reload.")
+    restored.flush()
     assert restored.base.text == "After the reload."
 
 

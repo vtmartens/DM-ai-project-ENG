@@ -216,6 +216,19 @@ conversation memory across turns. The narrator has no authority over game state.
   `mana`/`mana_max` (previously they were serialized but not loaded).
 - Added API and save/load tests for base stats, modifiers and mana. 171 tests pass.
 
+## Narration ordering (2026-10-26)
+
+- `NarratingIO` used to forward each engine message immediately and append the DM paragraph
+  at the next prompt, so the DM prose appeared *after* the NPC dialog and options list. It
+  now buffers the turn's narrative messages and, at flush, emits the DM paragraph first,
+  followed by the engine text unchanged. System/error messages flush the same way. If the
+  narrator is unavailable, the engine messages are emitted unchanged.
+- The play area is ordered Adventure log (with the DM narration first) → NPC
+  dialogue/options card → combat card → item panel. When a dialogue is active, the log
+  scrolls to the latest DM paragraph; focusing the command input uses `preventScroll` so the
+  layout does not jump. Client assets are at `?v=11`.
+- Updated the narration-order tests and API docs. 171 tests pass.
+
 ## Fixed, at your request — these are deliberate behaviour changes
 
 The translation was otherwise behaviour-preserving; the following are real fixes made after

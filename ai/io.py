@@ -39,7 +39,8 @@ class NarratingIO(GameIO):
         return getattr(self.base, "pause_for_confirmation", True)
 
     def show_message(self, text: str) -> None:
-        self.base.show_message(text)
+        # Hold the engine text until the turn is flushed so the Dungeon Master
+        # narration can be emitted *before* the NPC dialogue and options.
         self.pending.append({"type": "narrative", "text": text})
 
     def show_map(self, text: str) -> None:
@@ -60,26 +61,30 @@ class NarratingIO(GameIO):
         return self.last_input
 
     def flush(self) -> None:
-        """Narrates the accumulated turn, if there is anything to narrate."""
-        if not self.pending or self.narrator is None:
+        """Emits the turn: DM narration first, then the engine's own text."""
+        if not self.pending:
             return
 
         events = self.pending
         self.pending = []
 
-        try:
-            context = build_context(self.game) if self.game is not None else {}
-            # A game with no player yet is the title/load menu, not the story.
-            if self.game is not None and not context:
-                return
-            prose = self.narrator.narrate(events, context)
-        except Exception as exc:
-            # Narration must never interrupt the game.
-            logger.warning("AI narration failed: %s", exc)
-            return
+        prose = None
+        if self.narrator is not None:
+            try:
+                context = build_context(self.game) if self.game is not None else {}
+                # A game with no player yet is the title/load menu, not the story.
+                if self.game is None or context:
+                    prose = self.narrator.narrate(events, context)
+            except Exception as exc:
+                # Narration must never interrupt the game.
+                logger.warning("AI narration failed: %s", exc)
 
         if prose:
             self.base.show_narration(prose)
+
+        # The engine's deterministic text is still shown unchanged.
+        for event in events:
+            self.base.show_message(event["text"])
 
     def clear(self) -> None:
         self.pending = []
