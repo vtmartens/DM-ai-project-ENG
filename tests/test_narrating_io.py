@@ -63,7 +63,7 @@ def test_narration_is_appended_once_before_the_prompt(recording_io):
         "1. Sit by the fire",
     ]
     assert recording_io.messages[-2] == {
-        "type": "narrative",
+        "type": "narration",
         "text": "The torchlight wavers.",
     }
     assert recording_io.messages[-1] == {"type": "prompt", "text": "> "}
@@ -90,7 +90,7 @@ def test_system_messages_flush_pending_and_are_not_narrated(recording_io):
     assert len(narrator.calls) == 1
     assert recording_io.messages[-1] == {"type": "system", "text": "Saved."}
     assert recording_io.messages[-2] == {
-        "type": "narrative",
+        "type": "narration",
         "text": "The torchlight wavers.",
     }
 
@@ -187,12 +187,8 @@ def test_web_command_appends_narration_end_to_end(monkeypatch):
 
     session.process_command("")
 
-    texts = [
-        message["text"]
-        for message in session.io_buffer.get_structured_output()
-        if message["type"] == "narrative"
-    ]
-    assert "The hearth crackles." in texts
+    messages = session.io_buffer.get_structured_output()
+    assert {"type": "narration", "text": "The hearth crackles."} in messages
 
 
 def test_web_game_state_with_narration_can_be_pickled(monkeypatch):

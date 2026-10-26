@@ -33,11 +33,16 @@ class GameIO(ABC):
         Returns the structured output in the form of a list of dictionaries
         [
             {"type": "system", "text": "You opened the chest"},
-            {"type": "narrative", "text": "Inside you find a scroll"}
+            {"type": "narrative", "text": "Inside you find a scroll"},
+            {"type": "narration", "text": "AI-generated prose"}
         ]
         """
         # Empty default implementation
         return []
+
+    def show_narration(self, text: str):
+        """Shows AI-generated prose. Defaults to a normal narrative message."""
+        self.show_message(text)
 
     def flush(self):
         """Emits any buffered output. The default implementation does nothing."""

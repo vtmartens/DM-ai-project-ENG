@@ -151,14 +151,22 @@ class DataManager:
         """
         Get information about the graphic assets.
 
+        The backend ships no graphic assets. The catalogue file exists so the
+        API shape is stable; clients should treat empty lists as "use
+        placeholders".
+
         Args:
-            asset_type (str, optional): Type of asset (character, environment, etc.)
+            asset_type (str, optional): Type of asset (characters, items, etc.)
 
         Returns:
-            dict: Information about the assets.
+            dict or list: The whole catalogue, or one category of it.
         """
-        file_name = f"{asset_type}.json" if asset_type else "assets.json"
-        return self.load_data("assets_info", file_name)
+        catalogue = self.load_data("assets_info", "assets.json")
+        if not isinstance(catalogue, dict):
+            return [] if asset_type else {}
+        if asset_type:
+            return catalogue.get(asset_type, [])
+        return catalogue
     
     def get_npc_data(self, npc_name=None):
         """

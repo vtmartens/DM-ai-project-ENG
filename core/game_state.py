@@ -15,6 +15,10 @@ class WebGameIO(GameIO):
     def show_message(self, text: str):
         """Stores a narrative message in the buffer"""
         self.buffer.append({"type": "narrative", "text": text})
+
+    def show_narration(self, text: str):
+        """Stores AI-generated prose separately so clients can style it"""
+        self.buffer.append({"type": "narration", "text": text})
     
     def system_message(self, text: str):
         """Stores a system message in the buffer"""
@@ -226,6 +230,62 @@ class GameState:
 
         return [getattr(npc, "name", str(npc)) for npc in current_map.npc.values()]
 
+    def get_player_summary(self):
+        """Returns a compact, serializable summary of the player."""
+        player = self.game.player
+        return {
+            "name": player.name,
+            "char_class": player.char_class,
+            "hp": player.hp,
+            "hp_max": player.hp_max,
+            "level": player.level,
+            "experience": player.experience,
+            "gold": player.gold,
+            "map": player.current_map,
+            "position": {"x": player.x, "y": player.y},
+            "mana": getattr(player, "mana", 0),
+            "mana_max": getattr(player, "mana_max", 0),
+        }
+
+    def get_abilities(self):
+        """Returns the player's class abilities, skills and mana pool."""
+        player = self.game.player
+        class_data = getattr(player, "classes_data", {}).get(player.char_class, {})
+        return {
+            "abilities": list(class_data.get("special_abilities", [])),
+            "skills": sorted(
+                skill
+                for skill, proficient in player.skill_proficiencies.items()
+                if proficient
+            ),
+            "skill_proficiencies": dict(player.skill_proficiencies),
+            "mana": getattr(player, "mana", 0),
+            "mana_max": getattr(player, "mana_max", 0),
+        }
+
+    def get_dialogue_state(self):
+        """Returns the current dialogue node and options, if a dialogue is active."""
+        from states.dialogue import DialogueState
+
+        current = self.game.current_state()
+        if not isinstance(current, DialogueState) or getattr(current, "npc", None) is None:
+            return {"active": False}
+
+        conversation = current.npc.get_conversation(current.current_state) or {}
+        options = [
+            {"index": index, "text": text, "target": target}
+            for index, (text, target) in enumerate(
+                conversation.get("options", []), start=1
+            )
+        ]
+        return {
+            "active": True,
+            "npc": current.npc.name,
+            "node": current.current_state,
+            "text": conversation.get("text", ""),
+            "options": options,
+        }
+
     def get_nearby_targets(self):
         """Returns names of nearby items/NPCs and walkable directions."""
         position = self.get_player_position() or {}
@@ -266,7 +326,9 @@ class GameState:
             "charisma": self.game.player.charisma,
             "gold": self.game.player.gold,
             "level": self.game.player.level,
-            "experience": self.game.player.experience
+            "experience": self.game.player.experience,
+            "mana": getattr(self.game.player, "mana", 0),
+            "mana_max": getattr(self.game.player, "mana_max", 0),
         }
         
         return {

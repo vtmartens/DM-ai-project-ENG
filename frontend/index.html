@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <title>DM AI — Dungeon Master</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">D20</span>
+      <span class="brand-text">DM AI <span class="brand-sub">Dungeon Master</span></span>
+    </div>
+    <div class="topbar-actions">
+      <span id="connection" class="badge" data-state="offline">offline</span>
+      <button id="theme-toggle" class="icon-button" type="button" title="Toggle light/dark theme">Theme</button>
+    </div>
+  </header>
+
+  <main class="shell">
+    <!-- Start screen -->
+    <section id="start-screen" class="start-screen">
+      <div class="hero">
+        <p class="eyebrow">A text RPG with an optional AI Dungeon Master</p>
+        <h1>Choose your adventurer</h1>
+        <p class="muted">The engine decides what happens. The Dungeon Master adds atmosphere.</p>
+      </div>
+
+      <div class="start-grid">
+        <form id="start-form" class="card">
+          <h2>New game</h2>
+          <label for="player-name">Name</label>
+          <input id="player-name" name="name" maxlength="40" value="Adventurer" autocomplete="off">
+
+          <label for="class-select">Class</label>
+          <select id="class-select" name="char_class"></select>
+
+          <div id="class-summary" class="class-summary" aria-live="polite"></div>
+
+          <button type="submit" class="primary" id="start-button">Begin adventure</button>
+          <p id="start-error" class="error" role="alert"></p>
+        </form>
+
+        <section class="card saves-card">
+          <div class="card-header">
+            <h2>Load a save</h2>
+            <button id="refresh-saves" class="ghost small" type="button">Refresh</button>
+          </div>
+          <div id="saves-list" class="saves-list" aria-live="polite"></div>
+        </section>
+      </div>
+    </section>
+
+    <!-- Game screen -->
+    <section id="game-screen" class="game-screen hidden">
+      <aside class="sidebar">
+        <section class="card character-card">
+          <div class="character-head">
+            <div>
+              <p class="eyebrow" id="char-class">—</p>
+              <h2 id="char-name">—</h2>
+            </div>
+            <span id="char-level" class="level">Lv 1</span>
+          </div>
+          <div class="hp-row">
+            <span class="hp-label">HP</span>
+            <div class="hp-bar" role="progressbar" aria-label="Hit points" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100">
+              <div id="hp-fill"></div>
+            </div>
+            <span id="hp-text">0 / 0</span>
+          </div>
+          <dl class="quick-stats">
+            <div><dt>Gold</dt><dd id="stat-gold">0</dd></div>
+            <div><dt>Location</dt><dd id="stat-location">—</dd></div>
+            <div><dt>Position</dt><dd id="stat-position">—</dd></div>
+          </dl>
+        </section>
+
+        <section class="card">
+          <div class="card-header"><h3>Stats</h3></div>
+          <div id="stats-grid" class="stats-grid"></div>
+        </section>
+
+        <section class="card">
+          <div class="card-header"><h3>Abilities</h3></div>
+          <div id="abilities-list" class="tag-list"></div>
+          <div id="skills-list" class="tag-list"></div>
+        </section>
+
+        <section class="card">
+          <div class="card-header">
+            <h3>Inventory</h3>
+            <button id="refresh-inventory" class="ghost small" type="button">Refresh</button>
+          </div>
+          <ul id="inventory-list" class="inventory-list"></ul>
+          <div id="equipment" class="equipment"></div>
+        </section>
+      </aside>
+
+      <section class="play-area">
+        <div class="card log-card">
+          <div class="card-header">
+            <h2>Adventure log</h2>
+            <div class="log-actions">
+              <button id="save-game" class="ghost small" type="button">Save</button>
+              <button id="load-game" class="ghost small" type="button">Load</button>
+              <button id="new-game" class="ghost small" type="button">New game</button>
+            </div>
+          </div>
+
+          <div id="log" class="log" aria-live="polite" aria-relevant="additions"></div>
+
+          <form id="command-form" class="command-form">
+            <label class="sr-only" for="command-input">Command</label>
+            <input id="command-input" placeholder="Type a command or menu number…" autocomplete="off">
+            <button type="submit" class="primary" id="send-button">Send</button>
+          </form>
+          <p id="command-status" class="command-status" aria-live="polite"></p>
+          <div id="quick-actions" class="quick-actions"></div>
+        </div>
+
+        <section id="item-panel" class="card item-panel hidden" aria-live="polite"></section>
+      </section>
+    </section>
+  </main>
+
+  <!-- Load modal (in-game) -->
+  <div id="load-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="load-modal-title">
+    <div class="modal-card card">
+      <div class="card-header">
+        <h2 id="load-modal-title">Load a save</h2>
+        <button id="close-load-modal" class="ghost small" type="button">Close</button>
+      </div>
+      <div id="modal-saves-list" class="saves-list"></div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden" role="status"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

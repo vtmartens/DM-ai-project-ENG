@@ -43,6 +43,7 @@ Each game phase (map exploration, combat, dialogues, inventory management) is ha
 - ASCII-based map system using a tile controller
 - Entity factory system for dynamic content generation
 - Full separation of game logic from user interface (ready for future web/GUI/AI integrations)
+- Dependency-free web client served at `/app` (character creation, log, inventory, saves)
 - Fully testable backend (no Pygame dependencies in this repo)
 - Centralized data loading system via data_manager.py using JSON format
 - Improved monster combat system with monster type selection and difficulty levels
@@ -69,7 +70,7 @@ Each game phase (map exploration, combat, dialogues, inventory management) is ha
    - Precise predefined positions to improve gameplay experience  
    - Alternative positioning system when main positions are occupied  
 ✅ Add modular I/O interfaces (text, GUI, AI)  
-⬜ Web frontend (probably React)  
+🟡 Web client (dependency-free SPA in `frontend/`; React/Vite optional later)  
 🟡 Implement Dungeon Master AI (Claude narration slice; decisions remain deterministic)  
 ⬜ D&D rules improvement and adherence to official system  
 ⬜ Magic and spells system implementation  
@@ -106,6 +107,10 @@ To run the REST API instead, install its dependencies first:
 pip install -r requirements.txt
 python server.py
 ```
+
+Then open <http://127.0.0.1:5000/app> for the web client. See
+[`frontend/README.md`](frontend/README.md) and the REST contract in
+[`docs/API.md`](docs/API.md).
 
 ## 📋 Requirements
 - Python 3.10+
@@ -185,7 +190,7 @@ The test suite uses fake narrators, so it never makes network calls.
 ## 👥 Contribute
 I'm seeking collaborators who want to help build:
 
-- Web interface (HIGH PRIORITY)
+- Web interface polish, accessibility and mobile UX (HIGH PRIORITY)
 - AI narrative engine (Claude or any OpenAI-compatible endpoint)
 - Storyline and world-building
 - UI/UX feedback or playtesting

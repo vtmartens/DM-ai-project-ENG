@@ -48,6 +48,23 @@ def test_classes_are_loaded_from_data(client):
     assert "fighter" in data
 
 
+def test_web_client_and_its_assets_are_served(client):
+    page = client.get("/app")
+    styles = client.get("/app/styles.css")
+    script = client.get("/app/app.js")
+
+    assert page.status_code == 200
+    assert b"DM AI" in page.data
+    assert styles.status_code == 200
+    assert script.status_code == 200
+
+
+def test_root_catalogue_mentions_the_web_client(client):
+    data = client.get("/").get_json()
+
+    assert "GET /app" in data["endpoints"]
+
+
 @pytest.mark.parametrize("path", SESSION_ENDPOINTS)
 def test_session_endpoints_return_200(client, path):
     session_id = _start(client)
@@ -55,6 +72,16 @@ def test_session_endpoints_return_200(client, path):
     response = client.get(path, query_string={"session_id": session_id})
 
     assert response.status_code == 200, (path, response.get_data(as_text=True))
+
+
+def test_start_returns_the_initial_structured_output(client):
+    response = client.post("/start", json={"name": "Output", "char_class": "fighter"})
+
+    data = response.get_json()
+    assert data["session_id"]
+    assert data["player"]["name"] == "Output"
+    assert isinstance(data["output"], list)
+    assert any(message["type"] == "prompt" for message in data["output"])
 
 
 def test_missing_session_is_a_404(client):
@@ -126,6 +153,86 @@ def test_preferences_reject_a_non_mapping_payload(client):
     assert response.status_code == 400
 
 
+def test_state_exposes_the_contract_fields(client):
+    session_id = _start(client)
+
+    state = client.get("/state", query_string={"session_id": session_id}).get_json()
+
+    assert set(
+        [
+            "name",
+            "char_class",
+            "hp",
+            "max_hp",
+            "state",
+            "position",
+            "inventory",
+            "equipment",
+            "stats",
+            "active_quests",
+            "completed_quests",
+            "preferences",
+        ]
+    ) <= set(state)
+    assert "mana" in state["stats"]
+    assert state["position"]["map"]
+
+
+def test_abilities_expose_class_abilities_and_skills(client):
+    session_id = _start(client)
+
+    data = client.get("/abilities", query_string={"session_id": session_id}).get_json()
+
+    assert "Powerful Blow" in data["abilities"]
+    assert "athletics" in data["skills"]
+    assert data["mana"] == 0
+    assert data["mana_max"] == 0
+
+
+def test_use_ability_is_explicitly_not_implemented(client):
+    session_id = _start(client)
+
+    response = client.post(
+        "/use_ability",
+        json={"session_id": session_id, "ability_name": "Powerful Blow"},
+    )
+
+    assert response.status_code == 501
+    assert response.get_json()["implemented"] is False
+
+
+def test_explore_returns_real_nearby_targets(client):
+    session_id = _start(client)
+
+    data = client.post("/explore", json={"session_id": session_id}).get_json()
+
+    assert isinstance(data["items"], list)
+    assert isinstance(data["exits"], list)
+    assert isinstance(data["npc"], list)
+
+
+def test_assets_info_has_a_stable_empty_catalogue(client):
+    catalogue = client.get("/assets_info").get_json()["assets"]
+    items = client.get("/assets_info", query_string={"type": "items"}).get_json()["assets"]
+
+    assert items == []
+    assert "note" in catalogue
+
+
+def test_achievements_does_not_mutate_the_cached_catalogue(client):
+    from util.data_manager import get_data_manager
+
+    session_id = _start(client)
+    response = client.get("/achievements", query_string={"session_id": session_id})
+
+    assert response.status_code == 200
+    assert all("unlocked" in entry for entry in response.get_json()["achievements"])
+    assert all(
+        "unlocked" not in entry
+        for entry in get_data_manager().get_achievements()
+    )
+
+
 def test_item_details_resolve_the_players_real_item(client):
     session_id = _start(client)
 
@@ -171,7 +278,7 @@ def test_get_endpoints_never_raise(client, path):
         query_string={"session_id": session_id, "object_name": "Healing Potion"},
     )
 
-    assert response.status_code < 500, (path, response.get_data(as_text=True))
+    assert response.status_code != 500, (path, response.get_data(as_text=True))
 
 
 @pytest.mark.parametrize("path,payload", SAFE_POST_ENDPOINTS)
@@ -180,7 +287,34 @@ def test_post_endpoints_never_raise(client, path, payload):
 
     response = client.post(path, json={"session_id": session_id, **payload})
 
-    assert response.status_code < 500, (path, response.get_data(as_text=True))
+    # 501 is an intentional, explicit "not implemented" answer.
+    assert response.status_code != 500, (path, response.get_data(as_text=True))
+
+
+def test_load_without_a_session_creates_one(client):
+    session_id = _start(client)
+    client.post("/save", json={"session_id": session_id, "file_name": "fresh-load.json"})
+
+    response = client.post("/load", json={"file_name": "fresh-load.json"})
+
+    assert response.status_code == 200, response.get_data(as_text=True)
+    data = response.get_json()
+    assert data["session_id"]
+    assert data["player"]["name"] == "API Tester"
+    assert isinstance(data["output"], list)
+
+
+def test_save_reports_a_refusal(client, monkeypatch):
+    import server
+
+    session_id = _start(client)
+    monkeypatch.setattr(server.GameState, "save", lambda self, path="save.json": False)
+
+    response = client.post(
+        "/save", json={"session_id": session_id, "file_name": "refused.json"}
+    )
+
+    assert response.status_code == 409
 
 
 def test_save_load_and_delete_round_trip(client):
@@ -198,6 +332,9 @@ def test_save_load_and_delete_round_trip(client):
         "/load", json={"session_id": session_id, "file_name": "pytest-save.json"}
     )
     assert loaded.status_code == 200, loaded.get_data(as_text=True)
+    loaded_data = loaded.get_json()
+    assert loaded_data["player"]["name"] == "API Tester"
+    assert loaded_data["state"]["name"] == "API Tester"
 
     deleted = client.post("/delete_save", json={"file_name": "pytest-save.json"})
     assert deleted.status_code == 200, deleted.get_data(as_text=True)

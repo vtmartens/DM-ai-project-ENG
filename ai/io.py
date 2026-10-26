@@ -71,7 +71,7 @@ class NarratingIO(GameIO):
             return
 
         if prose:
-            self.base.show_message(prose)
+            self.base.show_narration(prose)
 
     def clear(self) -> None:
         self.pending = []

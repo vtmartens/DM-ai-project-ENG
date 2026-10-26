@@ -12,7 +12,16 @@ from core.game_state import GameState
 from entities.player import Player
 from states.tavern import TavernState
 from util.data_manager import get_data_manager
-from util.config import SESSIONS_DIR, SAVE_DIR, BACKUPS_DIR, get_save_path, list_save_files, delete_save_file, get_session_path
+from util.config import (
+    BACKUPS_DIR,
+    BASE_DIR,
+    SAVE_DIR,
+    SESSIONS_DIR,
+    delete_save_file,
+    get_save_path,
+    get_session_path,
+    list_save_files,
+)
 
 # Configure the logger
 logging.basicConfig(level=logging.INFO)
@@ -26,8 +35,9 @@ os.makedirs(SESSIONS_DIR, exist_ok=True)
 os.makedirs(SAVE_DIR, exist_ok=True)
 os.makedirs(BACKUPS_DIR, exist_ok=True)
 
-# Directory for the graphic assets
-ASSETS_DIR = "assets"
+# Directories for the graphic assets and the optional web client
+ASSETS_DIR = BASE_DIR / "assets"
+FRONTEND_DIR = BASE_DIR / "frontend"
 os.makedirs(ASSETS_DIR, exist_ok=True)
 
 # Dictionary to store the active sessions in memory
@@ -85,7 +95,8 @@ def home():
             "GET /position": "Get the player's position",
             "GET /missions": "Get active/completed quests",
             "GET /classes": "Get information about the available classes",
-            "GET /saves": "Get the list of available saves",
+            "GET /saves": "Get the list of available saves (legacy shape)",
+            "GET /list_saves": "Get the list of available saves",
             "GET /combat": "Get the current combat state",
             "POST /combat_action": "Perform a combat action",
             "GET /npcs": "Get information about the NPCs in the current location",
@@ -106,7 +117,8 @@ def home():
             "GET /abilities": "Get the player's abilities",
             "POST /use_ability": "Use a player ability",
             "POST /export_save": "Export a save as a file",
-            "POST /import_save": "Import a save from a file"
+            "POST /import_save": "Import a save from a file",
+            "GET /app": "Serve the optional web client"
         }
     })
 
@@ -130,17 +142,21 @@ def start_game():
     
     # Run the first empty command to get the initial output
     session.process_command("")
-    
+    structured_output = session.io_buffer.get_structured_output()
+    session.io_buffer.clear()
+
     # Save the session to disk
     save_session(session_id, session)
-    
+
     # Get the initial state
     state = session.get_current_state()
-    
+
     return jsonify({
-        "session_id": session_id, 
+        "session_id": session_id,
         "message": "Game started",
-        "state": state
+        "player": session.get_player_summary(),
+        "state": state,
+        "output": structured_output,
     })
 
 @app.route("/command", methods=["POST"])
@@ -241,7 +257,11 @@ def save_game():
     try:
         # Get the full path through the config module
         path = get_save_path(file_name)
-        session.save(path)
+        saved = session.save(path)
+        if not saved:
+            return jsonify(
+                {"error": "The game cannot be saved in the current state"}
+            ), 409
         logger.info(f"Game saved to {path}")
         return jsonify({"message": f"Game saved to {file_name}"})
     except Exception as e:
@@ -255,38 +275,45 @@ def load_game():
     data = request.json or {}
     session_id = data.get("session_id")
     file_name = data.get("file_name", "save.json")
-    
-    # Check that the session ID was provided
-    if not session_id:
-        return jsonify({"error": "Session ID not provided"}), 400
-    
-    # Look for the session or create a new one
-    session = active_sessions.get(session_id) or load_session(session_id)
-    
-    if not session:
-        return jsonify({"error": "Session not found"}), 404
-    
+
+    # A save can be loaded without an existing session (e.g. from the start
+    # screen): create a fresh session for it. A provided-but-unknown session
+    # ID is still a 404 so clients notice stale IDs.
+    if session_id:
+        session = active_sessions.get(session_id) or load_session(session_id)
+        if not session:
+            return jsonify({"error": "Session not found"}), 404
+    else:
+        session_id = str(uuid4())
+        session = GameState(Player("Adventurer", "fighter"), None)
+
     # Load the game
     try:
         # Get the full path through the config module
         path = get_save_path(file_name)
-        
+
         if not os.path.exists(path):
             return jsonify({"error": f"Save file not found: {file_name}"}), 404
-            
+
         result = session.load(path)
-        
+
         if result:
+            structured_output = session.io_buffer.get_structured_output()
+            session.io_buffer.clear()
+
             # Save the updated session
             active_sessions[session_id] = session
             save_session(session_id, session)
-            
+
             # Get information about the player
             state = session.get_current_state()
-            
+
             return jsonify({
+                "session_id": session_id,
                 "message": f"Game loaded from {file_name}",
-                "player": state.get("player", {})
+                "player": session.get_player_summary(),
+                "state": state,
+                "output": structured_output,
             })
         else:
             return jsonify({"error": "Error while loading"}), 500
@@ -779,15 +806,13 @@ def manage_dialogue():
     # Get the updated state
     state = session.get_current_state()
     
-    # Extract the available dialogue options, if any
-    options_dialogue = []
-    if "dialogue" in state and "options" in state["dialogue"]:
-        options_dialogue = state["dialogue"]["options"]
-    
+    dialogue = session.get_dialogue_state()
+
     return jsonify({
         "output": structured_output,
         "state": state,
-        "options_dialogue": options_dialogue
+        "dialogue": dialogue,
+        "options_dialogue": dialogue.get("options", []),
     })
 
 @app.route("/explore", methods=["POST"])
@@ -817,15 +842,16 @@ def explore_environment():
     # Clear the message buffer
     session.io_buffer.clear()
     
-    # Get the updated state
+    # Get the updated state and the real nearby targets
     state = session.get_current_state()
-    
+    targets = session.get_nearby_targets()
+
     return jsonify({
         "output": structured_output,
         "state": state,
-        "items": state.get("items_environment", []),
-        "exits": state.get("exits", []),
-        "npc": state.get("present_npc", [])
+        "items": targets["items"],
+        "exits": targets["directions"],
+        "npc": targets["npc"],
     })
 
 @app.route("/preferences", methods=["POST"])
@@ -943,19 +969,33 @@ def read_notification():
 @app.route("/asset/<path:file_name>", methods=["GET"])
 def get_asset(file_name):
     """Get a graphic asset"""
-    return send_from_directory(ASSETS_DIR, file_name)
+    return send_from_directory(str(ASSETS_DIR), file_name)
 
 @app.route("/assets_info", methods=["GET"])
 def get_assets_info():
     """Get information about the available assets"""
-    type = request.args.get("type")  # e.g. "character", "environment", "item", "enemy"
-    
+    asset_type = request.args.get("type")  # characters, environments, items, enemies
+
     # Use the data manager to load the asset information
-    assets = get_data_manager().get_asset_info(type)
-    
+    assets = get_data_manager().get_asset_info(asset_type)
+
     return jsonify({
         "assets": assets
     })
+
+
+@app.route("/app")
+def web_client():
+    """Serve the optional dependency-free web client."""
+    if not (FRONTEND_DIR / "index.html").exists():
+        return jsonify({"error": "Web client not installed"}), 404
+    return send_from_directory(str(FRONTEND_DIR), "index.html")
+
+
+@app.route("/app/<path:file_name>")
+def web_client_file(file_name):
+    """Serve the web client's static files."""
+    return send_from_directory(str(FRONTEND_DIR), file_name)
 
 @app.route("/tutorial", methods=["GET"])
 def get_tutorial():
@@ -997,8 +1037,9 @@ def get_achievements():
     # In a real implementation, these data would be extracted from the game state
     state = session.get_current_state()
     
-    # Load all the possible achievements from the external file
-    all_achievements = get_data_manager().get_achievements()
+    # Copy before annotating: DataManager caches this list, and mutating the
+    # cache would leak one session's unlock state into every other session.
+    all_achievements = [dict(achievement) for achievement in get_data_manager().get_achievements()]
     
     # Get the achievements unlocked by the player
     unlocked_achievements = state.get("achievements", [])
@@ -1110,15 +1151,7 @@ def get_ability():
     if not session:
         return jsonify({"error": "Session not found"}), 404
     
-    # Get the player's abilities
-    state = session.get_current_state()
-    ability = state.get("ability", [])
-    
-    return jsonify({
-        "ability": ability,
-        "current_mana": state.get("mana", 0),
-        "max_mana": state.get("mana_max", 0)
-    })
+    return jsonify(session.get_abilities())
 
 @app.route("/use_ability", methods=["POST"])
 def use_ability():
@@ -1140,37 +1173,13 @@ def use_ability():
     if not session:
         return jsonify({"error": "Session not found"}), 404
     
-    # Build the command for the ability
-    command = f"use_ability "
-    if ability_id:
-        command += ability_id
-    else:
-        command += ability_name
-    
-    if target:
-        command += f" {target}"
-    
-    # Process the command
-    session.process_command(command)
-    
-    # Save the updated session
-    save_session(session_id, session)
-    
-    # Get the structured output
-    structured_output = session.io_buffer.get_structured_output()
-    
-    # Clear the message buffer
-    session.io_buffer.clear()
-    
-    # Get the updated state
-    state = session.get_current_state()
-    
+    # The engine has no ability execution yet. Say so instead of pretending a
+    # command was processed.
     return jsonify({
-        "output": structured_output,
-        "state": state,
-        "current_mana": state.get("mana", 0),
-        "succeeded": not "error" in structured_output
-    })
+        "error": "Ability use is not implemented yet",
+        "implemented": False,
+        "abilities": session.get_abilities()["abilities"],
+    }), 501
 
 @app.route("/export_save", methods=["POST"])
 def export_save():
@@ -1182,27 +1191,30 @@ def export_save():
     if not session_id:
         return jsonify({"error": "Session ID not provided"}), 400
     
+    # Never let a request escape the saves directory
+    file_name = os.path.basename(file_name)
     if not file_name:
         # Generate a file name based on the date and time
         file_name = f"save_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-    
+
     # Make sure the file name has the .json extension
     if not file_name.endswith(".json"):
         file_name += ".json"
-    
+
     # Check that the session exists
     session = active_sessions.get(session_id) or load_session(session_id)
     if not session:
         return jsonify({"error": "Session not found"}), 404
-    
+
     # Save the file temporarily
-    temp_path = os.path.join(SAVE_DIR, file_name)
+    temp_path = get_save_path(file_name)
     try:
-        session.save(temp_path)
-        
+        if not session.save(str(temp_path)):
+            return jsonify({"error": "The game cannot be saved in the current state"}), 409
+
         # Send the file to the client
         return send_file(
-            temp_path,
+            str(temp_path),
             as_attachment=True,
             download_name=file_name,
             mimetype="application/json"
@@ -1224,15 +1236,16 @@ def import_save():
     if not file.filename.endswith(".json"):
         return jsonify({"error": "The file must be in JSON format"}), 400
     
-    # Save the uploaded file
-    file_name = file.filename
-    path = os.path.join(SAVE_DIR, file_name)
-    
+    # Save the uploaded file under a unique, sanitized name
+    original_name = os.path.basename(file.filename)
+    file_name = f"import_{uuid4().hex[:8]}_{original_name}"
+    path = get_save_path(file_name)
+
     try:
-        file.save(path)
-        
+        file.save(str(path))
+
         # Load the save to verify that it is valid
-        with open(path, 'r') as f:
+        with open(path, 'r', encoding='utf-8') as f:
             saved_data = json.load(f)
         
         # Create a new session ID
@@ -1246,18 +1259,19 @@ def import_save():
         session = GameState(player, None)
         
         # Load the full game (including the state stack)
-        if session.game.load(path):
+        if session.game.load(str(path)):
             # Store the session
             active_sessions[session_id] = session
             save_session(session_id, session)
-            
+
             # Get the initial state
             state = session.get_current_state()
-            
+
             return jsonify({
                 "session_id": session_id,
-                "message": f"Save imported from {file_name}",
-                "state": state
+                "message": f"Save imported from {original_name}",
+                "player": session.get_player_summary(),
+                "state": state,
             })
         else:
             # If loading fails, delete the file

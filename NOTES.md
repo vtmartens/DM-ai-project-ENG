@@ -90,6 +90,31 @@ paragraph is added and play continues normally.
 Deliberate non-goals for this slice: natural-language command parsing, AI decisions, and
 conversation memory across turns. The narrator has no authority over game state.
 
+## API contract + web client (2026-10-26)
+
+- Added `docs/API.md` (the endpoint/session/state contract) and a dependency-free SPA in
+  `frontend/` served by Flask at `/app`. No Node/bundler is required.
+- The client supports character creation, resume, live log (with `narration` styled
+  separately), quick actions, inventory/item details, saves (load/delete), and a
+  light/dark theme persisted through `/preferences`.
+- Contract fixes:
+  - `/start` and `/load` now return the structured `output` and a `player` summary.
+  - `/load` can create a session when none is supplied (load from the start screen).
+  - `/save` returns `409` when the engine refuses to save (combat/dialogue/market).
+  - `/abilities` returns real class abilities, skills and mana; `/use_ability` is an
+    explicit `501` instead of pretending a command ran.
+  - `/explore` and `/dialogue` return real nearby targets and dialogue options.
+  - `/achievements` copies the cached catalogue before annotating it (no cross-session
+    leakage).
+  - `/assets_info` has a stable, empty catalogue (`data/assets_info/assets.json`);
+    `ASSETS_DIR` is anchored to the repository root.
+  - Import/export save filenames are sanitized and imports get unique names.
+  - AI prose is tagged `{"type": "narration"}` so clients can style it separately.
+- Verified live: `/app`, `/app/styles.css`, `/app/app.js`, `/start`, `/state`,
+  `/abilities`, `/inventory`, `/available_actions`, `/command`, `/save`, `/list_saves` and
+  a session-less `/load` all returned the expected data. With AI narration enabled,
+  `/start` emitted exactly one `{"type": "narration"}` message containing real prose.
+
 ## Fixed, at your request — these are deliberate behaviour changes
 
 The translation was otherwise behaviour-preserving; the following are real fixes made after
@@ -162,21 +187,22 @@ of these were introduced by the translation.
    Fixed in the foundation pass above.
 4. ~~**Stub endpoints** reading keys the engine never emits: `/missions`, `/combat`, `/log`,
    `/notifications`, `/available_actions`.~~ Implemented in the foundation pass above.
-5. **Dead `"CommercioState"` branch** in `server.py`'s context lookup — no such class
-   exists, so it never matches.
-6. **Item effects that match no attribute** and are silently ignored: `initiative`, `luck`,
-   `remove_poison`, `damage`, `duration`, `escape`. Item application goes through
-   `hasattr`, so several potions and accessories are inert.
-7. **`ASSETS_DIR` in `server.py` is relative to the current working directory**, unlike
-   every other path, which is anchored to the repository root via `util/config.py`.
-8. **`data/assets_info/` does not exist**; `get_asset_info()` always returns `{}`.
+5. ~~**Dead `"CommercioState"` branch** in `server.py`'s context lookup.~~ Replaced with
+   `MarketState` in the foundation pass.
+6. **Some item effect keys still match no attribute**: `initiative`, `luck`,
+   `remove_poison`, and poison `duration` (poison damage and bomb escape now work). Item
+   application goes through `hasattr`, so those specific effects remain inert.
+7. ~~**`ASSETS_DIR` in `server.py` is relative to the current working directory.~~ Anchored
+   to `BASE_DIR` in the API contract pass.
+8. ~~**`data/assets_info/` does not exist**; `get_asset_info()` always returns `{}`.~~
+   Added a stable empty catalogue and a typed lookup.
 9. **`server.py` substantially duplicates** logic already in `core/`, `states/` and
-   `world/`.
-10. **Data/engine item-type disagreement**: `server.py` tests for `"potion"`/`"food"` but the
-    engine writes `heal`, `light_heal`, `grave_heal`, `buff`, `poison`, `bomb`.
+   `world/`. Still open; the API contract pass only removed the worst fabricated data.
+10. ~~**Data/engine item-type disagreement**: `server.py` tests for `"potion"`/`"food"`.~~
+    Fixed in the foundation/contract passes.
 11. **`world/map_controller.py` is legacy** — a parallel, unwired copy of map logic.
-12. **`GET /`'s catalogue lists `GET /asset`** while the real route is
-    `/asset/<path:file_name>`; it is a documentation key only.
+12. ~~**`GET /`'s catalogue lists `GET /asset`** while the real route is
+    `/asset/<path:file_name>`.~~ Fixed in the foundation pass.
 13. **`achievements.json` `condition.type` values are never evaluated** by any code.
 
 ## Deliberate translation choices worth knowing
@@ -207,7 +233,8 @@ of these were introduced by the translation.
 | Residual Italian (glossary-derived denylist + accented characters) | 0 hits |
 | **Original Italian vs translated, identical input** | **46/46 placements, identical sequence** |
 | Flask API in-process (test client, no socket) | 31 × 200, 0 raised |
-| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration) | 132 passed |
+| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, web client routes) | 143 passed |
+| Live smoke test (Flask server, `/app`, start/state/abilities/inventory/actions/command/save/load) | passed |
 
 The last comparison is the strongest evidence: the pristine Italian code and the finished
 English code place every object and NPC in exactly the same cells.
