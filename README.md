@@ -130,6 +130,9 @@ deterministic engine text is always shown unchanged; the model only adds prose. 
 feature is off, credentials are missing, the request times out, or the model refuses,
 the game simply continues without the extra paragraph.
 
+For a step-by-step **free/local setup** (Ollama, LM Studio, free cloud tiers), see
+[`docs/AI_SETUP.md`](docs/AI_SETUP.md).
+
 Install the optional dependency:
 
 ```bash
