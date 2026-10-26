@@ -8,13 +8,14 @@ when the caller should fall back to its normal menu.
 from __future__ import annotations
 
 import re
+from collections import deque
 
 TARGETED_PATTERNS = (
     ("talk", r"^(?:talk|speak|chat|converse)(?:\s+(?:to|with))?\s+(.+)$"),
     ("attack", r"^(?:attack|fight|hit|kill|challenge)\s+(?:the\s+|a\s+|an\s+)?(.+)$"),
     ("use", r"^(?:use|drink|quaff|consume)\s+(?:the\s+|a\s+|an\s+)?(.+)$"),
     ("equip", r"^(?:equip|wield|wear)\s+(?:the\s+|a\s+|an\s+)?(.+)$"),
-    ("go", r"^(?:go|travel|walk|head)(?:\s+to)?\s+(?:the\s+)?(.+)$"),
+    ("go", r"^(?:go|travel|walk|head|move|approach)(?:\s+to)?\s+(?:the\s+)?(.+)$"),
     ("examine", r"^(?:examine|inspect|look\s+at|check)\s+(?:the\s+|a\s+|an\s+)?(.+)$"),
     ("interact", r"^(?:interact\s+with|open|pull|push)\s+(?:the\s+|a\s+|an\s+)?(.+)$"),
 )
@@ -97,6 +98,94 @@ def resolve_map(game, target):
     return match_name([(name, name) for name in game.map_manager.maps], target)
 
 
+def find_npc_position(game, npc):
+    """Finds an NPC's cell on the player's current map."""
+    current_map = (
+        game.map_manager.get_map(game.player.current_map)
+        if game.player.current_map
+        else None
+    )
+    if not current_map:
+        return None
+
+    wanted = normalize_name(getattr(npc, "name", ""))
+    for position, candidate in current_map.npc.items():
+        if candidate is npc or normalize_name(
+            getattr(candidate, "name", "")
+        ) == wanted:
+            return position
+    return None
+
+
+def _find_path_to_adjacent(game, target_position):
+    """BFS from the player to any free cell next to ``target_position``."""
+    current_map = (
+        game.map_manager.get_map(game.player.current_map)
+        if game.player.current_map
+        else None
+    )
+    if not current_map:
+        return None
+
+    start = (game.player.x, game.player.y)
+    target_x, target_y = target_position
+    blocked = set(current_map.npc) | set(current_map.items) | set(current_map.doors)
+
+    goals = set()
+    for dx, dy in ((0, -1), (0, 1), (1, 0), (-1, 0)):
+        cell = (target_x + dx, target_y + dy)
+        if cell == start:
+            goals.add(cell)
+        elif cell not in blocked and current_map.is_valid_position(*cell):
+            goals.add(cell)
+
+    if not goals:
+        return None
+    if start in goals:
+        return [start]
+
+    queue = deque([start])
+    parents = {start: None}
+
+    while queue:
+        current = queue.popleft()
+        for dx, dy in ((0, -1), (0, 1), (1, 0), (-1, 0)):
+            neighbor = (current[0] + dx, current[1] + dy)
+            if neighbor in parents or neighbor in blocked:
+                continue
+            if not current_map.is_valid_position(*neighbor):
+                continue
+
+            parents[neighbor] = current
+            if neighbor in goals:
+                path = [neighbor]
+                while parents[path[-1]] is not None:
+                    path.append(parents[path[-1]])
+                path.reverse()
+                return path
+
+            queue.append(neighbor)
+
+    return None
+
+
+def walk_to_target(game, target_position, label) -> bool:
+    """Moves the player next to ``target_position`` if a path exists."""
+    path = _find_path_to_adjacent(game, target_position)
+    if path is None:
+        return False
+
+    steps = len(path) - 1
+    if steps == 0:
+        game.io.show_message(f"You are already next to {label}.")
+        return True
+
+    game.player.set_position(path[-1][0], path[-1][1])
+    suffix = "step" if steps == 1 else "steps"
+    game.io.show_message(f"You move to {label} ({steps} {suffix}).")
+    return True
+
+
 def resolve_map_object(game, target):
     current_map = (
         game.map_manager.get_map(game.player.current_map)
@@ -150,15 +239,36 @@ def handle_targeted_command(game, action, target, extra_npcs=()) -> bool:
 
     if action == "go":
         destination = resolve_map(game, target)
-        if destination is None:
-            game.io.show_message(f"There is no place called {target}.")
-            return False
-        from states.map_selection_state import MapSelectionState
+        if destination is not None:
+            from states.map_selection_state import MapSelectionState
 
-        selector = MapSelectionState(game)
-        selector.current_map = game.player.current_map
-        selector._change_map(game, destination)
-        return True
+            selector = MapSelectionState(game)
+            selector.current_map = game.player.current_map
+            selector._change_map(game, destination)
+            return True
+
+        npc = resolve_npc(game, target, extra_npcs)
+        if npc is not None:
+            position = find_npc_position(game, npc)
+            if position is None:
+                game.io.show_message(f"You don't see {npc.name} on this map.")
+            elif not walk_to_target(game, position, npc.name):
+                game.io.show_message(f"You cannot find a path to {npc.name}.")
+            return True
+
+        resolved = resolve_map_object(game, target)
+        if resolved is not None:
+            position, obj = resolved
+            if not walk_to_target(
+                game, position, getattr(obj, "name", str(obj))
+            ):
+                game.io.show_message(
+                    f"You cannot find a path to {getattr(obj, 'name', target)}."
+                )
+            return True
+
+        game.io.show_message(f"There is no place called {target}.")
+        return False
 
     if action in {"examine", "interact"}:
         resolved = resolve_map_object(game, target)

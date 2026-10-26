@@ -961,8 +961,18 @@ function renderMapLegend(legend) {
     const code = document.createElement("code");
     code.textContent = entry.token;
     const names = document.createElement("span");
-    names.textContent = (entry.names || [])
-      .map((name) => name.charAt(0).toUpperCase() + name.slice(1))
+    const members =
+      entry.members && entry.members.length
+        ? entry.members
+        : (entry.names || []).map((name) => ({ name, type: "" }));
+    names.textContent = members
+      .map((member) => {
+        const name = String(member.name || "");
+        const display = name.charAt(0).toUpperCase() + name.slice(1);
+        return String(member.type || "").toLowerCase() === "npc"
+          ? `${display} (NPC)`
+          : display;
+      })
       .join(", ");
     item.append(code, names);
     el.mapLegend.appendChild(item);

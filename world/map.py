@@ -104,10 +104,14 @@ class Map:
         def add(obj, kind):
             token = self.display_token(obj)
             entry = legend.setdefault(
-                token, {"token": token, "names": set(), "types": set()}
+                token,
+                {"token": token, "names": set(), "types": set(), "members": {}},
             )
-            entry["names"].add(str(getattr(obj, "name", str(obj))).replace("_", " "))
-            entry["types"].add(getattr(obj, "type", None) or kind)
+            name = str(getattr(obj, "name", str(obj))).replace("_", " ")
+            obj_type = getattr(obj, "type", None) or kind
+            entry["names"].add(name)
+            entry["types"].add(obj_type)
+            entry["members"][name] = obj_type
 
         for obj in self.items.values():
             add(obj, "object")
@@ -119,6 +123,10 @@ class Map:
                 "token": entry["token"],
                 "names": sorted(entry["names"]),
                 "types": sorted(t for t in entry["types"] if t),
+                "members": [
+                    {"name": name, "type": entry["members"].get(name)}
+                    for name in sorted(entry["names"])
+                ],
             }
             for entry in sorted(legend.values(), key=lambda item: item["token"])
         ]

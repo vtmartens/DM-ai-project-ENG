@@ -31,9 +31,12 @@ You can also set `localStorage["dm_api_base"]`.
   “attack the goblin”, “use Healing Potion”, “go to the market”, “examine the chair”, and
   direction words such as “south” or “move east”. Unknown targets fall back to the normal
   menu.
+- Direct approach with pathfinding: “go to Durnan” or “walk to barrel” moves next to the
+  target in one command, respecting walls and occupied cells.
 - Character panel: HP, level, gold, location, stats, abilities, skills.
 - Map modal (`GET /map_view`) with the ASCII map, the player's position, and a token
-  legend generated from the objects/NPCs actually on the map.
+  legend generated from the objects/NPCs actually on the map; characters are labelled
+  `(NPC)` so it is clear who can be talked to.
 - Combat card with enemy name/HP and the current round (from `state.combat`).
 - Clickable dialogue options (from `state.dialogue`), in addition to typing numbers.
 - Inventory list with item details and use/equip actions.

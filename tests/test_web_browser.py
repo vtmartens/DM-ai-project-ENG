@@ -105,7 +105,9 @@ def test_web_client_smoke(live_server):
         ascii_text = driver.find_element(By.ID, "map-ascii").text
         assert "P" in ascii_text
         assert len({len(line) for line in ascii_text.splitlines()}) == 1
-        assert "Chair" in driver.find_element(By.ID, "map-legend").text
+        legend_text = driver.find_element(By.ID, "map-legend").text
+        assert "Chair" in legend_text
+        assert "(NPC)" in legend_text
         driver.find_element(By.ID, "close-map-modal").click()
 
         severe = [

@@ -45,6 +45,7 @@ Each game phase (map exploration, combat, dialogues, inventory management) is ha
 - Full separation of game logic from user interface (ready for future web/GUI/AI integrations)
 - Dependency-free web client served at `/app` (character creation, log, inventory, saves)
 - Natural-language target commands in the tavern hub and map screen: “talk to Durnan”, “attack the goblin”, “use Healing Potion”, “go to the market”, “examine the chair”, “south”
+- Direct approach with pathfinding: “go to Durnan” or “walk to barrel” moves next to the target in one command
 - Fully testable backend (no Pygame dependencies in this repo)
 - Centralized data loading system via data_manager.py using JSON format
 - Improved monster combat system with monster type selection and difficulty levels

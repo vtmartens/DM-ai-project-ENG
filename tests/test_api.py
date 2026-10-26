@@ -197,12 +197,20 @@ def test_map_view_returns_an_ascii_grid(client):
     assert len(data["ascii"].splitlines()) == data["height"]
     assert all(len(line) == data["width"] for line in data["ascii"].splitlines())
 
-    legend = {entry["token"]: entry["names"] for entry in data["legend"]}
-    assert legend["P"] == ["You"]
-    assert "counter" in legend["B"]
-    assert "chair" in legend["S"]
-    assert "table" in legend["T"]
-    assert "Elminster" in legend["E"]
+    legend = {entry["token"]: entry for entry in data["legend"]}
+    assert legend["P"]["names"] == ["You"]
+    assert "counter" in legend["B"]["names"]
+    assert "chair" in legend["S"]["names"]
+    assert "table" in legend["T"]["names"]
+    assert "Elminster" in legend["E"]["names"]
+
+    elminster = legend["E"]
+    assert any(str(kind).casefold() == "npc" for kind in elminster["types"])
+    assert any(
+        member["name"] == "Elminster"
+        and str(member["type"]).casefold() == "npc"
+        for member in elminster["members"]
+    )
 
 
 def test_display_map_emits_a_monospaced_map_message(client):
@@ -221,6 +229,7 @@ def test_display_map_emits_a_monospaced_map_message(client):
     texts = [message["text"] for message in result["output"]]
     assert any(text.strip() == "S = Chair" for text in texts)
     assert any(text.strip() == "T = Table" for text in texts)
+    assert any(text.strip() == "D = Durnan (NPC)" for text in texts)
 
 
 def test_move_on_map_updates_position_and_redraws(client):
@@ -243,6 +252,69 @@ def test_move_on_map_updates_position_and_redraws(client):
     lines = maps[-1]["text"].splitlines()
     assert lines[6][5] == "P"
     assert lines[6][6] == "D"  # Durnan is beside the player
+
+
+def test_walk_to_npc_moves_next_to_it(client):
+    session_id = _start(client)
+
+    result = client.post(
+        "/command", json={"session_id": session_id, "command": "go to Durnan"}
+    ).get_json()
+    texts = [message["text"] for message in result["output"]]
+
+    assert result["state"]["position"]["x"] == 5
+    assert result["state"]["position"]["y"] == 6
+    assert any("You move to Durnan" in text for text in texts)
+
+    dialogue = client.post(
+        "/command", json={"session_id": session_id, "command": "talk to Durnan"}
+    ).get_json()
+    assert dialogue["state"]["state"] == "DialogueState"
+    assert dialogue["state"]["dialogue"]["npc"] == "Durnan"
+
+
+def test_walk_to_object_moves_adjacent(client):
+    session_id = _start(client)
+
+    result = client.post(
+        "/command", json={"session_id": session_id, "command": "walk to barrel"}
+    ).get_json()
+    position = result["state"]["position"]
+    texts = [message["text"] for message in result["output"]]
+
+    assert abs(position["x"] - 1) + abs(position["y"] - 1) == 1
+    assert any("You move to barrel" in text for text in texts)
+
+
+def test_walk_from_the_movement_menu(client):
+    session_id = _start(client)
+    client.post("/command", json={"session_id": session_id, "command": "10"})
+
+    result = client.post(
+        "/command", json={"session_id": session_id, "command": "walk to Durnan"}
+    ).get_json()
+
+    assert result["state"]["state"] == "MapState"
+    assert result["state"]["position"]["x"] == 5
+    assert result["state"]["position"]["y"] == 6
+    maps = [message for message in result["output"] if message["type"] == "map"]
+    assert maps
+    lines = maps[-1]["text"].splitlines()
+    assert lines[6][5] == "P"
+    assert lines[6][6] == "D"
+
+
+def test_already_adjacent_target_does_not_move(client):
+    session_id = _start(client)
+
+    result = client.post(
+        "/command", json={"session_id": session_id, "command": "move to chair"}
+    ).get_json()
+    texts = [message["text"] for message in result["output"]]
+
+    assert result["state"]["position"]["x"] == 5
+    assert result["state"]["position"]["y"] == 5
+    assert any("already next to chair" in text for text in texts)
 
 
 def test_talk_targeting_works_from_the_map_screen(client):

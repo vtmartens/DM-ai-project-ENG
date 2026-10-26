@@ -126,10 +126,17 @@ class MapState(BaseState):
 
         if current_map is not None:
             for entry in current_map.token_legend():
-                names = ", ".join(
-                    name[:1].upper() + name[1:] for name in entry["names"]
-                )
-                game.io.show_message(f"{entry['token']} = {names}")
+                members = entry.get("members") or [
+                    {"name": name, "type": ""} for name in entry["names"]
+                ]
+                labels = []
+                for member in members:
+                    name = str(member.get("name", ""))
+                    name = name[:1].upper() + name[1:]
+                    if str(member.get("type", "")).casefold() == "npc":
+                        name += " (NPC)"
+                    labels.append(name)
+                game.io.show_message(f"{entry['token']} = {', '.join(labels)}")
     
     def _move_player(self, game):
         """Handle the player's movement on the map"""
@@ -162,7 +169,12 @@ class MapState(BaseState):
         if selection in mapping:
             self._move_player_position(game, mapping[selection])
         elif selection not in {"5", "back"}:
-            game.io.error_message("Invalid choice.")
+            targeted = parse_targeted_command(selection)
+            if targeted is None:
+                game.io.error_message("Invalid choice.")
+            else:
+                action, target = targeted
+                handle_targeted_command(game, action, target)
 
         self.phase = "main_menu"
         press_enter(game)
