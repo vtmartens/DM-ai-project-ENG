@@ -23,6 +23,10 @@ class WebGameIO(GameIO):
         """Stores AI-generated prose separately so clients can style it"""
         self.buffer.append({"type": "narration", "text": text})
 
+    def show_map(self, text: str):
+        """Stores preformatted map text so clients keep it monospaced"""
+        self.buffer.append({"type": "map", "text": text})
+
     @property
     def pause_for_confirmation(self) -> bool:
         return False
@@ -377,12 +381,16 @@ class GameState:
         if not current_map:
             return None
 
+        legend = [{"token": "P", "names": ["You"], "types": ["player"]}]
+        legend.extend(current_map.token_legend())
+
         return {
             "map": player.current_map,
             "width": current_map.width,
             "height": current_map.height,
             "position": {"x": player.x, "y": player.y},
             "ascii": current_map.generate_ascii_representation((player.x, player.y)),
+            "legend": legend,
         }
 
     def get_nearby_targets(self):

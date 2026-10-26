@@ -35,10 +35,10 @@ class MapState(BaseState):
         # Display the map
         representation = current_map.generate_ascii_representation(
             (game.player.x, game.player.y))
-        game.io.show_message(representation)
+        game.io.show_map(representation)
         
         if self.show_legend:
-            self._show_legend(game)
+            self._show_legend(game, current_map)
         
         # Show information about the player's position
         game.io.show_message(f"\nCurrent position: ({game.player.x}, {game.player.y})")
@@ -70,19 +70,18 @@ class MapState(BaseState):
         
         press_enter(game)
     
-    def _show_legend(self, game):
+    def _show_legend(self, game, current_map=None):
         game.io.show_message("\nLegend:")
         game.io.show_message("P = Player")
-        game.io.show_message("N = Generic NPC")
-        game.io.show_message("O = Generic object")
-        game.io.show_message("D = Door")
-        game.io.show_message("C = Chest")
-        game.io.show_message("L = Lever")
-        game.io.show_message("T = Trap")
-        game.io.show_message("M = Monster/Enemy")
         game.io.show_message("# = Wall")
         game.io.show_message(". = Empty space")
-        # Add other special tokens if needed
+
+        if current_map is not None:
+            for entry in current_map.token_legend():
+                names = ", ".join(
+                    name[:1].upper() + name[1:] for name in entry["names"]
+                )
+                game.io.show_message(f"{entry['token']} = {names}")
     
     def _move_player(self, game):
         """Handle the player's movement on the map"""

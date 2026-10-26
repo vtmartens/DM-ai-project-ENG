@@ -195,6 +195,32 @@ def test_map_view_returns_an_ascii_grid(client):
     assert data["width"] > 0 and data["height"] > 0
     assert "P" in data["ascii"]
     assert len(data["ascii"].splitlines()) == data["height"]
+    assert all(len(line) == data["width"] for line in data["ascii"].splitlines())
+
+    legend = {entry["token"]: entry["names"] for entry in data["legend"]}
+    assert legend["P"] == ["You"]
+    assert "counter" in legend["B"]
+    assert "chair" in legend["S"]
+    assert "table" in legend["T"]
+    assert "Elminster" in legend["E"]
+
+
+def test_display_map_emits_a_monospaced_map_message(client):
+    session_id = _start(client)
+
+    result = client.post(
+        "/command", json={"session_id": session_id, "command": "9"}
+    ).get_json()
+    maps = [message for message in result["output"] if message["type"] == "map"]
+
+    assert maps, "the map state should emit a preformatted map message"
+    lines = maps[0]["text"].splitlines()
+    assert len(lines) > 1
+    assert all(len(line) == len(lines[0]) for line in lines)
+
+    texts = [message["text"] for message in result["output"]]
+    assert any(text.strip() == "S = Chair" for text in texts)
+    assert any(text.strip() == "T = Table" for text in texts)
 
 
 def test_travel_moves_the_player_to_another_map(client):
@@ -243,6 +269,26 @@ def test_command_does_not_repeat_the_opening_menu(client):
 
     assert not any("You are in the tavern. What do you want to do?" in text for text in texts)
     assert any("Who do you want to talk to?" in text for text in texts)
+
+
+def test_dialogue_option_with_no_target_returns_to_tavern(client):
+    response = client.post(
+        "/start", json={"name": "Dialogue Exit", "char_class": "fighter"}
+    )
+    session_id = response.get_json()["session_id"]
+
+    for command in ("1", "1", "2", "1"):
+        client.post("/command", json={"session_id": session_id, "command": command})
+
+    result = client.post(
+        "/command", json={"session_id": session_id, "command": "1"}
+    ).get_json()
+    texts = [message["text"] for message in result["output"]]
+
+    assert result["state"]["state"] == "TavernState"
+    assert result["state"]["dialogue"]["active"] is False
+    assert any("conclude the dialogue" in text for text in texts)
+    assert any("You return to the tavern" in text for text in texts)
 
 
 def test_second_choice_enters_dialogue(client):

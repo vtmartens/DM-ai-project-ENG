@@ -12,6 +12,16 @@ import os
 import logging
 from util.config import get_save_path, create_backup, SAVE_FORMAT_VERSION
 
+
+def _same_object_name(first, second):
+    """Compares display names tolerantly ("Cellar Door" vs "cellar_door")."""
+
+    def normalize(value):
+        return str(value).replace("_", " ").replace("-", " ").strip().casefold()
+
+    return normalize(first) == normalize(second)
+
+
 class MapManager:
     def __init__(self):
         """Initializes the map manager"""
@@ -298,14 +308,22 @@ class MapManager:
             if key in pos_items:
                 x, y = pos_items[key]
                 if 0 <= x < map.width and 0 <= y < map.height:
-                    if (x, y) not in map.items and (x, y) not in map.npc:
-                        map.add_item(item, x, y)
-                    else:
+                    existing = map.items.get((x, y))
+                    if existing is not None:
+                        if _same_object_name(
+                            getattr(existing, "name", ""), getattr(item, "name", "")
+                        ):
+                            # Already placed from map_objects.json; keep that instance.
+                            continue
                         logging.warning(f"Position ({x}, {y}) already occupied, cannot place object {key}")
+                    elif (x, y) in map.npc:
+                        logging.warning(f"Position ({x}, {y}) already occupied, cannot place object {key}")
+                    else:
+                        map.add_item(item, x, y)
                 else:
                     logging.warning(f"Invalid position for object {key}: ({x}, {y})")
             else:
-                logging.warning(f"No position defined for object {key}, object not placed")
+                logging.debug(f"No position defined for object {key}, object not placed")
 
         # Load NPC positions from JSON
         npc_config = self.data_manager.load_data("npc", "map_npcs.json").get(map_name, [])
@@ -323,10 +341,18 @@ class MapManager:
             if name in pos_npc:
                 x, y = pos_npc[name]
                 if 0 <= x < map.width and 0 <= y < map.height:
-                    if (x, y) not in map.items and (x, y) not in map.npc:
-                        map.add_npc(npc, x, y)
-                    else:
+                    existing = map.npc.get((x, y))
+                    if existing is not None:
+                        if _same_object_name(
+                            getattr(existing, "name", ""), getattr(npc, "name", "")
+                        ):
+                            # Already placed from map_npcs.json; keep that instance.
+                            continue
                         logging.warning(f"Position ({x}, {y}) already occupied, cannot place NPC {name}")
+                    elif (x, y) in map.items:
+                        logging.warning(f"Position ({x}, {y}) already occupied, cannot place NPC {name}")
+                    else:
+                        map.add_npc(npc, x, y)
                 else:
                     logging.warning(f"Invalid position for NPC {name}: ({x}, {y})")
             else:

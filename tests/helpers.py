@@ -14,6 +14,9 @@ class RecordingIO(GameIO):
     def show_narration(self, text):
         self.messages.append({"type": "narration", "text": text})
 
+    def show_map(self, text):
+        self.messages.append({"type": "map", "text": text})
+
     def system_message(self, text):
         self.messages.append({"type": "system", "text": text})
 

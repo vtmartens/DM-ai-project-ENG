@@ -33,13 +33,15 @@ Endpoints that run a game command return `output`, a list of messages:
   {"type": "narration", "text": "Warmth folds around you..."},
   {"type": "system", "text": "Saved."},
   {"type": "error", "text": "Invalid choice."},
-  {"type": "prompt", "text": "Choice: "}
+  {"type": "prompt", "text": "Choice: "},
+  {"type": "map", "text": "#####\n#.P.#\n#####"}
 ]
 ```
 
 `narration` is only emitted when the server has AI narration enabled. `narrative` is the
 engine's own text and is authoritative; `narration` is optional prose and must never be
-treated as game state.
+treated as game state. `map` is preformatted ASCII; render it in a monospace, whitespace-
+preserving block.
 
 ## Session flow
 
@@ -347,11 +349,21 @@ Returns the current map as an ASCII grid with the player marked `P`:
   "width": 25,
   "height": 15,
   "position": {"x": 5, "y": 5},
-  "ascii": "#########################\n#F..o.....F......#\n..."
+  "ascii": "#########################\n#B..F....................#\n...",
+  "legend": [
+    {"token": "P", "names": ["You"], "types": ["player"]},
+    {"token": "B", "names": ["counter"], "types": ["interactive_object"]},
+    {"token": "D", "names": ["Durnan"], "types": ["npc"]},
+    {"token": "E", "names": ["Elminster"], "types": ["npc"]},
+    {"token": "S", "names": ["chair"], "types": ["interactive_object"]},
+    {"token": "T", "names": ["table"], "types": ["interactive_object"]}
+  ]
 }
 ```
 
-Walls are `#`, floors are `.`, and letters are NPC/item tokens.
+Walls are `#`, floors are `.`, and every other cell is a single-character token.
+`legend` maps each token to the name(s) and type(s) it represents; a token can group
+several objects (for example, two doors).
 
 #### `POST /move`
 

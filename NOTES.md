@@ -145,6 +145,40 @@ conversation memory across turns. The narrator has no authority over game state.
   (tavern → cellar), Durnan's dialogue options and clicking through to `info_tavern`,
   and a combat round with the enemy HP updating (75 → 69). 150 tests pass.
 
+## Map tokens and legend (2026-10-26)
+
+- Multi-character tokens (`or`, `and`, `to`) broke ASCII row widths: each cell could emit
+  two or three characters. Normalized all `interactive_objects.json` and `npcs.json` tokens
+  to one character, changed the code defaults to `?`, and `Map.display_token` now
+  defensively falls back to the first letter of the name.
+- `/map_view` returns a `legend` mapping each token to its name(s)/type(s); the client
+  renders it (S = chair, T = table, H = stairs, E = Elminster, X = cellar door, ...).
+- Duplicate-placement warnings are gone: `transfer_items_from_state` keeps an existing
+  object/NPC placed from JSON when the names match (case/underscore tolerant), and missing
+  positions are logged at debug level.
+- Added tests for single-character tokens, map-object references, row widths and legend
+  entries. 152 tests pass.
+
+## Dialogue exit and press-enter prompts (2026-10-26)
+
+- `DialogueState` (and `AbilityCheckState` / `InventoryManagementState`) called
+  `io.request_input("Press Enter to continue...")` directly before `pop_state()` or another
+  state change. Under the web runner that pause raised `NeedsInput` and aborted the run
+  *before* the state change, so Durnan's final `info_dungeon` option looped on the same
+  node; pressing Enter produced "Please enter a valid number".
+- All direct press-enter prompts now use `press_enter(game, message)`, which is
+  non-blocking when `GameIO.pause_for_confirmation` is false. Choosing the final dialogue
+  option now exits to the tavern immediately (no Enter step) on the web.
+- Client assets now carry a `?v=5` query so a reload picks up the current JS/CSS (including
+  the dialogue card and map rendering) instead of a stale cached copy.
+- Added a regression test for the `info_dungeon` exit path. 155 tests pass.
+- The in-game “9. Display map” view now emits a `map` message type, rendered in the log with
+  the same monospace font and `white-space: pre` as the modal (the proportional log font
+  made periods and letters different widths). The block also expands to all rows; an
+  `overflow-x: auto` scroll container had clipped it to a single line. The in-log legend is
+  generated from the real map tokens (`S = Chair`, `T = Table`, ...) instead of the old
+  generic token list.
+
 ## Fixed, at your request — these are deliberate behaviour changes
 
 The translation was otherwise behaviour-preserving; the following are real fixes made after
@@ -263,7 +297,7 @@ of these were introduced by the translation.
 | Residual Italian (glossary-derived denylist + accented characters) | 0 hits |
 | **Original Italian vs translated, identical input** | **46/46 placements, identical sequence** |
 | Flask API in-process (test client, no socket) | 31 × 200, 0 raised |
-| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, web client routes) | 150 passed |
+| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, web client routes) | 155 passed |
 | Live smoke test (Flask server, `/app`, start/state/abilities/inventory/actions/command/save/load) | passed |
 
 The last comparison is the strongest evidence: the pristine Italian code and the finished

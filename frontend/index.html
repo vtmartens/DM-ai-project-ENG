@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark light">
   <title>DM AI — Dungeon Master</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=5">
 </head>
 <body>
   <header class="topbar">
@@ -150,12 +150,12 @@
       </div>
       <p id="map-meta" class="muted"></p>
       <pre id="map-ascii" class="map-ascii"></pre>
-      <p class="muted map-legend">P = you · # = wall · . = floor · letters = NPCs/objects</p>
+      <ul id="map-legend" class="map-legend"></ul>
     </div>
   </div>
 
   <div id="toast" class="toast hidden" role="status"></div>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=5"></script>
 </body>
 </html>

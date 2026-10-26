@@ -46,6 +46,17 @@ def test_web_narration_does_not_pause_for_confirmation():
     assert io.pause_for_confirmation is False
 
 
+def test_map_messages_are_not_narrated(recording_io):
+    narrator = FakeNarrator()
+    io = NarratingIO(recording_io, narrator)
+
+    io.show_map("###\n#P#\n###")
+    io.flush()
+
+    assert narrator.calls == []
+    assert recording_io.messages[-1] == {"type": "map", "text": "###\n#P#\n###"}
+
+
 def test_engine_text_is_forwarded_immediately(recording_io):
     narrator = FakeNarrator()
     io = NarratingIO(recording_io, narrator)

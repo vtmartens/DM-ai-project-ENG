@@ -2,7 +2,7 @@ from util.dice import Dice
 from util.data_manager import get_data_manager
 
 class InteractiveObject:
-    def __init__(self, name, description="", state="closed", content=None, position=None, token="or"):
+    def __init__(self, name, description="", state="closed", content=None, position=None, token="?"):
         """
         Initializes an interactive object in the game world.
 
@@ -228,7 +228,7 @@ class InteractiveObject:
             description=data.get("description", ""),
             state=data.get("state", "closed"),
             position=data.get("position"),
-            token=data.get("token", "or")
+            token=data.get("token", "?")
         )
         
         # Set the type
@@ -527,7 +527,7 @@ class Trap(InteractiveObject):
 
 
 class BreakableObject(InteractiveObject):
-    def __init__(self, name, description="", state="intact", materials=None, required_strength=5, position=None, token="or"):
+    def __init__(self, name, description="", state="intact", materials=None, required_strength=5, position=None, token="?"):
         super().__init__(name, description, state, None, position, token)
         self.materials = materials or []  # List of objects obtained by breaking
         self.required_strength = required_strength

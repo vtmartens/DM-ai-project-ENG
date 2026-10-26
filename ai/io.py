@@ -42,6 +42,10 @@ class NarratingIO(GameIO):
         self.base.show_message(text)
         self.pending.append({"type": "narrative", "text": text})
 
+    def show_map(self, text: str) -> None:
+        """Maps are UI, not narrative: forward them without sending to the model."""
+        self.base.show_map(text)
+
     def system_message(self, text: str) -> None:
         self.flush()
         self.base.system_message(text)

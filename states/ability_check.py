@@ -1,5 +1,6 @@
 from states.base_state import BaseState
 from util.dice import Dice
+from util.helpers import press_enter
 from entities.npc import NPC
 from items.interactive_object import InteractiveObject
 from items.item import Item
@@ -159,7 +160,7 @@ class AbilityCheckState(BaseState):
             self._manage_failure(game, self.chosen_ability)
             
         # Wait for confirmation and return to the main menu
-        game.io.request_input("\nPress Enter to continue...")
+        press_enter(game, "\nPress Enter to continue...")
         if game.current_state():
             game.pop_state()
     
@@ -270,7 +271,7 @@ class AbilityCheckState(BaseState):
             self._manage_failure_npc(game, self.chosen_ability, npc)
         
         # Wait for confirmation and return to the main menu
-        game.io.request_input("\nPress Enter to continue...")
+        press_enter(game, "\nPress Enter to continue...")
         if game.current_state():
             game.pop_state()
     
@@ -406,7 +407,7 @@ class AbilityCheckState(BaseState):
             self._manage_failure(game, self.chosen_ability)
         
         # Wait for confirmation and return to the main menu
-        game.io.request_input("\nPress Enter to continue...")
+        press_enter(game, "\nPress Enter to continue...")
         if game.current_state():
             game.pop_state()
     
@@ -436,7 +437,7 @@ class AbilityCheckState(BaseState):
             self.phase = "specific_ability"
     
     def _conclude_check(self, game):
-        game.io.request_input("\nPress Enter to continue...")
+        press_enter(game, "\nPress Enter to continue...")
         if game.current_state():
             game.pop_state()
             

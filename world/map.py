@@ -77,6 +77,52 @@ class Map:
             return self.grid[y][x] == 0  # 0 = empty cell
         return False
     
+    @staticmethod
+    def display_token(obj):
+        """Returns a single-character map token for an object or NPC.
+
+        Legacy data contains multi-character tokens such as "or" and "and",
+        which shifted every cell after them. Fall back to the first alphanumeric
+        character of the name so a row always has one character per cell.
+        """
+        token = getattr(obj, "token", "")
+        if isinstance(token, str):
+            token = token.strip()
+            if len(token) == 1:
+                return token
+
+        name = getattr(obj, "name", "") or "?"
+        for char in str(name):
+            if char.isalnum():
+                return char.upper()
+        return "?"
+
+    def token_legend(self):
+        """Returns token -> name(s)/type(s) for everything placed on the map."""
+        legend = {}
+
+        def add(obj, kind):
+            token = self.display_token(obj)
+            entry = legend.setdefault(
+                token, {"token": token, "names": set(), "types": set()}
+            )
+            entry["names"].add(str(getattr(obj, "name", str(obj))).replace("_", " "))
+            entry["types"].add(getattr(obj, "type", None) or kind)
+
+        for obj in self.items.values():
+            add(obj, "object")
+        for npc in self.npc.values():
+            add(npc, "npc")
+
+        return [
+            {
+                "token": entry["token"],
+                "names": sorted(entry["names"]),
+                "types": sorted(t for t in entry["types"] if t),
+            }
+            for entry in sorted(legend.values(), key=lambda item: item["token"])
+        ]
+
     def generate_ascii_representation(self, pos_player=None):
         """
         Generates an ASCII representation of the map
@@ -94,9 +140,9 @@ class Map:
                 if pos_player and pos_player == (x, y):
                     row += "P"  # Player, we always use P for visual consistency
                 elif (x, y) in self.npc:
-                    row += self.npc[(x, y)].token  # Use the NPC's token
+                    row += self.display_token(self.npc[(x, y)])
                 elif (x, y) in self.items:
-                    row += self.items[(x, y)].token  # Use the object's token
+                    row += self.display_token(self.items[(x, y)])
                 elif self.grid[y][x] == 1:
                     row += "#"  # Wall
                 else:

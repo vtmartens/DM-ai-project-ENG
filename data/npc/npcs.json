@@ -17,14 +17,18 @@
       {
         "name": "dagger",
         "type": "weapon",
-        "effect": {"strength": 2},
+        "effect": {
+          "strength": 2
+        },
         "value": 10,
         "description": "A simple sharp dagger"
       },
       {
         "name": "Healing Potion",
         "type": "heal",
-        "effect": {"heal": 10},
+        "effect": {
+          "heal": 10
+        },
         "value": 25,
         "description": "A healing potion of moderate power"
       }
@@ -45,19 +49,24 @@
     "intelligence": 20,
     "wisdom": 18,
     "charisma": 18,
-    "token": "and",
+    "token": "E",
     "inventory": [
       {
         "name": "Staff of Power",
         "type": "weapon",
-        "effect": {"strength": 2, "intelligence": 4},
+        "effect": {
+          "strength": 2,
+          "intelligence": 4
+        },
         "value": 500,
         "description": "A staff adorned with mysterious runes"
       },
       {
         "name": "Amulet of Protection",
         "type": "accessory",
-        "effect": {"defense": 3},
+        "effect": {
+          "defense": 3
+        },
         "value": 300,
         "description": "An amulet that provides magical protection"
       },
@@ -89,21 +98,27 @@
       {
         "name": "Short Sword",
         "type": "weapon",
-        "effect": {"strength": 3},
+        "effect": {
+          "strength": 3
+        },
         "value": 25,
         "description": "A small, well-made sword"
       },
       {
         "name": "Healing Potion",
         "type": "heal",
-        "effect": {"heal": 10},
+        "effect": {
+          "heal": 10
+        },
         "value": 25,
         "description": "A healing potion of moderate power"
       },
       {
         "name": "Amulet of Protection",
         "type": "accessory",
-        "effect": {"defense": 2},
+        "effect": {
+          "defense": 2
+        },
         "value": 60,
         "description": "A magic amulet that protects its wearer"
       },
@@ -130,33 +145,42 @@
     "intelligence": 16,
     "wisdom": 18,
     "charisma": 14,
-    "token": "V",
+    "token": "I",
     "inventory": [
       {
         "name": "dagger",
         "type": "weapon",
-        "effect": {"strength": 2},
+        "effect": {
+          "strength": 2
+        },
         "value": 10,
         "description": "A small dagger for personal defense"
       },
       {
         "name": "Light Healing Potion",
         "type": "light_heal",
-        "effect": {"light_heal": 5},
+        "effect": {
+          "light_heal": 5
+        },
         "value": 10,
         "description": "A small healing potion"
       },
       {
         "name": "Healing Potion",
         "type": "heal",
-        "effect": {"heal": 10},
+        "effect": {
+          "heal": 10
+        },
         "value": 25,
         "description": "A healing potion of moderate power"
       },
       {
         "name": "Antidote",
         "type": "heal",
-        "effect": {"heal": 5, "remove_poison": true},
+        "effect": {
+          "heal": 5,
+          "remove_poison": true
+        },
         "value": 20,
         "description": "An antidote that neutralizes poisons"
       }
@@ -177,33 +201,41 @@
     "intelligence": 12,
     "wisdom": 12,
     "charisma": 14,
-    "token": "to",
+    "token": "H",
     "inventory": [
       {
         "name": "Blacksmith's Hammer",
         "type": "weapon",
-        "effect": {"strength": 4},
+        "effect": {
+          "strength": 4
+        },
         "value": 20,
         "description": "A heavy work hammer that can also be used as a weapon"
       },
       {
         "name": "Short Sword",
         "type": "weapon",
-        "effect": {"strength": 3},
+        "effect": {
+          "strength": 3
+        },
         "value": 25,
         "description": "A small, well-made sword"
       },
       {
         "name": "Long Sword",
         "type": "weapon",
-        "effect": {"strength": 5},
+        "effect": {
+          "strength": 5
+        },
         "value": 50,
         "description": "A one-handed sword with a sharp blade"
       },
       {
         "name": "Leather Armor",
         "type": "armor",
-        "effect": {"defense": 2},
+        "effect": {
+          "defense": 2
+        },
         "value": 20,
         "description": "A light leather armor that offers basic protection"
       }
@@ -229,7 +261,9 @@
       {
         "name": "Battle Axe",
         "type": "weapon",
-        "effect": {"strength": 4},
+        "effect": {
+          "strength": 4
+        },
         "value": 40,
         "description": "A well-made dwarven axe"
       },
@@ -242,7 +276,9 @@
       {
         "name": "Golden Ring",
         "type": "accessory",
-        "effect": {"charisma": 1},
+        "effect": {
+          "charisma": 1
+        },
         "value": 30,
         "description": "A simple gold ring"
       }
@@ -250,4 +286,4 @@
     "gold": 800,
     "friendly": true
   }
-} 
+}

@@ -14,7 +14,7 @@ class InventoryManagementState(BaseState):
         if self.phase == "main_menu" and not game.player.inventory:
             game.io.show_message("\n--- INVENTORY MANAGEMENT ---")
             game.io.show_message("Your inventory is empty.")
-            game.io.request_input("Press ENTER to go back...")
+            press_enter(game, "Press ENTER to go back...")
             if game.current_state():
                 game.pop_state()
             return
@@ -245,7 +245,7 @@ class InventoryManagementState(BaseState):
         self.phase = "wait_for_confirmation"
     
     def _wait_confirm(self, game):
-        game.io.request_input("Press ENTER to continue...")
+        press_enter(game, "Press ENTER to continue...")
         self.phase = "main_menu"
 
     def to_dict(self):

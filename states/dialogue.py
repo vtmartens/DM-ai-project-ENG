@@ -1,5 +1,6 @@
 from states.base_state import BaseState
 from entities.npc import NPC
+from util.helpers import press_enter
 
 class DialogueState(BaseState):
     """State that manages dialogue with an NPC"""
@@ -32,7 +33,7 @@ class DialogueState(BaseState):
         # Check whether there is a valid NPC
         if not self.npc:
             game.io.show_message("There is no one to talk to here.")
-            game.io.request_input("\nPress Enter to continue...")
+            press_enter(game, "\nPress Enter to continue...")
             game.pop_state()  # Exit the current state
             return self.return_state or "map"
         
@@ -45,7 +46,7 @@ class DialogueState(BaseState):
         # If the data does not exist, return to the main menu
         if not conversation_data:
             io.show_message(f"{self.npc.name} has nothing to tell you.")
-            io.request_input("\nPress Enter to continue...")
+            press_enter(game, "\nPress Enter to continue...")
             game.pop_state()  # Exit the current state
             return self.return_state or "map"
         
@@ -58,7 +59,7 @@ class DialogueState(BaseState):
         
         # If the conversation has no options, return to the return state
         if not conversation_data.get("options"):
-            io.request_input("\nPress Enter to continue...")
+            press_enter(game, "\nPress Enter to continue...")
             game.pop_state()  # Exit the current state
             return self.return_state or "map"
         
@@ -76,7 +77,7 @@ class DialogueState(BaseState):
             selection = int(selection_input)
             if selection < 1 or selection > len(conversation_data["options"]):
                 io.show_message("Invalid choice.")
-                io.request_input("\nPress Enter to continue...")
+                press_enter(game, "\nPress Enter to continue...")
                 return "dialogue"  # Stay in the same state
                 
             # Get the destination (next state) of the choice
@@ -85,7 +86,7 @@ class DialogueState(BaseState):
             # If the destination is None, return to the return state
             if destination is None:
                 # Add a pause to read the message
-                io.request_input("\nPress Enter to continue...")
+                press_enter(game, "\nPress Enter to continue...")
                 game.pop_state()  # Exit the current state
                 return self.return_state or "map"
             
@@ -94,7 +95,7 @@ class DialogueState(BaseState):
             return "dialogue"
         except ValueError:
             io.show_message("Please enter a valid number.")
-            io.request_input("\nPress Enter to continue...")
+            press_enter(game, "\nPress Enter to continue...")
             return "dialogue"
     
     def _manage_effect(self, effect, game):

@@ -10,14 +10,18 @@
       {
         "name": "Golden Ring",
         "type": "accessory",
-        "effect": {"charisma": 1},
+        "effect": {
+          "charisma": 1
+        },
         "value": 30,
         "description": "A precious gold ring"
       },
       {
         "name": "Healing Potion",
         "type": "heal",
-        "effect": {"heal": 10},
+        "effect": {
+          "heal": 10
+        },
         "value": 25,
         "description": "A potion that restores 10 hit points"
       }
@@ -47,7 +51,7 @@
     "requires_key": true,
     "position": "tavern",
     "destination_position": "cellar",
-    "token": "D"
+    "token": "X"
   },
   {
     "name": "Market Door",
@@ -57,7 +61,7 @@
     "requires_key": false,
     "position": "tavern",
     "destination_position": "market",
-    "token": "D"
+    "token": "X"
   },
   {
     "name": "Wall Lever",
@@ -89,16 +93,23 @@
     "type": "interactive_object",
     "description": "An ancient altar with mysterious symbols",
     "state": "inactive",
-    "token": "or",
+    "token": "A",
     "state_descriptions": {
       "inactive": "An ancient altar with mysterious symbols that seem dormant",
       "active": "The altar emits an intense blue light and the symbols glow",
       "examined": "You notice that the altar bears runes forming an ancient spell"
     },
     "possible_states": {
-      "inactive": ["examined", "active"],
-      "examined": ["active"],
-      "active": ["inactive"]
+      "inactive": [
+        "examined",
+        "active"
+      ],
+      "examined": [
+        "active"
+      ],
+      "active": [
+        "inactive"
+      ]
     },
     "required_abilities": {
       "perception": "examined",
@@ -119,7 +130,7 @@
     "description": "A vase decorated with ancient ceramic",
     "state": "intact",
     "required_strength": 5,
-    "token": "or",
+    "token": "Z",
     "materials": [
       {
         "name": "Gold Coin",
@@ -134,21 +145,25 @@
     "type": "interactive_object",
     "description": "A long wooden counter where Durnan serves drinks",
     "state": "normal",
-    "token": "or"
+    "token": "B"
   },
   {
     "name": "fireplace",
     "type": "interactive_object",
     "description": "A large stone fireplace that warms the tavern",
     "state": "on",
-    "token": "or",
+    "token": "F",
     "state_descriptions": {
       "on": "The flames dance merrily in the fireplace, warming the room",
       "off": "The fireplace is cold and the ashes are gray"
     },
     "possible_states": {
-      "on": ["off"],
-      "off": ["on"]
+      "on": [
+        "off"
+      ],
+      "off": [
+        "on"
+      ]
     }
   },
   {
@@ -156,12 +171,14 @@
     "type": "interactive_object",
     "description": "A colorful stall full of fresh fruit",
     "state": "normal",
-    "token": "or",
+    "token": "U",
     "content": [
       {
         "name": "Apple",
         "type": "food",
-        "effect": {"heal": 2},
+        "effect": {
+          "heal": 2
+        },
         "value": 1,
         "description": "A red, juicy apple"
       }
@@ -172,14 +189,18 @@
     "type": "interactive_object",
     "description": "A decorative fountain in the center of the square",
     "state": "active",
-    "token": "or",
+    "token": "W",
     "state_descriptions": {
       "active": "Water gushes lively from the fountain",
       "inactive": "The fountain is still and the water unmoving"
     },
     "possible_states": {
-      "active": ["inactive"],
-      "inactive": ["active"]
+      "active": [
+        "inactive"
+      ],
+      "inactive": [
+        "active"
+      ]
     }
   },
   {
@@ -187,7 +208,7 @@
     "type": "interactive_object",
     "description": "A statue of an ancient hero of the city",
     "state": "normal",
-    "token": "or"
+    "token": "S"
   },
   {
     "name": "counter",
@@ -200,8 +221,12 @@
       "open": "The counter is open; you can see some bottles inside."
     },
     "possible_states": {
-      "closed": ["open"],
-      "open": ["closed"]
+      "closed": [
+        "open"
+      ],
+      "open": [
+        "closed"
+      ]
     }
   },
   {
@@ -215,8 +240,12 @@
       "off": "A stone fireplace with cold ashes."
     },
     "possible_states": {
-      "on": ["off"],
-      "off": ["on"]
+      "on": [
+        "off"
+      ],
+      "off": [
+        "on"
+      ]
     }
   },
   {
@@ -230,8 +259,12 @@
       "dirty": "A wooden table with some stains of drink and food."
     },
     "possible_states": {
-      "clean": ["dirty"],
-      "dirty": ["clean"]
+      "clean": [
+        "dirty"
+      ],
+      "dirty": [
+        "clean"
+      ]
     }
   },
   {
@@ -245,7 +278,9 @@
       "broken": "A broken chair with a damaged leg."
     },
     "possible_states": {
-      "intact": ["broken"],
+      "intact": [
+        "broken"
+      ],
       "broken": []
     }
   },
@@ -254,14 +289,18 @@
     "type": "interactive_object",
     "description": "A wooden barrel full of drinks.",
     "state": "closed",
-    "token": "or",
+    "token": "R",
     "state_descriptions": {
       "closed": "A wooden barrel full of drinks, sealed airtight.",
       "open": "An open wooden barrel containing an amber liquid."
     },
     "possible_states": {
-      "closed": ["open"],
-      "open": ["closed"]
+      "closed": [
+        "open"
+      ],
+      "open": [
+        "closed"
+      ]
     }
   },
   {
@@ -275,8 +314,12 @@
       "blocked": "A wooden staircase, but someone seems to have blocked access."
     },
     "possible_states": {
-      "usable": ["blocked"],
-      "blocked": ["usable"]
+      "usable": [
+        "blocked"
+      ],
+      "blocked": [
+        "usable"
+      ]
     }
   },
   {
@@ -291,8 +334,12 @@
       "open": "A richly decorated wooden chest; it is open and shows its contents."
     },
     "possible_states": {
-      "closed": ["open"],
-      "open": ["closed"]
+      "closed": [
+        "open"
+      ],
+      "open": [
+        "closed"
+      ]
     }
   },
   {
@@ -306,8 +353,12 @@
       "closed": "A closed stall with its curtains drawn."
     },
     "possible_states": {
-      "open": ["closed"],
-      "closed": ["open"]
+      "open": [
+        "closed"
+      ],
+      "closed": [
+        "open"
+      ]
     }
   },
   {
@@ -321,8 +372,12 @@
       "inactive": "A dry stone fountain; it doesn't seem to work."
     },
     "possible_states": {
-      "active": ["inactive"],
-      "inactive": ["active"]
+      "active": [
+        "inactive"
+      ],
+      "inactive": [
+        "active"
+      ]
     }
   },
   {
@@ -330,14 +385,18 @@
     "type": "interactive_object",
     "description": "A stone statue depicting a forgotten hero.",
     "state": "intact",
-    "token": "to",
+    "token": "S",
     "state_descriptions": {
       "intact": "A stone statue depicting a forgotten hero.",
       "damaged": "A stone statue, partially damaged."
     },
     "possible_states": {
-      "intact": ["damaged"],
-      "damaged": ["intact"]
+      "intact": [
+        "damaged"
+      ],
+      "damaged": [
+        "intact"
+      ]
     }
   },
   {
@@ -345,7 +404,7 @@
     "type": "door",
     "description": "A sturdy door that leads to the tavern.",
     "state": "closed",
-    "token": "D",
+    "token": "X",
     "requires_key": false,
     "destination_position": "tavern",
     "state_descriptions": {
@@ -353,8 +412,12 @@
       "open": "A sturdy door open toward the tavern."
     },
     "possible_states": {
-      "closed": ["open"],
-      "open": ["closed"]
+      "closed": [
+        "open"
+      ],
+      "open": [
+        "closed"
+      ]
     }
   },
   {
@@ -362,7 +425,7 @@
     "type": "door",
     "description": "A wooden door leading to the cellar, secured by a padlock.",
     "state": "closed",
-    "token": "D",
+    "token": "X",
     "requires_key": true,
     "destination_position": "cellar",
     "state_descriptions": {
@@ -370,8 +433,12 @@
       "open": "An open wooden door that leads into the dark cellar."
     },
     "possible_states": {
-      "closed": ["open"],
-      "open": ["closed"]
+      "closed": [
+        "open"
+      ],
+      "open": [
+        "closed"
+      ]
     }
   },
   {
@@ -387,8 +454,12 @@
       "deactivated": "A section of the floor with a deactivated spike trap."
     },
     "possible_states": {
-      "active": ["deactivated"],
-      "deactivated": ["active"]
+      "active": [
+        "deactivated"
+      ],
+      "deactivated": [
+        "active"
+      ]
     }
   },
   {
@@ -402,8 +473,12 @@
       "active": "A stone altar with arcane inscriptions emitting a blue glow."
     },
     "possible_states": {
-      "inactive": ["active"],
-      "active": ["inactive"]
+      "inactive": [
+        "active"
+      ],
+      "active": [
+        "inactive"
+      ]
     }
   },
   {
@@ -411,7 +486,7 @@
     "type": "door",
     "description": "A massive door that leads outside the cellar.",
     "state": "closed",
-    "token": "D",
+    "token": "X",
     "requires_key": false,
     "destination_position": "market",
     "state_descriptions": {
@@ -419,8 +494,12 @@
       "open": "A massive door open to the outside."
     },
     "possible_states": {
-      "closed": ["open"],
-      "open": ["closed"]
+      "closed": [
+        "open"
+      ],
+      "open": [
+        "closed"
+      ]
     }
   }
-] 
+]

@@ -71,6 +71,7 @@ const el = {
   mapModalTitle: document.getElementById("map-modal-title"),
   mapMeta: document.getElementById("map-meta"),
   mapAscii: document.getElementById("map-ascii"),
+  mapLegend: document.getElementById("map-legend"),
   toast: document.getElementById("toast"),
 };
 
@@ -935,6 +936,7 @@ async function showMapView() {
     el.mapModalTitle.textContent = `${String(data.map).replace(/^\w/, (c) => c.toUpperCase())} — Map`;
     el.mapMeta.textContent = `Position (${data.position.x}, ${data.position.y}) · ${data.width} × ${data.height}`;
     el.mapAscii.textContent = data.ascii;
+    renderMapLegend(data.legend);
     el.mapModal.classList.remove("hidden");
   } catch (error) {
     showToast(error.message, "error");
@@ -943,6 +945,28 @@ async function showMapView() {
 
 function closeMapModal() {
   el.mapModal.classList.add("hidden");
+}
+
+function renderMapLegend(legend) {
+  const entries = [
+    { token: "P", names: ["you"] },
+    { token: "#", names: ["wall"] },
+    { token: ".", names: ["floor"] },
+    ...(legend || []).filter((entry) => entry.token !== "P"),
+  ];
+
+  el.mapLegend.innerHTML = "";
+  for (const entry of entries) {
+    const item = document.createElement("li");
+    const code = document.createElement("code");
+    code.textContent = entry.token;
+    const names = document.createElement("span");
+    names.textContent = (entry.names || [])
+      .map((name) => name.charAt(0).toUpperCase() + name.slice(1))
+      .join(", ");
+    item.append(code, names);
+    el.mapLegend.appendChild(item);
+  }
 }
 
 /* ------------------------------------------------------------- toast */

@@ -1,18 +1,19 @@
-def press_enter(game=None):
+def press_enter(game=None, message="Press Enter to continue..."):
     """
     Utility function to wait for user input before advancing.
     Useful for giving the user time to read the messages on screen.
 
     Args:
         game: The game instance (optional if not required)
+        message: Prompt shown when the IO blocks for confirmation
     """
     # Use the game context if available. Web sessions do not block on a
     # press-enter confirmation; the next command naturally continues.
     if game:
         if getattr(game.io, "pause_for_confirmation", True):
-            game.io.request_input("Press Enter to continue...")
+            game.io.request_input(message)
     else:
-        input("Press Enter to continue...")
+        input(message)
 
 def show_stats(entity, game=None):
     """

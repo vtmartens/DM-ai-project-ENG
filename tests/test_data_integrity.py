@@ -48,6 +48,38 @@ def test_inventory_items_have_required_fields():
                 assert field in item, f"{file_name}: {item.get('name')} is missing {field}"
 
 
+def test_map_tokens_are_single_characters():
+    objects = _load(ITEMS_DIR / "interactive_objects.json")
+    npcs = _load(ROOT / "data" / "npc" / "npcs.json")
+
+    bad = [
+        f"{obj.get('name')}: {obj.get('token')!r}"
+        for obj in objects
+        if len(str(obj.get("token", ""))) != 1
+    ]
+    bad += [
+        f"{name}: {data.get('token')!r}"
+        for name, data in npcs.items()
+        if len(str(data.get("token", ""))) != 1
+    ]
+
+    assert not bad, bad
+
+
+def test_map_objects_reference_defined_objects():
+    objects = {obj["name"] for obj in _load(ITEMS_DIR / "interactive_objects.json")}
+    map_objects = _load(ITEMS_DIR / "map_objects.json")
+
+    missing = {
+        config["name"]
+        for configs in map_objects.values()
+        for config in configs
+        if config["name"] not in objects
+    }
+
+    assert not missing, sorted(missing)
+
+
 def test_map_start_positions_are_walkable():
     for path in MAPS_DIR.glob("*.json"):
         data = _load(path)
