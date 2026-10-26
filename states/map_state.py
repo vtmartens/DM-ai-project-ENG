@@ -283,7 +283,7 @@ class MapState(BaseState):
                 game.io.show_message(f"- {obj.name} [{obj.state}] at ({x}, {y})")
         
         if nearby_npcs:
-            game.io.show_message("\nPersonaggi:")
+            game.io.show_message("\nCharacters:")
             for pos, npc in nearby_npcs.items():
                 x, y = pos
                 game.io.show_message(f"- {npc.name} at ({x}, {y})")

@@ -272,6 +272,20 @@ def test_move_on_map_updates_position_and_redraws(client):
     assert lines[6][6] == "D"  # Durnan is beside the player
 
 
+def test_nearby_elements_are_in_english(client):
+    session_id = _start(client)
+    # Move beside Durnan, open the map, then choose "Show nearby elements".
+    client.post("/command", json={"session_id": session_id, "command": "go to Durnan"})
+    client.post("/command", json={"session_id": session_id, "command": "9"})
+    result = client.post(
+        "/command", json={"session_id": session_id, "command": "3"}
+    ).get_json()
+    texts = [message["text"] for message in result["output"]]
+
+    assert any("Characters:" in text for text in texts)
+    assert not any("Personaggi" in text for text in texts)
+
+
 def test_walk_to_npc_moves_next_to_it(client):
     session_id = _start(client)
 

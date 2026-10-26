@@ -264,6 +264,9 @@ the translation, all verified by an in-process API test and by re-running the ga
    `--- GESTIONE INVENTARIO ---`, `Scegli:`, `Oggetti:`, two `lista` comments, the asset
    paths `/asset/oggetti/` and `oggetto_default.png`, and stale Italian direction names in
    five docstrings (`nord`/`sud`/`est`/`ovest`).
+6. **`Personaggi:` in the map's “Show nearby elements” list** (`states/map_state.py`) was
+   still Italian. The earlier scanner had the singular `Personaggio` but not the plural.
+   Changed to `Characters:` and covered by a regression test.
 
 ### API status after the fixes
 
@@ -347,7 +350,7 @@ of these were introduced by the translation.
 | Residual Italian (glossary-derived denylist + accented characters) | 0 hits |
 | **Original Italian vs translated, identical input** | **46/46 placements, identical sequence** |
 | Flask API in-process (test client, no socket) | 31 × 200, 0 raised |
-| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, web client routes, browser smoke) | 171 passed |
+| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, web client routes, browser smoke) | 172 passed |
 | Live smoke test (Flask server, `/app`, start/state/abilities/inventory/actions/command/save/load) | passed |
 
 The last comparison is the strongest evidence: the pristine Italian code and the finished
