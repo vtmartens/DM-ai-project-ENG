@@ -204,6 +204,18 @@ conversation memory across turns. The narrator has no authority over game state.
   move.
 - Added movement/targeting/approach regression tests. 169 tests pass.
 
+## Character stats and mana (2026-10-26)
+
+- The sidebar displayed effective modifiers (`INT 4`) while the class preview displayed base
+  scores (`INT 16`), which looked like a mismatch. `/state` now also exposes
+  `strength_base`…`charisma_base`; the client shows the base score with the effective
+  modifier, e.g. `INT 16 (+4)`. The parenthetical can include equipped gear.
+- `Player.__init__` read `mana_base` from `base_stats`, where it does not exist, so wizards
+  and clerics started with 0 mana while the class preview showed 20/10. It now reads the
+  top-level `mana_base` from the class data. `Player.from_dict` also restores saved
+  `mana`/`mana_max` (previously they were serialized but not loaded).
+- Added API and save/load tests for base stats, modifiers and mana. 171 tests pass.
+
 ## Fixed, at your request — these are deliberate behaviour changes
 
 The translation was otherwise behaviour-preserving; the following are real fixes made after
@@ -322,7 +334,7 @@ of these were introduced by the translation.
 | Residual Italian (glossary-derived denylist + accented characters) | 0 hits |
 | **Original Italian vs translated, identical input** | **46/46 placements, identical sequence** |
 | Flask API in-process (test client, no socket) | 31 × 200, 0 raised |
-| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, web client routes, browser smoke) | 169 passed |
+| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, web client routes, browser smoke) | 171 passed |
 | Live smoke test (Flask server, `/app`, start/state/abilities/inventory/actions/command/save/load) | passed |
 
 The last comparison is the strongest evidence: the pristine Italian code and the finished

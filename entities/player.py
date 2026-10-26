@@ -13,12 +13,14 @@ class Player(Entity):
         
         # Get the base stats for the selected class
         stats_base = self._get_stats_char_class(char_class)
-        
+        class_data = self.classes_data.get(char_class, {})
+        hp_base = class_data.get("hp_base", stats_base.get("hp_base", 20))
+
         # Call the base class constructor with values from the chosen class
-        super().__init__(name, 
-                         hp=stats_base.get("hp_base", 20), 
-                         hp_max=stats_base.get("hp_base", 20), 
-                         strength_base=stats_base.get("strength", 12), 
+        super().__init__(name,
+                         hp=hp_base,
+                         hp_max=hp_base,
+                         strength_base=stats_base.get("strength", 12),
                          defense=2, 
                          dexterity_base=stats_base.get("dexterity", 10), 
                          constitution_base=stats_base.get("constitution", 12), 
@@ -29,8 +31,9 @@ class Player(Entity):
 
         # Set other values different from the Entity defaults
         self.gold = 100
-        self.mana = stats_base.get("mana_base", 0)
-        self.mana_max = stats_base.get("mana_base", 0)
+        # mana_base lives at the top level of the class data, not in base_stats
+        self.mana = class_data.get("mana_base", 0)
+        self.mana_max = class_data.get("mana_base", 0)
         
         # Initialize quest attributes
         self.progress_quests = {}
@@ -426,6 +429,8 @@ class Player(Entity):
         player.gold = data.get("gold", 0)
         player.experience = data.get("experience", 0)
         player.level = data.get("level", 1)
+        player.mana = data.get("mana", getattr(player, "mana", 0))
+        player.mana_max = data.get("mana_max", getattr(player, "mana_max", 0))
         
         # Handle quests
         player.progress_quests = data.get("progress_quests", {})

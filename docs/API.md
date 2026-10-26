@@ -77,9 +77,15 @@ a server restart. A stale `session_id` returns `404`.
     "strength": -2,
     "dexterity": 0,
     "constitution": -1,
-    "intelligence": 3,
+    "intelligence": 4,
     "wisdom": 1,
     "charisma": 0,
+    "strength_base": 6,
+    "dexterity_base": 10,
+    "constitution_base": 8,
+    "intelligence_base": 16,
+    "wisdom_base": 12,
+    "charisma_base": 10,
     "gold": 10,
     "level": 1,
     "experience": 0,
@@ -98,9 +104,10 @@ a server restart. A stale `session_id` returns `404`.
 `dialogue` field of `POST /dialogue`; clients can render combat/enemy HP and clickable
 dialogue options directly from `/state`.
 
-**Stat values are effective modifiers**, not base ability scores: the engine exposes
-`strength`, `dexterity`, etc. as `modifier_*` values. Do not render them as raw D&D ability
-scores without adding the base score.
+`strength`, `dexterity`, etc. are **effective modifiers** (they include equipped gear).
+`strength_base`, `dexterity_base`, etc. are the ability scores shown in the class preview.
+The web client renders a base score with the modifier, for example `INT 16 (+4)`; use
+`*_base` when you need the raw ability score.
 
 A compact player summary is also returned by `/start`, `/load`, and `/import_save`:
 

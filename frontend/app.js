@@ -443,20 +443,43 @@ function renderDialogue(dialogue) {
 }
 
 function renderStats(stats) {
-  const labels = [
-    ["strength", "STR"],
-    ["dexterity", "DEX"],
-    ["constitution", "CON"],
-    ["intelligence", "INT"],
-    ["wisdom", "WIS"],
-    ["charisma", "CHA"],
+  // Show the base ability score with its modifier, matching the class preview.
+  const abilities = [
+    ["strength_base", "strength", "STR"],
+    ["dexterity_base", "dexterity", "DEX"],
+    ["constitution_base", "constitution", "CON"],
+    ["intelligence_base", "intelligence", "INT"],
+    ["wisdom_base", "wisdom", "WIS"],
+    ["charisma_base", "charisma", "CHA"],
+  ];
+  const extras = [
     ["mana", "Mana"],
     ["mana_max", "Mana max"],
     ["experience", "XP"],
   ];
 
   el.statsGrid.innerHTML = "";
-  for (const [key, label] of labels) {
+
+  for (const [baseKey, modifierKey, label] of abilities) {
+    if (!(baseKey in stats)) continue;
+    const base = stats[baseKey];
+    const modifier = stats[modifierKey];
+    const valueText =
+      modifier === undefined
+        ? `${base}`
+        : `${base} (${modifier >= 0 ? "+" : ""}${modifier})`;
+
+    const cell = document.createElement("div");
+    cell.className = "stat-cell";
+    const name = document.createElement("span");
+    name.textContent = label;
+    const value = document.createElement("strong");
+    value.textContent = valueText;
+    cell.append(name, value);
+    el.statsGrid.appendChild(cell);
+  }
+
+  for (const [key, label] of extras) {
     if (!(key in stats)) continue;
     const cell = document.createElement("div");
     cell.className = "stat-cell";

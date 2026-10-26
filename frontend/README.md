@@ -33,7 +33,9 @@ You can also set `localStorage["dm_api_base"]`.
   menu.
 - Direct approach with pathfinding: “go to Durnan” or “walk to barrel” moves next to the
   target in one command, respecting walls and occupied cells.
-- Character panel: HP, level, gold, location, stats, abilities, skills.
+- Character panel: HP, level, gold, location, abilities, skills; ability scores show the
+  base value with its effective modifier (for example `INT 16 (+4)`), matching the class
+  preview.
 - Map modal (`GET /map_view`) with the ASCII map, the player's position, and a token
   legend generated from the objects/NPCs actually on the map; characters are labelled
   `(NPC)` so it is clear who can be talked to.

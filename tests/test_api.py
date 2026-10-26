@@ -186,6 +186,24 @@ def test_state_exposes_the_contract_fields(client):
     assert state["dialogue"]["active"] is False
 
 
+def test_base_stats_and_mana_match_class_data(client):
+    response = client.post("/start", json={"name": "Mana", "char_class": "wizard"})
+    session_id = response.get_json()["session_id"]
+
+    state = client.get("/state", query_string={"session_id": session_id}).get_json()
+    stats = state["stats"]
+    classes = client.get("/classes").get_json()
+
+    assert stats["intelligence_base"] == 16
+    # The effective modifier can include equipped gear; only the base score
+    # is expected to match the class preview.
+    assert stats["intelligence"] >= (16 - 10) // 2
+    assert stats["mana"] == 20
+    assert stats["mana_max"] == 20
+    assert classes["wizard"]["base_stats"]["intelligence"] == stats["intelligence_base"]
+    assert classes["wizard"]["mana_base"] == stats["mana"]
+
+
 def test_map_view_returns_an_ascii_grid(client):
     session_id = _start(client)
 

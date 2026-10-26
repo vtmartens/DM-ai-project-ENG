@@ -41,6 +41,19 @@ def test_map_selection_state_survives_a_save_load(recording_io, tmp_path):
     assert type(loaded.current_state()).__name__ == "MapSelectionState"
 
 
+def test_save_and_load_restore_mana(recording_io, tmp_path):
+    game = _new_game(recording_io, TavernState())
+    game.player.mana = 7
+    save_path = tmp_path / "mana.json"
+
+    assert game.save(str(save_path)) is True
+
+    loaded = Game(None, None, recording_io, temporary=True)
+    assert loaded.load(str(save_path)) is True
+    assert loaded.player.mana == 7
+    assert loaded.player.mana_max == 20
+
+
 def test_loading_a_missing_save_returns_false(recording_io, tmp_path):
     game = Game(None, None, recording_io, temporary=True)
 
