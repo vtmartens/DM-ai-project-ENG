@@ -271,6 +271,78 @@ def test_command_does_not_repeat_the_opening_menu(client):
     assert any("Who do you want to talk to?" in text for text in texts)
 
 
+def test_natural_language_talk_targets_an_npc(client):
+    session_id = _start(client)
+
+    result = client.post(
+        "/command", json={"session_id": session_id, "command": "talk to Durnan"}
+    ).get_json()
+
+    assert result["state"]["state"] == "DialogueState"
+    assert result["state"]["dialogue"]["active"] is True
+    assert result["state"]["dialogue"]["npc"] == "Durnan"
+    assert result["state"]["dialogue"]["options"]
+
+
+def test_natural_language_travel_targets_a_map(client):
+    session_id = _start(client)
+
+    result = client.post(
+        "/command", json={"session_id": session_id, "command": "go to the market"}
+    ).get_json()
+
+    assert result["state"]["state"] == "MarketState"
+    assert result["state"]["position"]["map"] == "market"
+
+
+def test_natural_language_use_targets_an_item(client):
+    session_id = _start(client)
+
+    result = client.post(
+        "/command", json={"session_id": session_id, "command": "use Healing Potion"}
+    ).get_json()
+
+    assert result["state"]["state"] == "TavernState"
+    assert "Healing Potion" not in result["state"]["inventory"]
+
+
+def test_natural_language_attack_targets_an_npc(client):
+    session_id = _start(client)
+
+    result = client.post(
+        "/command", json={"session_id": session_id, "command": "attack Durnan"}
+    ).get_json()
+
+    assert result["state"]["state"] == "CombatState"
+    assert result["state"]["combat"]["in_combat"] is True
+    assert result["state"]["combat"]["enemies"][0]["name"] == "Durnan"
+
+
+def test_natural_language_examine_shows_a_description(client):
+    session_id = _start(client)
+
+    result = client.post(
+        "/command", json={"session_id": session_id, "command": "examine chair"}
+    ).get_json()
+    texts = [message["text"] for message in result["output"]]
+
+    assert any("A wooden chair" in text for text in texts)
+    assert not any("Nothing happens with chair" in text for text in texts)
+
+
+def test_unknown_target_falls_back_to_the_menu(client):
+    session_id = _start(client)
+
+    result = client.post(
+        "/command", json={"session_id": session_id, "command": "talk to nobody"}
+    ).get_json()
+    texts = [message["text"] for message in result["output"]]
+
+    assert result["state"]["state"] == "TavernState"
+    assert any("Who do you want to talk to?" in text for text in texts)
+    assert any("You don't see nobody here." in text for text in texts)
+
+
 def test_dialogue_option_with_no_target_returns_to_tavern(client):
     response = client.post(
         "/start", json={"name": "Dialogue Exit", "char_class": "fighter"}

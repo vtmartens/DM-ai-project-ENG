@@ -11,6 +11,7 @@ from world.map import Map
 from world.map_manager import MapManager
 from util.data_manager import get_data_manager
 import logging
+import re
 
 
 class TavernState(BaseGameState):
@@ -166,13 +167,20 @@ class TavernState(BaseGameState):
 
     def _process_selection(self, game):
         # Save the choice
-        selection = self.last_input
+        selection = str(self.last_input or "")
         self.last_selection = selection
 
-        # Supports both numeric and text input
+        # Supports numeric, targeted natural-language, and simple text commands
         original_selection = selection
         if not selection.isdigit():
-            selection = self._process_command(selection)
+            targeted = self._parse_targeted_command(selection)
+            if targeted is not None:
+                action, target, fallback = targeted
+                if self._handle_targeted_command(game, action, target):
+                    return
+                selection = fallback
+            else:
+                selection = self._process_command(selection)
 
         if selection == "1":
             self.phase = "talk_npc"
@@ -247,6 +255,195 @@ class TavernState(BaseGameState):
             return "13"
         else:
             return cmd  # return the original command if it matches no action
+
+    @staticmethod
+    def _normalize_name(value):
+        """Normalizes a display name for tolerant target matching."""
+        text = re.sub(r"[^a-z0-9 ]+", " ", str(value).casefold())
+        text = re.sub(r"\b(?:the|a|an)\b", " ", text)
+        return " ".join(text.split())
+
+    def _parse_targeted_command(self, command):
+        """Returns (action, target, fallback_menu) for a targeted command."""
+        patterns = (
+            ("talk", "1", r"^(?:talk|speak|chat|converse)(?:\s+(?:to|with))?\s+(.+)$"),
+            ("attack", "5", r"^(?:attack|fight|hit|kill|challenge)\s+(?:the\s+|a\s+|an\s+)?(.+)$"),
+            ("use", "7", r"^(?:use|drink|quaff|consume)\s+(?:the\s+|a\s+|an\s+)?(.+)$"),
+            ("equip", "7", r"^(?:equip|wield|wear)\s+(?:the\s+|a\s+|an\s+)?(.+)$"),
+            ("go", "2", r"^(?:go|travel|walk|head)(?:\s+to)?\s+(?:the\s+)?(.+)$"),
+            ("examine", "6", r"^(?:examine|inspect|look\s+at|check)\s+(?:the\s+|a\s+|an\s+)?(.+)$"),
+            ("interact", "6", r"^(?:interact\s+with|open|pull|push)\s+(?:the\s+|a\s+|an\s+)?(.+)$"),
+        )
+
+        for action, fallback, pattern in patterns:
+            match = re.match(pattern, command.strip(), re.IGNORECASE)
+            if not match:
+                continue
+
+            target = match.group(1).strip()
+            if not target:
+                continue
+
+            # "check stats" / "inspect inventory" are menu commands, not targets.
+            if action == "examine" and self._normalize_name(target) in {
+                "stats",
+                "status",
+                "inventory",
+                "map",
+            }:
+                return None
+
+            return action, target, fallback
+
+        return None
+
+    def _match_name(self, candidates, target):
+        """Matches a target against (name, value) pairs: exact, prefix, substring."""
+        wanted = self._normalize_name(target)
+        if not wanted:
+            return None
+
+        for name, value in candidates:
+            if self._normalize_name(name) == wanted:
+                return value
+
+        for name, value in candidates:
+            normalized = self._normalize_name(name)
+            if normalized.startswith(wanted) or wanted in normalized:
+                return value
+
+        return None
+
+    def _resolve_npc(self, game, target):
+        candidates = {
+            getattr(npc, "name", ""): npc for npc in self.present_npcs.values()
+        }
+        current_map = (
+            game.map_manager.get_map(game.player.current_map)
+            if game.player.current_map
+            else None
+        )
+        if current_map:
+            for npc in current_map.npc.values():
+                candidates.setdefault(getattr(npc, "name", ""), npc)
+        return self._match_name(list(candidates.items()), target)
+
+    def _resolve_inventory_item(self, game, target):
+        candidates = [
+            (getattr(item, "name", str(item)), item)
+            for item in game.player.inventory
+            if not isinstance(item, str)
+        ]
+        return self._match_name(candidates, target)
+
+    def _resolve_map(self, game, target):
+        return self._match_name(
+            [(name, name) for name in game.map_manager.maps], target
+        )
+
+    def _resolve_map_object(self, game, target):
+        current_map = (
+            game.map_manager.get_map(game.player.current_map)
+            if game.player.current_map
+            else None
+        )
+        if not current_map:
+            return None
+
+        candidates = [
+            (getattr(obj, "name", str(obj)), (pos, obj))
+            for pos, obj in current_map.items.items()
+        ]
+        return self._match_name(candidates, target)
+
+    def _handle_targeted_command(self, game, action, target):
+        """Executes a targeted command; False lets the caller open its menu."""
+        if action == "talk":
+            npc = self._resolve_npc(game, target)
+            if npc is None:
+                game.io.show_message(f"You don't see {target} here.")
+                return False
+            game.push_state(DialogueState(npc))
+            self.phase = "main_menu"
+            return True
+
+        if action == "attack":
+            npc = self._resolve_npc(game, target)
+            if npc is None:
+                game.io.show_message(f"You don't see {target} here.")
+                return False
+            from states.combat import CombatState
+
+            game.push_state(CombatState(hostile_npc=npc))
+            self.phase = "main_menu"
+            return True
+
+        if action in {"use", "equip"}:
+            item = self._resolve_inventory_item(game, target)
+            if item is None:
+                game.io.show_message(f"You don't have {target}.")
+                return False
+            if action == "use":
+                item.use(game.player, game)
+            elif getattr(item, "type", None) in {"weapon", "armor", "accessory"}:
+                item.equip(game.player, game)
+            else:
+                game.io.show_message(f"{item.name} cannot be equipped.")
+            self.phase = "main_menu"
+            return True
+
+        if action == "go":
+            destination = self._resolve_map(game, target)
+            if destination is None:
+                game.io.show_message(f"There is no place called {target}.")
+                return False
+            from states.map_selection_state import MapSelectionState
+
+            selector = MapSelectionState(game)
+            selector.current_map = game.player.current_map
+            selector._change_map(game, destination)
+            self.phase = "main_menu"
+            return True
+
+        if action in {"examine", "interact"}:
+            resolved = self._resolve_map_object(game, target)
+            if resolved is None:
+                npc = self._resolve_npc(game, target)
+                if npc is not None and action == "examine":
+                    description = getattr(npc, "description", "")
+                    if description:
+                        game.io.show_message(f"{npc.name}: {description}")
+                    else:
+                        game.io.show_message(npc.show_info())
+                    self.phase = "main_menu"
+                    return True
+                game.io.show_message(f"You don't see {target} here.")
+                return False
+
+            (x, y), obj = resolved
+            description = getattr(obj, "description", "")
+            state_name = getattr(obj, "state", None)
+            label = getattr(obj, "name", str(obj))
+            if state_name:
+                label += f" ({state_name})"
+            if description:
+                label += f": {description}"
+            game.io.show_message(label)
+
+            if action == "examine":
+                self.phase = "main_menu"
+                return True
+
+            distance = abs(game.player.x - x) + abs(game.player.y - y)
+            if distance > 1:
+                game.io.show_message(f"You need to move closer to {obj.name}.")
+                self.phase = "main_menu"
+                return True
+            obj.interact(game.player, game)
+            self.phase = "main_menu"
+            return True
+
+        return False
 
     def _talk_with_npc(self, game):
         # Check whether we have already shown the NPC list

@@ -44,6 +44,7 @@ Each game phase (map exploration, combat, dialogues, inventory management) is ha
 - Entity factory system for dynamic content generation
 - Full separation of game logic from user interface (ready for future web/GUI/AI integrations)
 - Dependency-free web client served at `/app` (character creation, log, inventory, saves)
+- Natural-language target commands in the tavern hub: “talk to Durnan”, “attack the goblin”, “use Healing Potion”, “go to the market”, “examine the chair”
 - Fully testable backend (no Pygame dependencies in this repo)
 - Centralized data loading system via data_manager.py using JSON format
 - Improved monster combat system with monster type selection and difficulty levels
@@ -85,7 +86,7 @@ Each game phase (map exploration, combat, dialogues, inventory management) is ha
 This project will serve as the backend foundation for an AI-driven narrative experience. Planned integrations include:
 
 - LLM-powered Dungeon Master (Claude by default) that reacts to in-game events and generates dynamic descriptions or dialogues — the first slice, narration, is in `ai/`
-- Natural language command parsing
+- Natural language command parsing — deterministic target resolution is implemented for the tavern hub; AI interpretation is still future work
 - Decision tree to narrative generation mapping
 - Future web UI or terminal interface based on abstracted `IOInterface`
 
@@ -126,7 +127,8 @@ pip install -r requirements-dev.txt
 python -m pytest
 ```
 
-CI runs the same suite on Python 3.10 and 3.13 (`.github/workflows/tests.yml`).
+CI runs the same suite on Python 3.10 and 3.13 (`.github/workflows/tests.yml`), including a
+headless-browser smoke test of the web client (Chrome in CI, Edge locally).
 
 ## 🧙 AI Dungeon Master (optional)
 

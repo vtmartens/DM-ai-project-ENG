@@ -163,6 +163,11 @@ Response:
 
 `end` becomes `true` when the state stack is empty.
 
+Free-text commands are still accepted. In the tavern hub the engine resolves targets
+deterministically: `talk to Durnan`, `attack the goblin`, `use Healing Potion`,
+`go to the market`, `examine the chair`, `interact with the barrel`. Unknown targets show a
+message and fall back to the corresponding menu.
+
 #### `GET /state?session_id=...`
 
 Returns the state object above.
