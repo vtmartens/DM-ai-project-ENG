@@ -171,14 +171,16 @@ Response:
 
 `end` becomes `true` when the state stack is empty.
 
-Free-text commands are still accepted. In the tavern hub and on the map screen the engine
-resolves targets deterministically: `talk to Durnan`, `attack the goblin`,
+Free-text commands are still accepted. In the tavern, market and on the map screen the
+engine resolves targets deterministically: `talk to Durnan`, `attack the goblin`,
 `use Healing Potion`, `go to the market`, `examine the chair`, `interact with the barrel`.
 `go` / `walk` / `move` / `approach` to an NPC or object also pathfinds to an adjacent cell
 in one command, respecting walls and occupied cells. `go to exit` (or `leave`) walks to the
-nearest map exit, steps through it and enters the destination state. On the map screen,
-`south`, `move east`, etc. also move directly. Unknown targets show a message and fall back
-to the corresponding menu.
+nearest map exit, steps through it and enters the destination state; `go to exit to cellar`
+picks a named exit when a map has more than one. On the map screen, `south`, `move east`,
+etc. also move directly. Unknown targets show a message and fall back to the corresponding
+menu. Map layout and exits are refreshed from `data/maps/` when an older save or session
+is loaded, so fixes to door coordinates apply to existing games.
 
 #### `GET /state?session_id=...`
 

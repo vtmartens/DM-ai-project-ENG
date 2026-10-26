@@ -57,7 +57,12 @@ def load_session(session_id):
     path = get_session_path(session_id)
     if os.path.exists(path):
         with open(path, 'rb') as f:
-            return pickle.load(f)
+            session = pickle.load(f)
+        # Cached sessions can predate fixes to static map layout or exits.
+        map_manager = getattr(getattr(session, "game", None), "map_manager", None)
+        if map_manager is not None and hasattr(map_manager, "refresh_static_map_data"):
+            map_manager.refresh_static_map_data()
+        return session
     return None
 
 def add_notification(session_id, type, message, data=None):

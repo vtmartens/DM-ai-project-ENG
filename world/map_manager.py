@@ -147,6 +147,40 @@ class MapManager:
         # All checks passed
         return True
     
+    def refresh_static_map_data(self):
+        """Reconciles persisted maps with the current map JSON files.
+
+        A save or cached session can outlive a fix to map data. Layout, exits
+        and the start position are static, so refresh them from JSON while
+        leaving NPCs, objects and the player's state untouched.
+        """
+        try:
+            current_maps = self.load_maps_from_json()
+        except Exception as e:
+            logging.error(f"Error refreshing map data: {e}")
+            return False
+
+        if not current_maps:
+            return False
+
+        for name, current in current_maps.items():
+            existing = self.maps.get(name)
+            if existing is None:
+                continue
+            if (
+                existing.grid != current.grid
+                or existing.doors != current.doors
+                or existing.player_start_position != current.player_start_position
+            ):
+                logging.info(f"Refreshed static map data for {name}")
+            existing.grid = current.grid
+            existing.width = current.width
+            existing.height = current.height
+            existing.doors = current.doors
+            existing.player_start_position = current.player_start_position
+
+        return True
+
     def save_maps_to_json(self):
         """
         Saves all the current maps to JSON files.
@@ -405,6 +439,7 @@ class MapManager:
             return {"success": False, "message": f"{npc.name} blocks your way", "change_map": False}
 
         # Update the player's position
+        previous = (player.x, player.y)
         player.x = new_x
         player.y = new_y
 
@@ -416,10 +451,46 @@ class MapManager:
             if result["success"]:
                 return {"success": True, "message": f"You entered {map_dest}", "change_map": True}
             else:
-                return {"success": True, "message": result["message"], "change_map": False}
+                # Keep the player next to the door rather than stranded on it.
+                player.x, player.y = previous
+                return {"success": False, "message": result["message"], "change_map": False}
 
         return {"success": True, "message": "You moved", "change_map": False}
-    
+
+    @staticmethod
+    def _is_free_cell(map, x, y):
+        """True when a cell is walkable and not occupied by an object or NPC."""
+        return (
+            0 <= x < map.width
+            and 0 <= y < map.height
+            and map.grid[y][x] == 0
+            and (x, y) not in map.items
+            and (x, y) not in map.npc
+        )
+
+    def _nearest_free_position(self, map, x, y):
+        """Finds the free cell closest to (x, y), preferring cells that are not doors."""
+        candidates = []
+        fallback_candidates = []
+        for candidate_y in range(map.height):
+            for candidate_x in range(map.width):
+                if not self._is_free_cell(map, candidate_x, candidate_y):
+                    continue
+                entry = (
+                    abs(candidate_x - x) + abs(candidate_y - y),
+                    candidate_y,
+                    candidate_x,
+                )
+                fallback_candidates.append(entry)
+                if (candidate_x, candidate_y) not in map.doors:
+                    candidates.append(entry)
+
+        pool = candidates or fallback_candidates
+        if not pool:
+            return None
+        _, free_y, free_x = min(pool)
+        return free_x, free_y
+
     def change_player_map(self, player, map_name, x=None, y=None):
         """
         Changes the player's current map.
@@ -438,22 +509,28 @@ class MapManager:
 
         # Get the new map
         new_map = self.maps[map_name]
-        
+
         # If x and y are not specified, use the map's starting position
         if x is None or y is None:
             x, y = new_map.player_start_position
-            
-        # Check that the position is valid
-        if not (0 <= x < new_map.width and 0 <= y < new_map.height):
-            return {"success": False, "message": f"Position ({x}, {y}) outside the bounds of map {map_name}"}
 
-        # Check that the position is not a wall
-        if new_map.grid[y][x] != 0:  # Assuming 0 is the empty space
-            return {"success": False, "message": f"Position ({x}, {y}) is a wall in map {map_name}"}
-
-        # Check that the position is not occupied
-        if (x, y) in new_map.items or (x, y) in new_map.npc:
-            return {"success": False, "message": f"Position ({x}, {y}) already occupied in map {map_name}"}
+        # Old saves and persisted sessions can name an arrival cell that is now a
+        # wall or is occupied (for example the market's door object). Move the
+        # player to the nearest free cell instead of failing the transition and
+        # leaving them stuck on the exit.
+        if not self._is_free_cell(new_map, x, y):
+            requested = (x, y)
+            fallback = self._nearest_free_position(new_map, x, y)
+            if fallback is None:
+                return {"success": False, "message": f"No free position is available in map {map_name}"}
+            x, y = fallback
+            logging.warning(
+                "Arrival cell %s in map %s is unavailable; using (%s, %s) instead",
+                requested,
+                map_name,
+                x,
+                y,
+            )
 
         # Update the map and the player's position
         player.current_map = map_name
@@ -556,6 +633,9 @@ class MapManager:
             elif self.maps:
                 # If there is no current map, set the first available one
                 self.current_map = next(iter(self.maps.values()))
+
+            # Apply fixes to map layout/exits made since this save was written.
+            self.refresh_static_map_data()
 
             return True
         except Exception as e:
@@ -721,6 +801,9 @@ class MapManager:
             else:
                 logger.error("No maps loaded")
                 return False
+
+            # Apply fixes to map layout/exits made since this save was written.
+            self.refresh_static_map_data()
 
             logger.info(f"Maps loaded successfully from {save_path}")
             return True

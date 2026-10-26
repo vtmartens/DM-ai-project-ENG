@@ -104,12 +104,17 @@ class TavernState(BaseGameState):
             game.io.show_message(f"Welcome {game.player.name}, you have just arrived at The Wide-Open Portal Tavern in Waterdeep. You are returning from a long journey that brought you many treasures but also many scars. You walk in briskly and head toward your next adventure")
             self.first_visit = False
 
-            # Set the player's starting position on the tavern map
+            # Set the player's starting position on the tavern map, unless a
+            # map exit already placed them on a valid arrival tile.
             map = game.map_manager.get_map("tavern")
             if map:
                 game.map_manager.set_current_map("tavern")
-                x, y = map.player_start_position
-                game.player.set_position("tavern", x, y)
+                if (
+                    game.player.current_map != "tavern"
+                    or not map.is_valid_position(game.player.x, game.player.y)
+                ):
+                    x, y = map.player_start_position
+                    game.player.set_position("tavern", x, y)
                 # Populate the map with interactive objects and NPCs
                 game.map_manager.transfer_items_from_state("tavern", self)
 

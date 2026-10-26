@@ -264,18 +264,34 @@ def _enter_destination_state(game, destination):
 
 def leave_through_door(game, door_position, destination, label) -> bool:
     """Walks to a map exit, steps through it, and enters the destination state."""
-    if not walk_to_target(game, door_position, label):
-        return False
-
     player = game.player
-    dx = door_position[0] - player.x
-    dy = door_position[1] - player.y
-    if abs(dx) + abs(dy) != 1:
-        return False
+    current_map = game.map_manager.get_map(player.current_map)
 
-    result = player.move(dx, dy, game.map_manager)
+    if (player.x, player.y) == door_position:
+        # An older session can leave the player standing on the exit after a
+        # failed transition; step through from the door cell directly.
+        door = current_map.doors.get(door_position) if current_map else None
+        if not door:
+            return False
+        _, x_dest, y_dest = door
+        result = dict(
+            game.map_manager.change_player_map(player, destination, x_dest, y_dest)
+        )
+        result["change_map"] = result.get("success", False)
+    else:
+        if not walk_to_target(game, door_position, label):
+            return False
+
+        dx = door_position[0] - player.x
+        dy = door_position[1] - player.y
+        if abs(dx) + abs(dy) != 1:
+            return False
+
+        result = player.move(dx, dy, game.map_manager)
+
     if not result.get("change_map"):
-        return False
+        game.io.show_message(result.get("message") or f"The {label} is blocked.")
+        return True
 
     _enter_destination_state(game, destination)
     game.io.show_message(f"You leave through the {label}.")

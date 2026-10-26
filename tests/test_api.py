@@ -438,6 +438,75 @@ def test_leave_alias_works(client):
     assert result["state"]["position"]["map"] == "market"
 
 
+def test_stale_session_uses_the_current_exit_coordinates(client):
+    """A session saved before the door-data fix must still leave correctly."""
+    import server
+
+    session_id = _start(client)
+    session = server.active_sessions[session_id]
+    tavern = session.game.map_manager.get_map("tavern")
+
+    # The old tavern exit pointed at (12, 1), where the market's door object sits.
+    tavern.doors[(12, 14)] = ("market", 12, 1)
+    session.game.player.set_position("tavern", 12, 14)
+    server.save_session(session_id, session)
+
+    # Simulate a server restart: the next command reloads the pickle from disk.
+    server.active_sessions.clear()
+    result = client.post(
+        "/command", json={"session_id": session_id, "command": "leave the tavern"}
+    ).get_json()
+    texts = [message["text"] for message in result["output"]]
+
+    assert result["state"]["state"] == "MarketState"
+    assert result["state"]["position"]["map"] == "market"
+    assert result["state"]["position"]["x"] == 12
+    assert result["state"]["position"]["y"] == 2
+    assert any("You leave through the exit to market" in text for text in texts)
+    assert not any("cannot find a path" in text.lower() for text in texts)
+
+
+def test_unavailable_door_arrival_uses_a_nearby_free_cell(client):
+    import server
+
+    session_id = _start(client)
+    session = server.active_sessions[session_id]
+    tavern = session.game.map_manager.get_map("tavern")
+    market = session.game.map_manager.get_map("market")
+
+    tavern.doors[(12, 14)] = ("market", 12, 1)
+    assert (12, 1) in market.items
+    session.game.player.set_position("tavern", 12, 14)
+
+    result = client.post(
+        "/command", json={"session_id": session_id, "command": "leave the tavern"}
+    ).get_json()
+    position = result["state"]["position"]
+    texts = [message["text"] for message in result["output"]]
+
+    assert result["state"]["state"] == "MarketState"
+    assert position["map"] == "market"
+    assert (position["x"], position["y"]) != (12, 1)
+    assert market.is_valid_position(position["x"], position["y"])
+    assert (position["x"], position["y"]) not in market.items
+    assert (position["x"], position["y"]) not in market.npc
+    assert not any("cannot find a path" in text.lower() for text in texts)
+
+
+def test_leave_market_returns_to_the_tavern_exit(client):
+    session_id = _start(client)
+
+    client.post("/command", json={"session_id": session_id, "command": "go to exit"})
+    result = client.post(
+        "/command", json={"session_id": session_id, "command": "leave the market"}
+    ).get_json()
+
+    assert result["state"]["state"] == "TavernState"
+    assert result["state"]["position"]["map"] == "tavern"
+    assert result["state"]["position"]["x"] == 12
+    assert result["state"]["position"]["y"] == 13
+
+
 def test_map_view_shows_the_tavern_exit(client):
     session_id = _start(client)
 

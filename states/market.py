@@ -7,6 +7,7 @@ from states.inventory_management import InventoryManagementState
 from items.interactive_object import Chest, Lever, Door, InteractiveObject, Trap, BreakableObject
 from items.item import Item  # Make sure this import is correct
 from states.ability_check import AbilityCheckState
+from states.commands import handle_targeted_command, parse_targeted_command
 from world.map import Map
 from world.map_manager import MapManager
 from core.io_interface import GameIO  # Correct import for the IO interface
@@ -230,6 +231,14 @@ class MarketState(BaseGameState):
 
         # Process the command
         if not selection_input.isdigit():
+            targeted = parse_targeted_command(selection_input)
+            if targeted is not None:
+                action, target = targeted
+                if handle_targeted_command(
+                    game, action, target, extra_npcs=list(self.present_npcs.values())
+                ):
+                    self.phase = "main_menu"
+                    return
             selection = self._process_command_market(selection_input)
         else:
             selection = selection_input
