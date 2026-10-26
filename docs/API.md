@@ -383,10 +383,10 @@ Returns the current map as an ASCII grid with the player marked `P`:
 }
 ```
 
-Walls are `#`, floors are `.`, and every other cell is a single-character token.
-`legend` maps each token to the name(s) and type(s) it represents; a token can group
-several objects (for example, two doors). `members` keeps the type per name, so clients can
-label characters — the web client appends `(NPC)`.
+Walls are `#`, floors are `.`, and `>` marks an exit to another map. Every other cell is a
+single-character token. `legend` maps each token to the name(s) and type(s) it represents
+(a `>` entry is named e.g. “Exit to market”); a token can group several objects. `members`
+keeps the type per name, so clients can label characters — the web client appends `(NPC)`.
 
 #### `POST /move`
 

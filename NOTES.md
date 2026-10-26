@@ -229,6 +229,18 @@ conversation memory across turns. The narrator has no authority over game state.
   layout does not jump. Client assets are at `?v=11`.
 - Updated the narration-order tests and API docs. 171 tests pass.
 
+## Map exits (2026-10-26)
+
+- Map-only doors were invisible: the ASCII renderer ignored `map.doors`, and a door placed
+  on a wall cell was unreachable because the wall check ran before the door check. The map
+  now renders `>` for a map door without an interactive object, and the legend adds
+  `> = Exit to <map>`. `MapManager.move_player` checks doors before walls.
+- Fixed two broken destinations: tavern→market now lands at `(12, 2)` (previously `(12, 1)`,
+  which is occupied by the market's tavern-door object), and market→tavern lands at
+  `(12, 13)` (previously `(12, 15)`, outside the tavern's 15-row grid). The
+  cellar↔market doors were already valid.
+- Added tests for the visible exit and for walking through it. 174 tests pass.
+
 ## Fixed, at your request — these are deliberate behaviour changes
 
 The translation was otherwise behaviour-preserving; the following are real fixes made after
@@ -350,7 +362,7 @@ of these were introduced by the translation.
 | Residual Italian (glossary-derived denylist + accented characters) | 0 hits |
 | **Original Italian vs translated, identical input** | **46/46 placements, identical sequence** |
 | Flask API in-process (test client, no socket) | 31 × 200, 0 raised |
-| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, web client routes, browser smoke) | 172 passed |
+| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, web client routes, browser smoke) | 174 passed |
 | Live smoke test (Flask server, `/app`, start/state/abilities/inventory/actions/command/save/load) | passed |
 
 The last comparison is the strongest evidence: the pristine Italian code and the finished

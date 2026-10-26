@@ -38,7 +38,8 @@ You can also set `localStorage["dm_api_base"]`.
   preview.
 - Map modal (`GET /map_view`) with the ASCII map, the player's position, and a token
   legend generated from the objects/NPCs actually on the map; characters are labelled
-  `(NPC)` so it is clear who can be talked to.
+  `(NPC)` so it is clear who can be talked to. Map exits are shown as `>` and named in the
+  legend (“Exit to market”).
 - Combat card with enemy name/HP and the current round (from `state.combat`).
 - Clickable dialogue options (from `state.dialogue`), in addition to typing numbers. The
   play area puts the Adventure log (with the DM narration first) at the top, and the NPC

@@ -23,7 +23,7 @@
   "items": {},
   "npc": {},
   "doors": {
-    "(12, 1)": ["tavern", 12, 15],
+    "(12, 1)": ["tavern", 12, 13],
     "(14, 5)": ["cellar", 1, 7]
   },
   "player_start_position": [12, 12]

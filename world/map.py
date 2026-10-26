@@ -118,6 +118,24 @@ class Map:
         for npc in self.npc.values():
             add(npc, "npc")
 
+        # Map-only exits (doors without an interactive object on the cell).
+        for (x, y), destination in self.doors.items():
+            if (x, y) in self.items:
+                continue
+            dest_name = (
+                destination[0]
+                if isinstance(destination, (list, tuple)) and destination
+                else "another area"
+            )
+            name = f"Exit to {dest_name}"
+            entry = legend.setdefault(
+                ">",
+                {"token": ">", "names": set(), "types": set(), "members": {}},
+            )
+            entry["names"].add(name)
+            entry["types"].add("door")
+            entry["members"][name] = "door"
+
         return [
             {
                 "token": entry["token"],
@@ -151,6 +169,8 @@ class Map:
                     row += self.display_token(self.npc[(x, y)])
                 elif (x, y) in self.items:
                     row += self.display_token(self.items[(x, y)])
+                elif (x, y) in self.doors:
+                    row += ">"  # Exit to another map
                 elif self.grid[y][x] == 1:
                     row += "#"  # Wall
                 else:

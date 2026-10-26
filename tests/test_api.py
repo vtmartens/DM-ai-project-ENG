@@ -411,6 +411,18 @@ def test_command_does_not_repeat_the_opening_menu(client):
     assert any("Who do you want to talk to?" in text for text in texts)
 
 
+def test_map_view_shows_the_tavern_exit(client):
+    session_id = _start(client)
+
+    view = client.get("/map_view", query_string={"session_id": session_id}).get_json()
+    lines = view["ascii"].splitlines()
+    legend = {entry["token"]: entry for entry in view["legend"]}
+
+    assert lines[14][12] == ">"
+    assert "Exit to market" in legend[">"]["names"]
+    assert "door" in legend[">"]["types"]
+
+
 def test_natural_language_talk_targets_an_npc(client):
     session_id = _start(client)
 

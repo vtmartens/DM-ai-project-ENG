@@ -104,6 +104,23 @@ def test_npc_conversation_options_are_idempotent():
     assert second["options"] == first["options"]
 
 
+def test_tavern_exit_door_changes_map(recording_io):
+    from core.game import Game
+    from entities.player import Player
+    from states.tavern import TavernState
+
+    game = Game(Player("Door Tester", "fighter"), TavernState(), recording_io)
+    game.set_initial_map("tavern")
+    game.player.set_position("tavern", 12, 13)
+
+    result = game.player.move(0, 1, game.map_manager)
+
+    assert result["success"] is True
+    assert result["change_map"] is True
+    assert game.player.current_map == "market"
+    assert (game.player.x, game.player.y) == (12, 2)
+
+
 def test_dialogue_option_targets_exist():
     conversations = _load(ROOT / "data" / "npc" / "conversations.json")
 

@@ -385,8 +385,11 @@ class MapManager:
         if not (0 <= new_x < map.width and 0 <= new_y < map.height):
             return {"success": False, "message": "Position outside the map bounds", "change_map": False}
 
-        # Check whether there is a wall
-        if map.grid[new_y][new_x] != 0:  # Assuming 0 is the empty space
+        # A door may be the only opening in a wall, so doors are checked first.
+        door_dest = map.doors.get((new_x, new_y))
+
+        # Check whether there is a wall (unless this cell is a door)
+        if door_dest is None and map.grid[new_y][new_x] != 0:
             return {"success": False, "message": "There is a wall in that direction", "change_map": False}
 
         # Check whether there is a blocking object
@@ -401,11 +404,6 @@ class MapManager:
             npc = map.npc[(new_x, new_y)]
             return {"success": False, "message": f"{npc.name} blocks your way", "change_map": False}
 
-        # Check whether there is a door
-        door_dest = None
-        if (new_x, new_y) in map.doors:
-            door_dest = map.doors[(new_x, new_y)]
-        
         # Update the player's position
         player.x = new_x
         player.y = new_y
