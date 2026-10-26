@@ -18,6 +18,7 @@ class Enemy(Entity):
                 # Specific attributes from JSON
                 self.description = monster_data.get("description", "")
                 self.weapons = monster_data.get("weapons", [])
+                self.attack_effect = monster_data.get("attack_effect", {})
                 self.armor = monster_data.get("armor", "")
                 self.experience_value = monster_data.get("experience", 50)  # Renamed to avoid conflicts
                 self.monster_type = monster_type
@@ -52,6 +53,7 @@ class Enemy(Entity):
         # Base attributes
         self.description = ""
         self.weapons = []
+        self.attack_effect = {}
         self.armor = ""
         self.experience_value = 50  # Renamed to avoid conflicts
         self.monster_type = None
@@ -141,6 +143,7 @@ class Enemy(Entity):
         data.update({
             "description": self.description,
             "weapons": self.weapons,
+            "attack_effect": self.attack_effect,
             "armor": self.armor,
             "experience": self.experience_value,
             "monster_type": self.monster_type
@@ -182,6 +185,7 @@ class Enemy(Entity):
         # Update other attributes
         enemy.description = data.get("description", "")
         enemy.weapons = data.get("weapons", [])
+        enemy.attack_effect = data.get("attack_effect", {})
         enemy.armor = data.get("armor", "")
         enemy.experience_value = data.get("experience", 50)
         enemy.monster_type = data.get("monster_type", None)

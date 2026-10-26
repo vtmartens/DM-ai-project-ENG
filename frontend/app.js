@@ -464,6 +464,7 @@ function renderStats(stats) {
   const extras = [
     ["mana", "Mana"],
     ["mana_max", "Mana max"],
+    ["initiative", "Init"],
     ["experience", "XP"],
   ];
 

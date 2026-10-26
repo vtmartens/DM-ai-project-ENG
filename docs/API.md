@@ -90,7 +90,8 @@ a server restart. A stale `session_id` returns `404`.
     "level": 1,
     "experience": 0,
     "mana": 20,
-    "mana_max": 20
+    "mana_max": 20,
+    "initiative": 0
   },
   "active_quests": [],
   "completed_quests": [],
@@ -383,7 +384,9 @@ Use `object_name` or `item_id`. Response is the item's serialized fields plus:
 {"session_id": "uuid", "item": "Healing Potion", "action": "use"}
 ```
 
-Runs the command `<action> <item>` and returns `output` and `state`.
+Runs the command `<action> <item>` and returns `output` and `state`. Using a key tries an
+adjacent matching lock (keys are reusable); using poison starts a damage-over-time effect;
+using an antidote clears poison from the player.
 
 #### `POST /equipment`
 

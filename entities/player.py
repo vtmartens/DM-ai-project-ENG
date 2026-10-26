@@ -45,6 +45,8 @@ class Player(Entity):
         
         # Class-specific attributes that are not in Entity
         self._initialize_for_char_class()
+        self.initiative = self.modifier_dexterity
+        self.conditions = {}
         self._create_inventory_base()
     
     def _load_data_classes(self):
@@ -417,7 +419,9 @@ class Player(Entity):
             "completed_quests": self.completed_quests,
             "position": [self.x, self.y],  # For compatibility
             "mana": getattr(self, "mana", 0),
-            "mana_max": getattr(self, "mana_max", 0)
+            "mana_max": getattr(self, "mana_max", 0),
+            "initiative": getattr(self, "initiative", 0),
+            "conditions": dict(getattr(self, "conditions", {})),
         })
         
         return data
@@ -480,7 +484,9 @@ class Player(Entity):
         player.level = data.get("level", 1)
         player.mana = data.get("mana", getattr(player, "mana", 0))
         player.mana_max = data.get("mana_max", getattr(player, "mana_max", 0))
-        
+        player.initiative = data.get("initiative", player.modifier_dexterity)
+        player.conditions = dict(data.get("conditions", {}))
+
         # Handle quests
         player.progress_quests = data.get("progress_quests", {})
         player.active_quests = data.get("active_quests", [])

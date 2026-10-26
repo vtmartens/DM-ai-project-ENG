@@ -325,12 +325,46 @@
   {
     "name": "hidden_chest",
     "type": "chest",
-    "description": "A richly decorated wooden chest.",
+    "description": "A richly decorated wooden chest hidden under a floorboard.",
     "state": "closed",
     "token": "C",
-    "requires_key": true,
+    "requires_key": false,
+    "content": [
+      {
+        "name": "Cellar Key",
+        "type": "key",
+        "effect": {
+          "opens": [
+            "Cellar Door",
+            "Secret Door"
+          ]
+        },
+        "value": 10,
+        "description": "An old key that opens the cellar door"
+      },
+      {
+        "name": "Spider Poison",
+        "type": "poison",
+        "effect": {
+          "damage": 5,
+          "duration": 3
+        },
+        "value": 20,
+        "description": "A vial of spider venom for a weapon"
+      },
+      {
+        "name": "Antidote",
+        "type": "heal",
+        "effect": {
+          "heal": 5,
+          "remove_poison": true
+        },
+        "value": 20,
+        "description": "A vial that neutralizes poison and restores 5 hit points"
+      }
+    ],
     "state_descriptions": {
-      "closed": "A richly decorated wooden chest; it seems locked.",
+      "closed": "A richly decorated wooden chest hidden under a floorboard.",
       "open": "A richly decorated wooden chest; it is open and shows its contents."
     },
     "possible_states": {

@@ -59,6 +59,20 @@ class NarratingIO(GameIO):
         self.flush()
         self.base.error_message(text)
 
+    def set_input(self, input_text: str) -> None:
+        """Keeps the wrapper's ``last_input`` in sync with a web turn."""
+        self.last_input = input_text
+        setter = getattr(self.base, "set_input", None)
+        if callable(setter):
+            setter(input_text)
+
+    def begin_turn(self, input_text: str = "", available: bool = True):
+        """Keeps the wrapper's input state aligned with ``WebGameIO``."""
+        self.last_input = input_text if available else ""
+        starter = getattr(self.base, "begin_turn", None)
+        if callable(starter):
+            starter(input_text, available)
+
     def request_input(self, prompt: str = "") -> str:
         self.flush()
         self.last_input = self.base.request_input(prompt)

@@ -485,6 +485,7 @@ class GameState:
             "experience": self.game.player.experience,
             "mana": getattr(self.game.player, "mana", 0),
             "mana_max": getattr(self.game.player, "mana_max", 0),
+            "initiative": getattr(self.game.player, "initiative", 0),
         }
         
         return {

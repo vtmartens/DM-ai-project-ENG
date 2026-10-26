@@ -1,5 +1,6 @@
 from util.dice import Dice
 from util.data_manager import get_data_manager
+from items.keys import find_matching_key
 
 class InteractiveObject:
     def __init__(self, name, description="", state="closed", content=None, position=None, token="?"):
@@ -327,34 +328,28 @@ class Chest(InteractiveObject):
     def interact(self, player, game=None):
         if self.state == "closed":
             if self.requires_key:
-                # Check whether the player has a key
-                found_key = False
-                for item in player.inventory:
-                    if isinstance(item, str):
-                        item_name = item
-                    else:
-                        item_name = item.name
-                    
-                    if "key" in item_name.lower():
-                        found_key = True
-                        break
-                
-                if not found_key:
+                key = find_matching_key(player, self.name)
+                if key is None:
                     if game:
-                        game.io.show_message("The chest is locked. You need a key to open it.")
+                        game.io.show_message(
+                            f"The chest is locked. You need a key that opens {self.name}."
+                        )
                     return
                 if game:
-                    game.io.show_message("You use the key to open the chest...")
-            
+                    game.io.show_message(
+                        f"You use {key.name} to unlock {self.name}..."
+                    )
+
             if game:
                 game.io.show_message(f"You open {self.name}...")
             self.state = "open"
             if self.content:
                 if game:
                     game.io.show_message("Inside you find:")
-                    for content_item in self.content:
+                for content_item in self.content:
+                    if game:
                         game.io.show_message(f"- {content_item.name}")
-                player.add_item(item)
+                    player.add_item(content_item)
                 self.content = []
             else:
                 if game:
@@ -387,24 +382,17 @@ class Door(InteractiveObject):
     def interact(self, player, game=None):
         if self.state == "closed":
             if self.requires_key:
-                # Check whether the player has a key
-                found_key = False
-                for item in player.inventory:
-                    if isinstance(item, str):
-                        item_name = item
-                    else:
-                        item_name = item.name
-                    
-                    if "key" in item_name.lower():
-                        found_key = True
-                        break
-                
-                if not found_key:
+                key = find_matching_key(player, self.name)
+                if key is None:
                     if game:
-                        game.io.show_message("The door is locked. You need a key to open it.")
+                        game.io.show_message(
+                            f"The door is locked. You need a key that opens {self.name}."
+                        )
                     return
                 if game:
-                    game.io.show_message("You use the key to open the door...")
+                    game.io.show_message(
+                        f"You use {key.name} to unlock {self.name}..."
+                    )
             
             if game:
                 game.io.show_message(f"You open {self.name}...")

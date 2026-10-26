@@ -28,6 +28,8 @@ class CombatState(BaseState):
         self.effects = {}
         # Result of the most recent ability attempt (used by POST /use_ability)
         self.last_ability_used = None
+        # Whether initiative has already decided who acts first
+        self._initiative_checked = False
         
     def run(self, game):
         player = game.player
@@ -38,7 +40,10 @@ class CombatState(BaseState):
         # Check whether the combat is over
         if self._check_end_combat(game):
             return
-            
+
+        if self._check_initiative(player, game):
+            return
+
         # Handle the flow based on the current phase
         if self.phase == "selection":
             self._phase_selection(player, game)
@@ -140,6 +145,8 @@ class CombatState(BaseState):
     
     def _phase_end_turn(self, player, game):
         """End turn phase"""
+        self._tick_poison(game)
+        self._tick_player_poison(player, game)
         # Increment the turn
         self.turn += 1
         # Return to the selection phase for the next turn
@@ -494,6 +501,87 @@ class CombatState(BaseState):
             
         return False
 
+    def _check_initiative(self, player, game):
+        """Lets a faster opponent act before the player's first choice."""
+        if getattr(self, "_initiative_checked", False):
+            return False
+        self._initiative_checked = True
+
+        player_initiative = int(getattr(player, "initiative", 0) or 0)
+        opponent_initiative = int(getattr(self.opponent, "dexterity", 0) or 0)
+        if opponent_initiative > player_initiative:
+            game.io.show_message(f"\n{self.opponent.name} seizes the initiative!")
+            self.phase = "enemy_attack"
+            return True
+        return False
+
+    def apply_poison(self, damage, turns, game=None):
+        """Applies (or refreshes) poison on the opponent."""
+        if not isinstance(getattr(self, "effects", None), dict):
+            self.effects = {}
+        damage = int(damage)
+        turns = int(turns)
+        if damage <= 0 or turns <= 0:
+            return
+
+        poison = self.effects.get("poison")
+        if isinstance(poison, dict):
+            poison["damage"] = max(int(poison.get("damage", 0) or 0), damage)
+            poison["turns"] = max(int(poison.get("turns", 0) or 0), turns)
+        else:
+            self.effects["poison"] = {"damage": damage, "turns": turns}
+
+        if game:
+            game.io.show_message(
+                f"You poison {self.opponent.name}: {damage} damage for {turns} turns."
+            )
+
+    def _tick_poison(self, game):
+        """Deals one round of poison damage and expires it when spent."""
+        effects = getattr(self, "effects", None)
+        if not isinstance(effects, dict):
+            return
+        poison = effects.get("poison")
+        if not isinstance(poison, dict):
+            return
+
+        damage = int(poison.get("damage", 0) or 0)
+        turns = int(poison.get("turns", 0) or 0)
+        if damage <= 0 or turns <= 0:
+            effects.pop("poison", None)
+            return
+
+        self.opponent.hp = max(0, self.opponent.hp - damage)
+        game.io.show_message(f"Poison deals {damage} damage to {self.opponent.name}.")
+        turns -= 1
+        if turns <= 0:
+            effects.pop("poison", None)
+        else:
+            poison["turns"] = turns
+
+    def _tick_player_poison(self, player, game):
+        """Deals one round of poison damage to the player."""
+        conditions = getattr(player, "conditions", None)
+        if not isinstance(conditions, dict):
+            return
+        poison = conditions.get("poison")
+        if not isinstance(poison, dict):
+            return
+
+        damage = int(poison.get("damage", 0) or 0)
+        turns = int(poison.get("turns", 0) or 0)
+        if damage <= 0 or turns <= 0:
+            conditions.pop("poison", None)
+            return
+
+        player.hp = max(0, player.hp - damage)
+        game.io.show_message(f"Poison deals {damage} damage to you.")
+        turns -= 1
+        if turns <= 0:
+            conditions.pop("poison", None)
+        else:
+            poison["turns"] = turns
+
     def _remove_defeated_npc(self, game):
         """Removes a defeated NPC from the map and from NPC menus."""
         npc = self.hostile_npc
@@ -605,6 +693,37 @@ class CombatState(BaseState):
             game.io.show_message(f"You take {effective_damage} damage!")
         else:
             game.io.show_message("You take no damage.")
+
+        attack_effect = getattr(self.opponent, "attack_effect", None)
+        if (
+            effective_damage > 0
+            and isinstance(attack_effect, dict)
+            and attack_effect.get("type") == "poison"
+        ):
+            poison_damage = int(attack_effect.get("damage", 0) or 0)
+            poison_turns = int(attack_effect.get("turns", 0) or 0)
+            if poison_damage > 0 and poison_turns > 0:
+                conditions = getattr(player, "conditions", None)
+                if not isinstance(conditions, dict):
+                    conditions = {}
+                    player.conditions = conditions
+                poison = conditions.get("poison")
+                if isinstance(poison, dict):
+                    poison["damage"] = max(
+                        int(poison.get("damage", 0) or 0), poison_damage
+                    )
+                    poison["turns"] = max(
+                        int(poison.get("turns", 0) or 0), poison_turns
+                    )
+                else:
+                    conditions["poison"] = {
+                        "damage": poison_damage,
+                        "turns": poison_turns,
+                    }
+                game.io.show_message(
+                    f"You are poisoned! {poison_damage} damage for "
+                    f"{poison_turns} turns."
+                )
     
     def _apply_effect_item(self, player, item, game):
         """Apply the effect of an item"""
@@ -702,6 +821,7 @@ class CombatState(BaseState):
         state.phase = data.get("phase", "selection")
         state.temporary_data = data.get("temporary_data", {})
         state.effects = data.get("effects", {})
+        state._initiative_checked = data.get("initiative_checked", True)
 
         return state
         
@@ -717,6 +837,9 @@ class CombatState(BaseState):
             "phase": self.phase,
             "temporary_data": self.temporary_data,
             "effects": dict(getattr(self, "effects", {}) or {}),
+            "initiative_checked": bool(
+                getattr(self, "_initiative_checked", False)
+            ),
         }
         
         # Save the opponent

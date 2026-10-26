@@ -1162,7 +1162,15 @@ def get_item_details():
     if item.get("type") == "weapon":
         detailed_item["uses"].append({"action": "equip", "description": "Equip this weapon"})
         detailed_item["uses"].append({"action": "examine", "description": "Examine the weapon in detail"})
-    elif item.get("type") in ("heal", "light_heal", "grave_heal", "buff", "poison", "bomb"):
+    elif item.get("type") in (
+        "heal",
+        "light_heal",
+        "grave_heal",
+        "buff",
+        "poison",
+        "bomb",
+        "key",
+    ):
         detailed_item["uses"].append({"action": "use", "description": "Use this item"})
         detailed_item["uses"].append({"action": "examine", "description": "Examine the item in detail"})
     elif item.get("type") in ("armor", "accessory"):

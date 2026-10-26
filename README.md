@@ -47,6 +47,7 @@ Each game phase (map exploration, combat, dialogues, inventory management) is ha
 - Natural-language target commands in the tavern, market and map screen: “talk to Durnan”, “attack the goblin”, “use Healing Potion”, “go to the market”, “examine the chair”, “south”
 - Class abilities with mana costs in combat: Powerful Blow, Parry, Magic Missile, Mage Shield, Sneak Attack, Evade, Cure Wounds and Blessing. Use them from the combat menu, with `/use_ability`, or by typing “cast Magic Missile” / “use ability Cure Wounds”
 - Class-based level progression: HP/mana growth follows the class data, and level-3/5/7 abilities unlock automatically (Fierce Attack, Fireball, Backstab, Restoration, and more)
+- Specific keys and locks: use a matching key (or a skeleton key) to open chests and doors; poison works over several turns; antidotes clear poison; initiative accessories affect who acts first in combat
 - Direct approach with pathfinding: “go to Durnan” or “walk to barrel” moves next to the target in one command; “go to exit” or “leave” walks to the nearest map exit and steps through it (works from the tavern and the market)
 - Fully testable backend (no Pygame dependencies in this repo)
 - Centralized data loading system via data_manager.py using JSON format

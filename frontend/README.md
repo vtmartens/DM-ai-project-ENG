@@ -36,7 +36,8 @@ You can also set `localStorage["dm_api_base"]`.
   to the nearest map exit, steps through it and enters the destination state.
 - Character panel: HP, level, gold, location, abilities, skills; ability scores show the
   base value with its effective modifier (for example `INT 16 (+4)`), matching the class
-  preview. Class abilities are clickable buttons with mana costs; unavailable abilities
+  preview. The stats panel also shows initiative. Class abilities are clickable buttons
+  with mana costs; unavailable abilities
   (not enough mana, or combat-only outside combat) are disabled with an explanation.
   Progression abilities appear as dashed `Lv 3/5/7` entries until the player unlocks them.
 - Ability use goes through `POST /use_ability`; using one is a combat action, so the enemy
@@ -50,7 +51,8 @@ You can also set `localStorage["dm_api_base"]`.
   play area puts the Adventure log (with the DM narration first) at the top, and the NPC
   dialogue/options card below it. The log keeps the NPC text and consequences but omits
   the numbered choice list, which is shown only as buttons in the dialogue card.
-- Inventory list with item details and use/equip actions.
+- Inventory list with item details and use/equip actions. Keys can be used on an adjacent
+  matching lock, poison applies over several combat turns, and antidotes clear poison.
 - Save button that writes a timestamped save.
 - Light/dark theme, persisted through `POST /preferences` when a session exists.
 - Session resume from `localStorage` via `GET /state` and `GET /log`.

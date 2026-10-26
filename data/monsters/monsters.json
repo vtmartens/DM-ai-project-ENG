@@ -126,6 +126,7 @@
       "charisma": 4
     },
     "weapons": ["Venomous Bite", "Sticky Web"],
+    "attack_effect": {"type": "poison", "damage": 2, "turns": 3},
     "armor": "Exoskeleton",
     "gold": 25,
     "experience": 120,

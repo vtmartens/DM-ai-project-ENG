@@ -56,6 +56,21 @@ def test_dialogue_options_are_only_logged_for_terminal_style_io():
     assert terminal.dialogue_options_in_log is True
 
 
+def test_narration_wrapper_tracks_web_input():
+    from core.game_state import WebGameIO
+
+    base = WebGameIO()
+    io = NarratingIO(base, NullNarrator())
+
+    io.set_input("7")
+    assert io.last_input == "7"
+    assert base.last_input == "7"
+
+    io.begin_turn("", available=False)
+    assert io.last_input == ""
+    assert base.last_input == ""
+
+
 def test_map_messages_are_not_narrated(recording_io):
     narrator = FakeNarrator()
     io = NarratingIO(recording_io, narrator)

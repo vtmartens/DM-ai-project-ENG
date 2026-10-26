@@ -9,7 +9,7 @@
   {
     "name": "Cellar Key",
     "type": "key",
-    "effect": {"opens": ["Secret Door"]},
+    "effect": {"opens": ["Cellar Door", "Secret Door"]},
     "value": 10,
     "description": "A key that opens the cellar door"
   },

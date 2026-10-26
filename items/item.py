@@ -1,3 +1,6 @@
+from items.keys import key_opens
+
+
 class Item:
     def __init__(self, name, type, effect=None, value=0, description=""):
         self.name = name
@@ -29,6 +32,16 @@ class Item:
             player.heal(amount, game)
             if game:
                 game.io.show_message(f"You use {self.name} and recover {amount} HP.")
+            if self.effect.get("remove_poison"):
+                conditions = getattr(player, "conditions", None)
+                if isinstance(conditions, dict):
+                    removed = conditions.pop("poison", None)
+                    if game:
+                        game.io.show_message(
+                            "The antidote neutralizes the poison."
+                            if removed
+                            else "The antidote finds no poison to neutralize."
+                        )
             player.remove_item(self.name)
         elif self.type == "buff":
             # There is no timed-effect system in the engine yet, so the bonus is
@@ -52,12 +65,14 @@ class Item:
                 if game:
                     game.io.show_message(f"{self.name} can only be used in combat.")
                 return False
-            damage = self.effect.get("damage", 5)
-            combat.opponent.wound(damage, game)
+            damage = int(self.effect.get("damage", 5) or 5)
+            duration = int(self.effect.get("duration", 1) or 1)
+            if hasattr(combat, "apply_poison"):
+                combat.apply_poison(damage, duration, game)
+            else:
+                combat.opponent.wound(damage, game)
             if game:
-                game.io.show_message(
-                    f"You apply {self.name} to your weapon and deal {damage} damage to {combat.opponent.name}."
-                )
+                game.io.show_message(f"You apply {self.name} to your weapon.")
             player.remove_item(self.name)
         elif self.type == "bomb":
             combat = self._combat_context(game)
@@ -73,8 +88,25 @@ class Item:
         elif self.type in ("weapon", "armor", "accessory"):
             self.equip(player, game)
         elif self.type == "key":
+            if game and getattr(player, "current_map", None):
+                current_map = game.map_manager.get_map(player.current_map)
+                if current_map:
+                    for (x, y), obj in list(current_map.items.items()):
+                        if abs(x - player.x) + abs(y - player.y) != 1:
+                            continue
+                        if not getattr(obj, "requires_key", False):
+                            continue
+                        if getattr(obj, "state", "") not in {"closed", "locked"}:
+                            continue
+                        if not key_opens(self, getattr(obj, "name", "")):
+                            continue
+                        obj.interact(player, game)
+                        return True
             if game:
-                game.io.show_message(f"You use the key {self.name}, but nothing happens... for now.")
+                game.io.show_message(
+                    f"You have no matching lock nearby for {self.name}."
+                )
+            return False
         else:
             if game:
                 game.io.show_message(f"The item {self.name} cannot be used directly.")

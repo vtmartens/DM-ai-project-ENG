@@ -909,6 +909,17 @@ def test_achievements_does_not_mutate_the_cached_catalogue(client):
     )
 
 
+def test_key_item_details_expose_the_use_action(client):
+    session_id = _start(client)
+
+    data = client.get(
+        "/item_details",
+        query_string={"session_id": session_id, "object_name": "Common Key"},
+    ).get_json()
+
+    assert {"action": "use", "description": "Use this item"} in data["uses"]
+
+
 def test_item_details_resolve_the_players_real_item(client):
     session_id = _start(client)
 
