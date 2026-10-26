@@ -38,6 +38,7 @@ You can also set `localStorage["dm_api_base"]`.
   base value with its effective modifier (for example `INT 16 (+4)`), matching the class
   preview. Class abilities are clickable buttons with mana costs; unavailable abilities
   (not enough mana, or combat-only outside combat) are disabled with an explanation.
+  Progression abilities appear as dashed `Lv 3/5/7` entries until the player unlocks them.
 - Ability use goes through `POST /use_ability`; using one is a combat action, so the enemy
   retaliates and victory/rewards resolve normally.
 - Map modal (`GET /map_view`) with the ASCII map, the player's position, and a token

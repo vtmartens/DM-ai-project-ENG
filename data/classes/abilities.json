@@ -87,5 +87,137 @@
       "attack": 2,
       "defense": 2
     }
+  },
+  "Fierce Attack": {
+    "id": "fierce_attack",
+    "class": "fighter",
+    "description": "A powerful level-3 strike that adds 8 damage.",
+    "mana_cost": 0,
+    "combat_only": true,
+    "effect": {
+      "type": "damage",
+      "bonus": 8
+    }
+  },
+  "Multiattack": {
+    "id": "multiattack",
+    "class": "fighter",
+    "description": "A level-5 flurry that deals double your normal damage.",
+    "mana_cost": 0,
+    "combat_only": true,
+    "effect": {
+      "type": "damage",
+      "multiplier": 2
+    }
+  },
+  "Weapon Mastery": {
+    "id": "weapon_mastery",
+    "class": "fighter",
+    "description": "Level-7 mastery adds 3 damage and wards off 3 damage on the next exchange.",
+    "mana_cost": 0,
+    "combat_only": true,
+    "effect": {
+      "type": "bless",
+      "attack": 3,
+      "defense": 3
+    }
+  },
+  "Fireball": {
+    "id": "fireball",
+    "class": "wizard",
+    "description": "A level-3 burst of flame deals 12 damage.",
+    "mana_cost": 8,
+    "combat_only": true,
+    "effect": {
+      "type": "damage",
+      "flat": 12
+    }
+  },
+  "Lightning Bolt": {
+    "id": "lightning_bolt",
+    "class": "wizard",
+    "description": "A level-5 bolt deals 15 damage.",
+    "mana_cost": 10,
+    "combat_only": true,
+    "effect": {
+      "type": "damage",
+      "flat": 15
+    }
+  },
+  "Teleport": {
+    "id": "teleport",
+    "class": "wizard",
+    "description": "A level-7 blink avoids the next enemy attack.",
+    "mana_cost": 8,
+    "combat_only": true,
+    "effect": {
+      "type": "evade"
+    }
+  },
+  "Backstab": {
+    "id": "backstab",
+    "class": "rogue",
+    "description": "A level-3 strike for triple your normal damage.",
+    "mana_cost": 3,
+    "combat_only": true,
+    "effect": {
+      "type": "damage",
+      "multiplier": 3
+    }
+  },
+  "Evasion": {
+    "id": "evasion",
+    "class": "rogue",
+    "description": "Level-5 footwork reduces the next incoming attack by 8.",
+    "mana_cost": 3,
+    "combat_only": true,
+    "effect": {
+      "type": "guard",
+      "amount": 8
+    }
+  },
+  "Poison Mastery": {
+    "id": "poison_mastery",
+    "class": "rogue",
+    "description": "A level-7 venomous strike deals 9 damage.",
+    "mana_cost": 4,
+    "combat_only": true,
+    "effect": {
+      "type": "damage",
+      "flat": 9
+    }
+  },
+  "Remove Curse": {
+    "id": "remove_curse",
+    "class": "cleric",
+    "description": "Level-3 divine light restores 5 hit points.",
+    "mana_cost": 4,
+    "combat_only": false,
+    "effect": {
+      "type": "heal",
+      "amount": 5
+    }
+  },
+  "Restoration": {
+    "id": "restoration",
+    "class": "cleric",
+    "description": "Level-5 restoration recovers 20 hit points.",
+    "mana_cost": 6,
+    "combat_only": false,
+    "effect": {
+      "type": "heal",
+      "amount": 20
+    }
+  },
+  "Divine Armor": {
+    "id": "divine_armor",
+    "class": "cleric",
+    "description": "Level-7 holy armor absorbs up to 10 damage.",
+    "mana_cost": 7,
+    "combat_only": true,
+    "effect": {
+      "type": "shield",
+      "amount": 10
+    }
   }
 }

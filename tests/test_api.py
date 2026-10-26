@@ -389,6 +389,23 @@ def test_abilities_expose_class_abilities_and_skills(client):
     assert details["Powerful Blow"]["mana_cost"] == 0
     assert details["Powerful Blow"]["combat_only"] is True
     assert details["Powerful Blow"]["description"]
+    assert details["Fierce Attack"]["unlocked"] is False
+    assert details["Fierce Attack"]["required_level"] == 3
+    assert "Fierce Attack" not in data["abilities"]
+
+
+def test_abilities_unlock_after_reaching_the_required_level(client):
+    import server
+
+    session_id = _start(client, char_class="wizard")
+    session = server.active_sessions[session_id]
+    session.game.player.level = 3
+
+    data = client.get("/abilities", query_string={"session_id": session_id}).get_json()
+    details = {ability["name"]: ability for ability in data["ability_details"]}
+
+    assert details["Fireball"]["unlocked"] is True
+    assert "Fireball" in data["abilities"]
 
 
 def test_use_ability_casts_magic_missile_in_combat(client):

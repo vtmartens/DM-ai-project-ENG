@@ -374,10 +374,11 @@ class GameState:
         from states.combat import CombatState
 
         player = self.game.player
-        details = player_abilities(player)
+        details = player_abilities(player, include_locked=True)
+        unlocked = [ability for ability in details if ability["unlocked"]]
         current = self.game.current_state()
         return {
-            "abilities": [ability["name"] for ability in details],
+            "abilities": [ability["name"] for ability in unlocked],
             "ability_details": details,
             "skills": sorted(
                 skill

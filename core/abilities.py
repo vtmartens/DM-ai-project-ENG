@@ -26,11 +26,27 @@ def _class_data(player):
     return classes.get(getattr(player, "char_class", ""), {})
 
 
-def player_abilities(player):
-    """Returns serializable details for the abilities of the player's class."""
+def _ability_rows(player):
+    """Returns every class ability with its required level and unlock state."""
+    class_data = _class_data(player)
     catalogue = ability_catalogue()
+    level = int(getattr(player, "level", 1) or 1)
+
+    ability_levels = []
+    seen = set()
+    for name in class_data.get("special_abilities", []):
+        ability_levels.append((name, 1))
+        seen.add(name)
+
+    progression = class_data.get("progression", {}).get("abilities_per_level", {})
+    for raw_level, name in sorted(progression.items(), key=lambda item: int(item[0])):
+        if name in seen:
+            continue
+        ability_levels.append((name, int(raw_level)))
+        seen.add(name)
+
     details = []
-    for name in _class_data(player).get("special_abilities", []):
+    for name, required_level in ability_levels:
         definition = catalogue.get(name)
         if not isinstance(definition, dict):
             logging.warning("No definition found for class ability %s", name)
@@ -45,13 +61,36 @@ def player_abilities(player):
                 "combat_only": bool(definition.get("combat_only", False)),
                 "ignore_defense": bool(definition.get("ignore_defense", False)),
                 "effect": dict(definition.get("effect", {})),
+                "required_level": required_level,
+                "unlocked": level >= required_level,
             }
         )
     return details
 
 
+def player_abilities(player, include_locked=False):
+    """Returns serializable details for the player's class abilities.
+
+    Locked progression abilities are included only when ``include_locked`` is
+    true; menus and ability execution use the unlocked list by default.
+    """
+    details = _ability_rows(player)
+    if include_locked:
+        return details
+    return [ability for ability in details if ability["unlocked"]]
+
+
+def abilities_unlocked_at_level(player, level):
+    """Returns the names of abilities newly unlocked at ``level``."""
+    return [
+        ability["name"]
+        for ability in _ability_rows(player)
+        if ability["required_level"] == level and ability["unlocked"]
+    ]
+
+
 def resolve_ability(player, identifier):
-    """Finds an ability by name or id. Returns ``(name, definition)`` or ``(None, None)``."""
+    """Finds an unlocked ability by name or id. Returns ``(name, definition)``."""
     wanted = _normalize(identifier)
     if not wanted:
         return None, None

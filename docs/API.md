@@ -295,7 +295,21 @@ Returns the full class catalogue from `data/classes/classes.json`:
       "mana_cost": 5,
       "combat_only": true,
       "ignore_defense": true,
-      "effect": {"type": "damage", "flat": 8}
+      "effect": {"type": "damage", "flat": 8},
+      "required_level": 1,
+      "unlocked": true
+    },
+    {
+      "id": "fireball",
+      "name": "Fireball",
+      "class": "wizard",
+      "description": "A level-3 burst of flame deals 12 damage.",
+      "mana_cost": 8,
+      "combat_only": true,
+      "ignore_defense": false,
+      "effect": {"type": "damage", "flat": 12},
+      "required_level": 3,
+      "unlocked": false
     }
   ],
   "skills": ["arcana", "history"],
@@ -306,9 +320,11 @@ Returns the full class catalogue from `data/classes/classes.json`:
 }
 ```
 
-`abilities` remains a name list for simple clients. `ability_details` carries the cost and
-context needed for buttons; `combat_only` abilities are refused outside combat, and
-`in_combat` reports the current context.
+`abilities` remains a name list for simple clients and contains only unlocked abilities.
+`ability_details` includes every class ability, including locked progression abilities;
+use `unlocked` and `required_level` to render them as disabled “Lv 3/5/7” entries.
+`combat_only` abilities are refused outside combat, and `in_combat` reports the current
+context.
 
 #### `POST /use_ability`
 
@@ -327,10 +343,10 @@ Use `ability_id` or `ability_name` (`"Magic Missile"`). The response has the sam
 }
 ```
 
-An unknown ability is `404`. A known ability that cannot currently be used (no mana, or a
-combat-only ability outside combat) returns `200` with `"used": false` and an explanatory
-message in `output`. In combat the ability consumes the player's action, then the enemy
-retaliates or victory resolves normally.
+An unknown or not-yet-unlocked ability is `404`. A known, unlocked ability that cannot
+currently be used (no mana, or a combat-only ability outside combat) returns `200` with
+`"used": false` and an explanatory message in `output`. In combat the ability consumes the
+player's action, then the enemy retaliates or victory resolves normally.
 
 #### `GET /inventory?session_id=...`
 

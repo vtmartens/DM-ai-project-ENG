@@ -1,3 +1,5 @@
+import pytest
+
 from core.abilities import player_abilities, use_ability
 from core.game import Game
 from entities.enemy import Enemy
@@ -28,6 +30,53 @@ def test_player_abilities_include_costs_and_descriptions():
     assert details[0]["mana_cost"] == 5
     assert details[0]["combat_only"] is True
     assert details[0]["description"]
+
+
+def test_progression_abilities_stay_locked_until_their_level():
+    player = Player("Aria", "wizard")
+    all_abilities = {
+        ability["name"]: ability
+        for ability in player_abilities(player, include_locked=True)
+    }
+
+    assert all_abilities["Fireball"]["unlocked"] is False
+    assert all_abilities["Fireball"]["required_level"] == 3
+    assert "Fireball" not in [a["name"] for a in player_abilities(player)]
+
+    player.level = 3
+
+    assert "Fireball" in [a["name"] for a in player_abilities(player)]
+
+
+@pytest.mark.parametrize(
+    ("char_class", "hp_gain", "mana_gain", "unlocked"),
+    [
+        ("fighter", 10, 0, "Fierce Attack"),
+        ("wizard", 4, 10, "Fireball"),
+        ("rogue", 6, 2, "Backstab"),
+        ("cleric", 8, 6, "Remove Curse"),
+    ],
+)
+def test_level_up_uses_class_growth_and_unlocks_level_three_ability(
+    recording_io, char_class, hp_gain, mana_gain, unlocked
+):
+    player = Player("Level Tester", char_class)
+    game = Game(player, None, recording_io, temporary=True)
+    hp_max = player.hp_max
+    mana_max = player.mana_max
+
+    player.gain_experience(100, game)
+
+    assert player.level == 2
+    assert player.hp_max == hp_max + hp_gain
+    assert player.mana_max == mana_max + mana_gain
+
+    recording_io.clear()
+    player.gain_experience(200, game)
+
+    assert player.level == 3
+    assert unlocked in [ability["name"] for ability in player_abilities(player)]
+    assert f"You learned {unlocked}!" in recording_io.text
 
 
 def test_magic_missile_damages_and_spends_mana(recording_io):

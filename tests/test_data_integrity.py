@@ -89,24 +89,27 @@ def test_map_start_positions_are_walkable():
         )
 
 
-def test_class_ability_definitions_cover_special_abilities():
+def test_class_ability_definitions_cover_starting_and_progression_abilities():
     classes = _load(ROOT / "data" / "classes" / "classes.json")
     abilities = _load(ROOT / "data" / "classes" / "abilities.json")
 
+    expected_names = set()
     for class_name, data in classes.items():
-        for ability_name in data["special_abilities"]:
+        class_abilities = list(data["special_abilities"])
+        for level, ability_name in data.get("progression", {}).get(
+            "abilities_per_level", {}
+        ).items():
+            assert str(level).isdigit()
+            class_abilities.append(ability_name)
+
+        for ability_name in class_abilities:
+            expected_names.add(ability_name)
             assert ability_name in abilities, (
                 f"{class_name}: {ability_name} has no ability definition"
             )
             assert abilities[ability_name]["class"] == class_name
 
-    defined_names = set(abilities)
-    special_names = {
-        name
-        for data in classes.values()
-        for name in data["special_abilities"]
-    }
-    assert defined_names == special_names
+    assert set(abilities) == expected_names
 
 
 def test_ability_definitions_are_well_formed():

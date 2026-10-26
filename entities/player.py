@@ -213,14 +213,63 @@ class Player(Entity):
         return super().attack(enemy, game)
     
     def _ascend_level(self, game=None):
-        """Override of the base class method for a custom message"""
-        # First call the base class method
-        super()._ascend_level(game)
-        # Then add our custom message
+        """Applies class-specific HP/mana growth and ability unlocks."""
+        class_data = self.classes_data.get(self.char_class, {})
+        progression = class_data.get("progression", {})
+        hp_gain = int(progression.get("hp_per_level", 5) or 0)
+        mana_gain = int(progression.get("mana_per_level", 0) or 0)
 
-        # Add the message using the game's I/O interface
+        self.hp_max += hp_gain
+        self.hp = self.hp_max  # Fully heal when leveling up
+        if mana_gain:
+            self.mana_max += mana_gain
+            self.mana = min(self.mana_max, self.mana + mana_gain)
+
+        # Keep the existing generic stat/defense growth as well.
+        import random
+
+        attributes = [
+            "strength_base",
+            "dexterity_base",
+            "constitution_base",
+            "intelligence_base",
+            "wisdom_base",
+            "charisma_base",
+        ]
+        attribute_to_increase = random.choice(attributes)
+        setattr(
+            self,
+            attribute_to_increase,
+            getattr(self, attribute_to_increase) + 1,
+        )
+        modifier_name = f"modifier_{attribute_to_increase[:-5]}"
+        setattr(
+            self,
+            modifier_name,
+            self.calculate_modifier(getattr(self, attribute_to_increase)),
+        )
+        self.defense += 1
+
+        from core.abilities import abilities_unlocked_at_level
+
+        unlocked = abilities_unlocked_at_level(self, self.level)
+
         if game:
+            game.io.show_message(
+                f"\n*** {self.name} has reached level {self.level}! ***"
+            )
+            growth = f"Maximum HP increased by {hp_gain}"
+            if mana_gain:
+                growth += f" and mana by {mana_gain}"
+            game.io.show_message(growth + ".")
+            game.io.show_message(
+                f"Your {attribute_to_increase.replace('_base', '')} and defense increased!"
+            )
+            for ability_name in unlocked:
+                game.io.show_message(f"You learned {ability_name}!")
             game.io.show_message("You have grown stronger!")
+
+        return unlocked
 
     def move(self, dx, dy, map_manager):
         """

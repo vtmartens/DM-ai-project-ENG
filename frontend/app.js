@@ -543,17 +543,28 @@ function renderAbilities(data) {
     button.type = "button";
     button.className = "tag ability";
     const cost = Number(ability.mana_cost || 0);
-    button.textContent = cost ? `${ability.name} · ${cost}` : ability.name;
+    const locked = ability.unlocked === false;
+    const requiredLevel = Number(ability.required_level || 1);
 
-    const lacksMana = cost > mana;
-    const wrongContext = Boolean(ability.combat_only) && !inCombat;
-    button.disabled = lacksMana || wrongContext;
-    if (lacksMana) {
-      button.title = `${ability.name}: needs ${cost} mana (you have ${mana})`;
-    } else if (wrongContext) {
-      button.title = `${ability.name}: can only be used in combat`;
+    if (locked) {
+      button.classList.add("locked");
+      button.textContent = `${ability.name} · Lv ${requiredLevel}`;
+      button.disabled = true;
+      button.title = `${ability.name} unlocks at level ${requiredLevel}${
+        ability.description ? `: ${ability.description}` : ""
+      }`;
     } else {
-      button.title = ability.description || ability.name;
+      button.textContent = cost ? `${ability.name} · ${cost}` : ability.name;
+      const lacksMana = cost > mana;
+      const wrongContext = Boolean(ability.combat_only) && !inCombat;
+      button.disabled = lacksMana || wrongContext;
+      if (lacksMana) {
+        button.title = `${ability.name}: needs ${cost} mana (you have ${mana})`;
+      } else if (wrongContext) {
+        button.title = `${ability.name}: can only be used in combat`;
+      } else {
+        button.title = ability.description || ability.name;
+      }
     }
 
     button.addEventListener("click", () => useAbility(ability.name));
