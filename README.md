@@ -136,32 +136,54 @@ Install the optional dependency:
 pip install -r requirements-ai.txt
 ```
 
-Provide credentials (an `ANTHROPIC_API_KEY`, or an `ant auth login` profile), then opt in:
+Claude is the default provider:
 
 ```bash
 # bash
+export ANTHROPIC_API_KEY="..."          # or: ant auth login
 DM_AI_NARRATION=1 python main.py
 DM_AI_NARRATION=1 python server.py
+```
 
+```powershell
 # PowerShell
+$env:ANTHROPIC_API_KEY="..."
 $env:DM_AI_NARRATION="1"; python main.py
 $env:DM_AI_NARRATION="1"; python server.py
 ```
 
-Optional settings:
+Any OpenAI-compatible endpoint also works — Ollama, LM Studio, vLLM, OpenRouter, Groq, or
+the local gateway on this machine:
 
-- `DM_AI_MODEL` — default `claude-opus-5-5`
+```powershell
+$env:DM_AI_NARRATION="1"
+$env:DM_AI_PROVIDER="openai"          # or "openai-compatible"
+$env:DM_AI_BASE_URL="http://127.0.0.1:11434/v1"
+$env:DM_AI_MODEL="deepseek-v4.1-flash:cloud"   # a model the endpoint actually serves
+$env:DM_AI_API_KEY="not-needed"       # local endpoints often accept any value
+python main.py
+```
+
+Hosted examples: `DM_AI_BASE_URL=https://openrouter.ai/api/v1` with an OpenRouter key and a
+`:free` model, or `DM_AI_BASE_URL=https://api.groq.com/openai/v1` with a Groq key. Free
+tiers are rate-limited and carry their own data/terms, so check them first.
+
+Settings:
+
+- `DM_AI_PROVIDER` — `claude` (default) or `openai` / `openai-compatible`
+- `DM_AI_MODEL` — `claude-opus-5-5` for Claude; `gpt-4o-mini` for OpenAI-compatible unless set
+- `DM_AI_BASE_URL` — OpenAI-compatible endpoint (falls back to `OPENAI_BASE_URL`)
+- `DM_AI_API_KEY` — optional; falls back to `OPENAI_API_KEY` for the OpenAI-compatible provider
 - `DM_AI_MAX_TOKENS` — default `1024`
 - `DM_AI_TIMEOUT` — request timeout in seconds, default `20`
-- `DM_AI_PROVIDER` — only `claude` is implemented today
 
-The test suite uses a fake narrator, so it never makes network calls.
+The test suite uses fake narrators, so it never makes network calls.
 
 ## 👥 Contribute
 I'm seeking collaborators who want to help build:
 
 - Web interface (HIGH PRIORITY)
-- AI narrative engine (Claude-based)
+- AI narrative engine (Claude or any OpenAI-compatible endpoint)
 - Storyline and world-building
 - UI/UX feedback or playtesting
 

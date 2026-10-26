@@ -31,6 +31,10 @@ def disable_ai_narration(monkeypatch):
         "DM_AI_MODEL",
         "DM_AI_MAX_TOKENS",
         "DM_AI_TIMEOUT",
+        "DM_AI_BASE_URL",
+        "DM_AI_API_KEY",
+        "OPENAI_API_KEY",
+        "OPENAI_BASE_URL",
     ):
         monkeypatch.delenv(name, raising=False)
 

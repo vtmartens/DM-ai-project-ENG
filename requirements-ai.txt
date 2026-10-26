@@ -1,3 +1,6 @@
 # Optional AI Dungeon Master narration (ai/).
-# Also provide credentials: ANTHROPIC_API_KEY or an `ant auth login` profile.
+# Claude provider: ANTHROPIC_API_KEY or an `ant auth login` profile.
 anthropic>=1.17,<2
+
+# OpenAI-compatible provider (OpenAI, Ollama, LM Studio, vLLM, OpenRouter, Groq, ...).
+openai>=1.0,<2

@@ -5,6 +5,7 @@ import os
 TRUE_VALUES = {"1", "true", "yes", "on"}
 
 DEFAULT_MODEL = "claude-opus-5-5"
+DEFAULT_OPENAI_MODEL = "gpt-4o-mini"
 DEFAULT_MAX_TOKENS = 1024
 DEFAULT_TIMEOUT = 20.0
 
@@ -20,6 +21,19 @@ def narration_provider() -> str:
 
 def narration_model() -> str:
     return os.getenv("DM_AI_MODEL", DEFAULT_MODEL).strip() or DEFAULT_MODEL
+
+
+def openai_model() -> str:
+    """Model name for an OpenAI-compatible endpoint (set DM_AI_MODEL for local models)."""
+    return os.getenv("DM_AI_MODEL", DEFAULT_OPENAI_MODEL).strip() or DEFAULT_OPENAI_MODEL
+
+
+def narration_api_key() -> str:
+    return (os.getenv("DM_AI_API_KEY") or os.getenv("OPENAI_API_KEY") or "").strip()
+
+
+def narration_base_url() -> str:
+    return (os.getenv("DM_AI_BASE_URL") or os.getenv("OPENAI_BASE_URL") or "").strip()
 
 
 def narration_max_tokens() -> int:

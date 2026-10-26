@@ -9,6 +9,8 @@ from core.io_interface import GameIO
 
 logger = logging.getLogger("game_rpg.ai")
 
+OPENAI_PROVIDERS = {"openai", "openai-compatible", "compatible"}
+
 
 class NarratingIO(GameIO):
     """GameIO decorator that appends optional AI narration after each turn.
@@ -106,17 +108,23 @@ def create_narrator_from_env() -> Narrator | None:
         return None
 
     provider = config.narration_provider()
-    if provider != "claude":
-        logger.warning("Unsupported DM_AI_PROVIDER=%r; AI narration disabled", provider)
-        return None
 
     try:
-        from ai.claude_narrator import ClaudeNarrator
+        if provider == "claude":
+            from ai.claude_narrator import ClaudeNarrator
 
-        return ClaudeNarrator()
+            return ClaudeNarrator()
+
+        if provider in OPENAI_PROVIDERS:
+            from ai.openai_narrator import OpenAINarrator
+
+            return OpenAINarrator()
     except Exception as exc:
         logger.warning("AI narration disabled: %s", exc)
         return None
+
+    logger.warning("Unsupported DM_AI_PROVIDER=%r; AI narration disabled", provider)
+    return None
 
 
 def create_game_io(base_io: GameIO, game=None) -> GameIO:

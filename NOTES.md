@@ -58,20 +58,34 @@ nothing is replaced, menus, numbers and outcomes cannot be broken by the model. 
 feature is disabled, credentials are absent, the call times out, or the model refuses, no
 paragraph is added and play continues normally.
 
-- **Provider:** Claude through the official `anthropic` SDK (`requirements-ai.txt`).
-  Default model `claude-opus-5-5`, `max_tokens=1024`, `output_config.effort="low"`, and the
-  server-side refusal fallback (`server-side-fallback-2026-06-01`, fallback
-  `claude-opus-4-8`). `stop_reason` `refusal` or `max_tokens` yields no narration.
-- **Opt-in:** `DM_AI_NARRATION=1`; optional `DM_AI_MODEL`, `DM_AI_MAX_TOKENS`,
-  `DM_AI_TIMEOUT`, `DM_AI_PROVIDER`. No flag means no wrapper and no API imports.
+- **Providers:** two interchangeable implementations behind `ai/narrator.py`'s protocol,
+  sharing the prompt in `ai/prompts.py`:
+  - `ai/claude_narrator.py` — official `anthropic` SDK, default model `claude-opus-5-5`,
+    `max_tokens=1024`, `output_config.effort="low"`, server-side refusal fallback
+    (`server-side-fallback-2026-06-01`, fallback `claude-opus-4-8`). `stop_reason`
+    `refusal`/`max_tokens` yields no narration.
+  - `ai/openai_narrator.py` — official `openai` SDK against any OpenAI-compatible endpoint
+    (OpenAI, Ollama, LM Studio, vLLM, OpenRouter, Groq, local gateways). Default model
+    `gpt-4o-mini`; set `DM_AI_MODEL` for local servers. `finish_reason` `length` or
+    `content_filter` yields no narration.
+- **Opt-in:** `DM_AI_NARRATION=1`; `DM_AI_PROVIDER=claude` (default) or
+  `openai`/`openai-compatible`. OpenAI-compatible endpoints read `DM_AI_BASE_URL` (or
+  `OPENAI_BASE_URL`) and `DM_AI_API_KEY` (or `OPENAI_API_KEY`). Also optional:
+  `DM_AI_MODEL`, `DM_AI_MAX_TOKENS`, `DM_AI_TIMEOUT`. No flag means no wrapper and no API
+  imports.
 - **Context sent:** player name/class/HP, map and position, active state name, and nearby
   item/NPC names (`ai/context.py`). Inventory is deliberately excluded to keep requests small.
 - **Web sessions:** `NarratingIO` drops its client from the pickle and rebuilds the narrator
   from the environment on load, so `sessions/*.pickle` stay serializable.
 - **Tests:** `tests/test_narrating_io.py`, `tests/test_claude_narrator.py`,
-  `tests/test_ai_factory.py`. All model calls are faked; the suite makes no network calls.
-  The beta request shape (`betas`, `fallbacks`, `output_config`) was checked against the
-  installed `anthropic` 1.17.0 SDK; no live API request was made in this pass.
+  `tests/test_openai_narrator.py`, `tests/test_ai_factory.py`. All model calls are faked;
+  the suite makes no network calls. The Claude beta request shape (`betas`, `fallbacks`,
+  `output_config`) was checked against the installed `anthropic` 1.17.0 SDK.
+- **Live check (local gateway):** the OpenAI-compatible adapter produced a narrated tavern
+  turn in 2.2s against `deepseek-v4.1-flash:cloud` at `http://127.0.0.1:11434/v1`. The
+  gateway does not serve Claude models, so the default Claude path was not live-tested
+  here; that attempt confirmed the failure path (engine text only, no crash). Local
+  `Qwen2.5-Coder:7b` and `:32B` also narrated correctly but took 15s and 58s per turn.
 
 Deliberate non-goals for this slice: natural-language command parsing, AI decisions, and
 conversation memory across turns. The narrator has no authority over game state.
@@ -193,7 +207,7 @@ of these were introduced by the translation.
 | Residual Italian (glossary-derived denylist + accented characters) | 0 hits |
 | **Original Italian vs translated, identical input** | **46/46 placements, identical sequence** |
 | Flask API in-process (test client, no socket) | 31 × 200, 0 raised |
-| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration) | 120 passed |
+| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration) | 132 passed |
 
 The last comparison is the strongest evidence: the pristine Italian code and the finished
 English code place every object and NPC in exactly the same cells.
