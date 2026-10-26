@@ -223,6 +223,42 @@ def test_display_map_emits_a_monospaced_map_message(client):
     assert any(text.strip() == "T = Table" for text in texts)
 
 
+def test_move_on_map_updates_position_and_redraws(client):
+    session_id = _start(client)
+
+    started = client.post(
+        "/command", json={"session_id": session_id, "command": "10"}
+    ).get_json()
+    assert started["state"]["state"] == "MapState"
+    assert any("=== MOVEMENT ===" in message["text"] for message in started["output"])
+
+    moved = client.post(
+        "/command", json={"session_id": session_id, "command": "south"}
+    ).get_json()
+    assert moved["state"]["position"]["x"] == 5
+    assert moved["state"]["position"]["y"] == 6
+
+    maps = [message for message in moved["output"] if message["type"] == "map"]
+    assert maps, "moving should redraw the map"
+    lines = maps[-1]["text"].splitlines()
+    assert lines[6][5] == "P"
+    assert lines[6][6] == "D"  # Durnan is beside the player
+
+
+def test_talk_targeting_works_from_the_map_screen(client):
+    session_id = _start(client)
+    client.post("/command", json={"session_id": session_id, "command": "10"})
+    client.post("/command", json={"session_id": session_id, "command": "south"})
+
+    result = client.post(
+        "/command", json={"session_id": session_id, "command": "talk to Durnan"}
+    ).get_json()
+
+    assert result["state"]["state"] == "DialogueState"
+    assert result["state"]["dialogue"]["active"] is True
+    assert result["state"]["dialogue"]["npc"] == "Durnan"
+
+
 def test_travel_moves_the_player_to_another_map(client):
     session_id = _start(client)
 

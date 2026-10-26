@@ -186,7 +186,17 @@ conversation memory across turns. The narrator has no authority over game state.
 - `talk to Durnan` starts his dialogue directly; `attack Durnan` starts combat; `use Healing Potion` consumes it; `go to the market` changes map; `examine chair` prints its description; `interact with barrel` requires adjacency and calls its interaction.
 - Unknown targets print a message and fall back to the normal menu (talk list, inventory, map selection, etc.). No AI is involved; the engine stays authoritative.
 - Added `tests/test_web_browser.py`: starts the Flask app on a random port in a thread and drives the client with headless Chrome (CI) or Edge (local), checking start, `talk to Durnan`, the dialogue card, and the map modal. `requirements-dev.txt` now includes `selenium`.
-- Added API tests for talk/travel/use/attack/examine and the unknown-target fallback. 162 tests pass.
+- Added API tests for talk/travel/use/attack/examine and the unknown-target fallback.
+- Map movement is now phase-based (`main_menu` / `move` / `interact`) instead of nested
+  `request_input` calls, so the web runner can consume the movement menu correctly. The map
+  redraws after each move with the new `P`; direction words (`south`, `move east`) work from
+  the map menu. `TavernState`/`MarketState` always push a fresh `MapState` with the right
+  initial phase (their old `open`/`move`/`interact` lookups did not exist). Web sessions skip
+  the terminal y/n prompt when walking through a door.
+- The targeting parser/resolver now lives in `states/commands.py` and is shared by
+  `TavernState` and `MapState`, so “talk to Durnan” works from the map screen too. Unknown
+  targets stay on the map menu.
+- Added movement/targeting regression tests. 165 tests pass.
 
 ## Fixed, at your request — these are deliberate behaviour changes
 
@@ -306,7 +316,7 @@ of these were introduced by the translation.
 | Residual Italian (glossary-derived denylist + accented characters) | 0 hits |
 | **Original Italian vs translated, identical input** | **46/46 placements, identical sequence** |
 | Flask API in-process (test client, no socket) | 31 × 200, 0 raised |
-| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, web client routes, browser smoke) | 162 passed |
+| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, web client routes, browser smoke) | 165 passed |
 | Live smoke test (Flask server, `/app`, start/state/abilities/inventory/actions/command/save/load) | passed |
 
 The last comparison is the strongest evidence: the pristine Italian code and the finished

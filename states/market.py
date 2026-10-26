@@ -555,18 +555,11 @@ class MarketState(BaseGameState):
         """Display the market map"""
         from states.map_state import MapState
 
-        # If a map state instance already exists, we use it
-        map_state = next((s for s in game.state_stack if isinstance(s, MapState)), None)
-        if map_state:
-            map_state.run(game)
-        else:
-            game.push_state(MapState(origin_state=self))
-
-        # After displaying the map, we will return to the main menu
+        game.push_state(MapState(origin_state=self))
         self.phase = "main_menu"
 
     def _move_on_map(self, game):
-        """Allow the player to move on the map"""
+        """Open the map directly in movement mode"""
         from states.map_state import MapState
 
         if not game.player.current_map:
@@ -575,18 +568,13 @@ class MarketState(BaseGameState):
             press_enter(game)
             return
 
-        # If a map state instance already exists, we use it
-        map_state = next((s for s in game.state_stack if isinstance(s, MapState)), None)
-        if map_state:
-            map_state.run(game)
-        else:
-            game.push_state(MapState(origin_state=self))
-
-        # After moving, we will return to the main menu
+        map_state = MapState(origin_state=self)
+        map_state.phase = "move"
+        game.push_state(map_state)
         self.phase = "main_menu"
 
     def _interact_environment(self, game):
-        """Allow the player to interact with the surrounding environment"""
+        """Open the map directly in interaction mode"""
         from states.map_state import MapState
 
         if not game.player.current_map:
@@ -595,14 +583,9 @@ class MarketState(BaseGameState):
             press_enter(game)
             return
 
-        # If a map state instance already exists, we use it
-        map_state = next((s for s in game.state_stack if isinstance(s, MapState)), None)
-        if map_state:
-            map_state.run(game)
-        else:
-            game.push_state(MapState(origin_state=self))
-
-        # After the interaction, we will return to the main menu
+        map_state = MapState(origin_state=self)
+        map_state.phase = "interact"
+        game.push_state(map_state)
         self.phase = "main_menu"
 
     def _init_commands(self):

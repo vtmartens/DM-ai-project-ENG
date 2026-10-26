@@ -27,9 +27,10 @@ You can also set `localStorage["dm_api_base"]`.
 - Load/delete saves from the start screen or the in-game Load modal.
 - Live adventure log, including AI narration styled separately (`type: "narration"`).
 - Command input, quick actions from `GET /available_actions`, and menu-number play.
-- Natural-language target commands in the tavern hub: “talk to Durnan”, “attack the goblin”,
-  “use Healing Potion”, “go to the market”, “examine the chair”. Unknown targets fall back
-  to the normal menu.
+- Natural-language target commands in the tavern hub and map screen: “talk to Durnan”,
+  “attack the goblin”, “use Healing Potion”, “go to the market”, “examine the chair”, and
+  direction words such as “south” or “move east”. Unknown targets fall back to the normal
+  menu.
 - Character panel: HP, level, gold, location, stats, abilities, skills.
 - Map modal (`GET /map_view`) with the ASCII map, the player's position, and a token
   legend generated from the objects/NPCs actually on the map.

@@ -1,16 +1,18 @@
 from states.base_state import BaseState
+from states.commands import handle_targeted_command, parse_targeted_command
 from util.helpers import press_enter
 
 class MapState(BaseState):
     def __init__(self, origin_state=None):
         """
         Initialize the map state.
-        
+
         Args:
             origin_state: The state it comes from (e.g. TavernState or MarketState)
         """
         self.origin_state = origin_state
         self.show_legend = True
+        self.phase = "main_menu"
         
         # Movement directions
         self.directions = {
@@ -26,48 +28,94 @@ class MapState(BaseState):
             if game.current_state():
                 game.pop_state()
             return
-            
+
+        if self.phase == "move":
+            self._move_player(game)
+        elif self.phase == "interact":
+            self._interact_environment(game)
+        else:
+            self._main_menu(game)
+
+    def _main_menu(self, game):
         current_map = game.map_manager.get_map(game.player.current_map)
         map_name = game.player.current_map.upper()
-        
+
         game.io.show_message(f"\n=== MAP OF {map_name} ===")
-        
-        # Display the map
-        representation = current_map.generate_ascii_representation(
-            (game.player.x, game.player.y))
-        game.io.show_map(representation)
-        
+        game.io.show_map(
+            current_map.generate_ascii_representation(
+                (game.player.x, game.player.y)
+            )
+        )
+
         if self.show_legend:
             self._show_legend(game, current_map)
-        
-        # Show information about the player's position
+
         game.io.show_message(f"\nCurrent position: ({game.player.x}, {game.player.y})")
-        
-        # Show interactive menu
         game.io.show_message("\nWhat do you want to do?")
         game.io.show_message("1. Move")
         game.io.show_message("2. Interact with the environment")
         game.io.show_message("3. Show nearby elements")
         game.io.show_message("4. Show/hide legend")
         game.io.show_message("5. Go back")
-        
-        selection = game.io.request_input("\nChoice: ")
-        
+
+        selection = str(game.io.request_input("\nChoice: ") or "").strip()
+        low = selection.casefold()
+
+        if not selection.isdigit():
+            parts = low.split()
+            direction = None
+            if len(parts) == 1 and parts[0] in self.directions:
+                direction = parts[0]
+            elif (
+                len(parts) == 2
+                and parts[0] in {"move", "go", "walk", "head"}
+                and parts[1] in self.directions
+            ):
+                direction = parts[1]
+
+            if direction is not None:
+                self._move_player_position(game, direction)
+                self.phase = "main_menu"
+                press_enter(game)
+                return
+
+            targeted = parse_targeted_command(selection)
+            if targeted is not None:
+                action, target = targeted
+                if handle_targeted_command(game, action, target):
+                    self.phase = "main_menu"
+                    return
+                # Unresolved target: stay on the map and show the menu again.
+                self.phase = "main_menu"
+                press_enter(game)
+                return
+
         if selection == "1":
-            self._move_player(game)
-        elif selection == "2":
-            self._interact_environment(game)
-        elif selection == "3":
+            self.phase = "move"
+            return
+        if selection == "2":
+            self.phase = "interact"
+            return
+        if selection == "3":
             self._nearby_show_elements(game)
-        elif selection == "4":
+            self.phase = "main_menu"
+            press_enter(game)
+            return
+        if selection == "4":
             self.show_legend = not self.show_legend
-            game.io.system_message("Legend " + ("activated" if self.show_legend else "deactivated"))
-        elif selection == "5":
+            game.io.system_message(
+                "Legend " + ("activated" if self.show_legend else "deactivated")
+            )
+            self.phase = "main_menu"
+            press_enter(game)
+            return
+        if selection == "5":
             if game.current_state():
                 game.pop_state()
-        else:
-            game.io.error_message("Invalid choice.")
-        
+            return
+
+        game.io.error_message("Invalid choice.")
+        self.phase = "main_menu"
         press_enter(game)
     
     def _show_legend(self, game, current_map=None):
@@ -91,24 +139,41 @@ class MapState(BaseState):
         game.io.show_message("3. East")
         game.io.show_message("4. West")
         game.io.show_message("5. Back")
-        
-        selection = game.io.request_input("\nChoose a direction: ")
-        
-        if selection == "1":
-            self._move_player_position(game, "north")
-        elif selection == "2":
-            self._move_player_position(game, "south")
-        elif selection == "3":
-            self._move_player_position(game, "east")
-        elif selection == "4":
-            self._move_player_position(game, "west")
-        elif selection == "5":
-            return
-        else:
+
+        selection = str(
+            game.io.request_input("\nChoose a direction: ") or ""
+        ).strip().casefold()
+
+        mapping = {
+            "1": "north",
+            "north": "north",
+            "n": "north",
+            "2": "south",
+            "south": "south",
+            "s": "south",
+            "3": "east",
+            "east": "east",
+            "e": "east",
+            "4": "west",
+            "west": "west",
+            "w": "west",
+        }
+
+        if selection in mapping:
+            self._move_player_position(game, mapping[selection])
+        elif selection not in {"5", "back"}:
             game.io.error_message("Invalid choice.")
+
+        self.phase = "main_menu"
+        press_enter(game)
     
     def _manage_change_map(self, game, origin_map, destination_map):
         """Handle the state change based on the map change"""
+        # Web sessions do not need the extra y/n pause; stay in MapState on
+        # the destination map and let the player continue.
+        if not getattr(game.io, "pause_for_confirmation", True):
+            return
+
         # If the map change implies a state change
         if (self.origin_state is not None and 
             hasattr(self.origin_state, '__class__') and
@@ -146,25 +211,22 @@ class MapState(BaseState):
         game.io.show_message("2. Talk to a nearby character")
         game.io.show_message("3. Examine the area")
         game.io.show_message("4. Go back")
-        
-        selection = game.io.request_input("\nChoose: ")
-        
+
+        selection = str(game.io.request_input("\nChoose: ") or "").strip()
+
         if selection == "1":
-            if game.player.interact_with_adjacent_item(game.map_manager, game):
-                pass  # The interaction is already handled in the method
-            else:
+            if not game.player.interact_with_adjacent_item(game.map_manager, game):
                 game.io.show_message("There are no objects to interact with nearby.")
         elif selection == "2":
-            if game.player.interact_with_adjacent_npc(game.map_manager, game):
-                pass  # The interaction is already handled in the method
-            else:
+            if not game.player.interact_with_adjacent_npc(game.map_manager, game):
                 game.io.show_message("There are no characters to talk to nearby.")
         elif selection == "3":
             self._examine_area(game)
-        elif selection == "4":
-            return
-        else:
+        elif selection != "4":
             game.io.error_message("Invalid choice.")
+
+        self.phase = "main_menu"
+        press_enter(game)
     
     def _examine_area(self, game):
         """Examine the area to find objects or characters"""
@@ -260,7 +322,8 @@ class MapState(BaseState):
         
         # Add specific attributes
         data.update({
-            "show_legend": self.show_legend
+            "show_legend": self.show_legend,
+            "phase": self.phase,
         })
         
         # Save the origin state if present
@@ -284,6 +347,7 @@ class MapState(BaseState):
         
         # Restore attributes
         state.show_legend = data.get("show_legend", True)
+        state.phase = data.get("phase", "main_menu")
         
         # Note: origin_state will be handled after the complete loading
         # of the state stack, since it might require circular references
