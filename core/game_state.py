@@ -1,3 +1,5 @@
+import time
+
 from core.game import Game
 from core.io_interface import GameIO
 
@@ -71,6 +73,10 @@ class GameState:
         self.io_buffer = WebGameIO()
         self.game = Game(player, initial_state, io_handler=self.io_buffer)
         self.last_output = ""
+        # Per-session player preferences (client settings, not game rules)
+        self.preferences = {}
+        # Rolling log of structured I/O events produced during this session
+        self.event_log = []
     
     @classmethod
     def from_dict(cls, data):
@@ -101,7 +107,9 @@ class GameState:
         instance.game = game
         instance.io_buffer = io_buffer
         instance.last_output = data.get("output", "")
-        
+        instance.preferences = data.get("preferences", {})
+        instance.event_log = list(data.get("event_log", []))
+
         return instance
         
     def process_command(self, command: str) -> str:
@@ -126,8 +134,102 @@ class GameState:
         
         # Store and return the output
         self.last_output = self.io_buffer.get_output_text()
+
+        # Keep a rolling log of the events the engine emitted. The buffer is cleared
+        # at the start of every command, so without this the web API has no history.
+        for message in self.io_buffer.get_structured_output():
+            entry = dict(message)
+            entry.setdefault("time", time.time())
+            self.event_log.append(entry)
+        if len(self.event_log) > 500:
+            del self.event_log[:-500]
+
         return self.last_output
-    
+
+    def get_log(self, max_events=50):
+        """Returns the most recent structured events, oldest first."""
+        if max_events <= 0:
+            return []
+        return self.event_log[-max_events:]
+
+    def save_preferences(self, preferences):
+        """Merges client preferences into the session's preference store."""
+        if not isinstance(preferences, dict):
+            raise TypeError("preferences must be a dictionary")
+        self.preferences.update(preferences)
+        return True
+
+    def get_preferences(self):
+        """Returns a copy of the session's preferences."""
+        return dict(self.preferences)
+
+    def get_combat_state(self):
+        """Returns serializable information about an active combat, if any."""
+        from states.combat import CombatState
+
+        current = self.game.current_state()
+        if isinstance(current, CombatState) and getattr(current, "opponent", None) is not None:
+            opponent = current.opponent
+            return {
+                "in_combat": True,
+                "round": getattr(current, "turn", 1),
+                "turn_of": "player",
+                "enemies": [
+                    {
+                        "name": getattr(opponent, "name", "Unknown"),
+                        "hp": getattr(opponent, "hp", 0),
+                        "max_hp": getattr(opponent, "hp_max", 0),
+                    }
+                ],
+                "available_actions": ["attack", "use item", "change equipment", "flee"],
+            }
+        return {"in_combat": False}
+
+    def get_available_directions(self):
+        """Returns the cardinal directions the player can currently walk into."""
+        player = self.game.player
+        if not player.current_map:
+            return []
+
+        current_map = self.game.map_manager.get_map(player.current_map)
+        if not current_map:
+            return []
+
+        directions = {
+            "north": (0, -1),
+            "south": (0, 1),
+            "east": (1, 0),
+            "west": (-1, 0),
+        }
+        return [
+            name
+            for name, (dx, dy) in directions.items()
+            if current_map.is_valid_position(player.x + dx, player.y + dy)
+        ]
+
+    def get_npcs_in_location(self):
+        """Returns the names of the NPCs placed on the player's current map."""
+        player = self.game.player
+        if not player.current_map:
+            return []
+
+        current_map = self.game.map_manager.get_map(player.current_map)
+        if not current_map:
+            return []
+
+        return [getattr(npc, "name", str(npc)) for npc in current_map.npc.values()]
+
+    def get_nearby_targets(self):
+        """Returns names of nearby items/NPCs and walkable directions."""
+        position = self.get_player_position() or {}
+        nearby_items = position.get("nearby_items", {}) or {}
+        nearby_npcs = position.get("nearby_npcs", {}) or {}
+        return {
+            "items": [getattr(obj, "name", str(obj)) for obj in nearby_items.values()],
+            "npc": [getattr(obj, "name", str(obj)) for obj in nearby_npcs.values()],
+            "directions": self.get_available_directions(),
+        }
+
     def get_current_state(self):
         """
         Returns a dictionary with the current state of the game
@@ -144,7 +246,8 @@ class GameState:
         inventory = [obj.name for obj in self.game.player.inventory]
         
         # Current state as a string
-        state_name = type(self.game.current_state()).__name__
+        current_state = self.game.current_state()
+        state_name = type(current_state).__name__ if current_state else "NoneState"
         
         # Serializable and simplified stats
         stats = {
@@ -177,7 +280,10 @@ class GameState:
                 "armor": equipped_armor,
                 "accessories": equipped_accessories
             },
-            "stats": stats
+            "stats": stats,
+            "active_quests": list(self.game.player.active_quests),
+            "completed_quests": list(self.game.player.completed_quests),
+            "preferences": dict(self.preferences)
         }
     
     def save(self, file_path="save.json"):

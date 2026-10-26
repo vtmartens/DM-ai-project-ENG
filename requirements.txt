@@ -1,0 +1,4 @@
+# Runtime dependencies for the Flask REST API (server.py).
+# The terminal game (main.py) uses only the Python standard library.
+Flask>=3.0,<4
+flask-cors>=4.0,<7

@@ -473,10 +473,15 @@ class CombatState(BaseState):
             else:
                 game.io.show_message(f"\nYou do not know how to use {item} in combat!")
     
-    def _attempt_escape(self, game):
-        """Handle the escape attempt"""
+    def _attempt_escape(self, game, bonus=0):
+        """Handle the escape attempt.
+
+        Args:
+            game: The game instance
+            bonus (int): Modifier added to the d20 roll (e.g. from a smoke bomb)
+        """
         # Roll a d20 with DC 10 to escape
-        roll_result = self.dice_d20.roll()
+        roll_result = self.dice_d20.roll() + bonus
         if roll_result >= 10:
             game.io.show_message(f"\nYou managed to escape! (Roll: {roll_result})")
             if game.current_state():

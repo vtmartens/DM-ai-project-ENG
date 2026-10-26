@@ -5,25 +5,49 @@ API bugs that the translation work uncovered.
 
 ## Outstanding
 
-### The repository folder is still named `DM-AI-IT`
+No outstanding blockers from the translation. The repository folder has since been renamed
+to `DM-AI-EN`, so the earlier rename note no longer applies. Known engine/content gaps are
+listed under **Pre-existing defects NOT fixed** below.
 
-The rename to `DM-AI-EN` could not be performed in-session: Windows refuses to rename a
-directory that is a live process's working directory, and this session's own shell is
-sitting in it. Close Claude Code and any editor holding the project, then run:
+## Fixed in the test/API foundation pass (2026-10-26)
 
-```powershell
-Rename-Item -Path "C:\Users\v_t_m\PycharmProjects\DM-AI-IT" -NewName "DM-AI-EN"
-```
+A pytest suite, `requirements.txt` / `requirements-dev.txt` and a CI workflow were added.
+The pass also fixed the following, each covered by a regression test:
 
-Nothing inside the project depends on the folder name: `.idea/modules.xml` and
-`.idea/workspace.xml` already reference `DM-AI-EN`, and `README.md` documents it.
+1. **Saving on the map-selection screen could not be restored.** `MapSelectionState` was
+   absent from the restore map in `core/game.py`, although the duplicate map in
+   `states/base_state.py` included it. Added the mapping.
+   (`tests/test_save_load.py::test_map_selection_state_survives_a_save_load`)
 
-### `POST /preferences` still returns 500
+2. **`POST /preferences` returned 500.** `GameState` now stores per-session preferences
+   (`save_preferences` / `get_preferences`), exposes them in `/state`, and rejects a
+   non-mapping payload with `400`. Preferences survive session pickling.
+   (`tests/test_api.py::test_preferences_are_stored_on_the_session`)
 
-`server.py` calls `session.save_preferences(...)`, which does not exist on `GameState`.
-This is a **missing feature rather than a bug** — there is no preference storage anywhere
-in the engine — so it was left alone rather than inventing behaviour. Either implement
-preference persistence or drop the endpoint.
+3. **Several potions were inert.** `Item.use` handled only `heal` / `light_heal` /
+   `grave_heal`, while `data/items/potions.json` also defines `buff`, `poison` and `bomb`.
+   - `buff` applies its stat bonuses and consumes the item. There is still no timed-effect
+     system, so the bonus does not expire; the descriptions calling these "temporary"
+     remain aspirational.
+   - `poison` damages the current opponent in combat and is refused (and kept) outside it.
+   - `bomb` calls `CombatState._attempt_escape` with a `+5` bonus; that method now accepts
+     a roll modifier.
+   (`tests/test_items.py`, plus the item-type check in `tests/test_data_integrity.py`)
+
+4. **Stub endpoints now read real engine data.**
+   - `/missions` returns the player's active/completed/in-progress quests.
+   - `/combat` and `/combat_action` build their response from the actual `CombatState`.
+   - `/log` returns a rolling event log maintained by `GameState.process_command`.
+   - `/available_actions` derives actions from the current state and targets from the
+     player's real nearby items/NPCs and walkable directions; the dead `CommercioState`
+     branch was replaced with `MarketState`.
+   - `/npcs` returns the NPCs placed on the current map.
+   `/notifications` was already backed by a real in-memory store. A sweep test asserts that
+   every hit endpoint returns below 500.
+
+5. **`/item_details` advertised `potion`/`food` types the engine never emits.** It now
+   recognises `heal` / `light_heal` / `grave_heal` / `buff` / `poison` / `bomb` and
+   armour/accessories.
 
 ## Fixed, at your request — these are deliberate behaviour changes
 
@@ -63,9 +87,9 @@ the translation, all verified by an in-process API test and by re-running the ga
 
 ### API status after the fixes
 
-31 endpoints return 200; **no endpoint raises**. The remaining non-200s are correct
-behaviour: `400`/`404` for a missing or unknown session, and the `500` from
-`/preferences` above.
+Every endpoint returns below 500 under the test suite's sweep; the remaining non-200s are
+correct behaviour (`400`/`404` for a missing or unknown session). The former `500` from
+`/preferences` is fixed — see the foundation-pass section above.
 
 ## One incidental behaviour change worth reviewing
 
@@ -93,12 +117,10 @@ of these were introduced by the translation.
    (`Basic Arcane Manual`, `Dark Beer`) reference items that exist in no `data/items` file.
 2. **The cellar's NPCs (`Specter`, `Cultist`) are not defined in `npcs.json`** at all. They
    are placed from `map_npcs.json` and fall back to defaults.
-3. **`MapSelectionState` is missing from the state-restore map** in `core/game.py`. The
-   duplicate map in `states/base_state.py` does include it, and the two disagree, so a save
-   taken on the map-selection screen cannot be restored.
-4. **Stub endpoints** reading keys the engine never emits: `/missions`, `/combat`, `/log`,
-   `/notifications`, `/available_actions`. Verified returning empty or invented data.
-   (`/tutorial` and `/achievements` do return real data.)
+3. ~~**`MapSelectionState` is missing from the state-restore map** in `core/game.py`.~~
+   Fixed in the foundation pass above.
+4. ~~**Stub endpoints** reading keys the engine never emits: `/missions`, `/combat`, `/log`,
+   `/notifications`, `/available_actions`.~~ Implemented in the foundation pass above.
 5. **Dead `"CommercioState"` branch** in `server.py`'s context lookup — no such class
    exists, so it never matches.
 6. **Item effects that match no attribute** and are silently ignored: `initiative`, `luck`,
@@ -144,6 +166,7 @@ of these were introduced by the translation.
 | Residual Italian (glossary-derived denylist + accented characters) | 0 hits |
 | **Original Italian vs translated, identical input** | **46/46 placements, identical sequence** |
 | Flask API in-process (test client, no socket) | 31 × 200, 0 raised |
+| `pytest` suite (imports, state stack, save/load, items, data integrity, API) | 90 passed |
 
 The last comparison is the strongest evidence: the pristine Italian code and the finished
 English code place every object and NPC in exactly the same cells.

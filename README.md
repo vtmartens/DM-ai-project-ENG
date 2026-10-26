@@ -100,18 +100,28 @@ python main.py
 
 The game will launch in a text-based interface, allowing you to explore, interact, fight, and talk to characters.
 
-To run the REST API instead:
+To run the REST API instead, install its dependencies first:
 
 ```bash
+pip install -r requirements.txt
 python server.py
 ```
 
 ## 📋 Requirements
 - Python 3.10+
-- No external libraries required for the terminal game (standard library only)
+- The terminal game (`main.py`) uses only the Python standard library.
+- The REST API (`server.py`) requires Flask and flask-cors (`requirements.txt`).
 
-Note: `server.py` additionally requires Flask and flask-cors, which are **not** covered by the
-line above and are not currently listed in any requirements file. See `NOTES.md`.
+## 🧪 Tests
+The suite covers module imports, the state stack, save/load round trips, item effects, data
+integrity and the REST API.
+
+```bash
+pip install -r requirements-dev.txt
+python -m pytest
+```
+
+CI runs the same suite on Python 3.10 and 3.13 (`.github/workflows/tests.yml`).
 
 ## 👥 Contribute
 I'm seeking collaborators who want to help build:

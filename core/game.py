@@ -504,6 +504,7 @@ class Game:
                 "InventoryManagementState": "states.inventory_management",
                 "AbilityCheckState": "states.ability_check",
                 "MapState": "states.map_state",
+                "MapSelectionState": "states.map_selection_state",
                 "MenuState": "states.menu"
             }
             

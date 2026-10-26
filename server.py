@@ -98,7 +98,7 @@ def home():
             "POST /delete_save": "Delete a save",
             "GET /notifications": "Get unread notifications",
             "POST /read_notification": "Mark a notification as read",
-            "GET /asset": "Get a graphic asset",
+            "GET /asset/<path:file_name>": "Get a graphic asset",
             "GET /assets_info": "Get information about the available assets",
             "GET /tutorial": "Get information about the tutorials",
             "GET /achievements": "Get the player's achievements",
@@ -459,14 +459,14 @@ def get_quests():
     if not session:
         return jsonify({"error": "Session not found"}), 404
     
-    # This function assumes the game state keeps track of quests
-    # Implement the logic to extract the quests from the game state
+    # The player keeps a quest log; the state view exposes it directly.
     state = session.get_current_state()
     quests = {
         "active": state.get("active_quests", []),
-        "completed": state.get("completed_quests", [])
+        "completed": state.get("completed_quests", []),
+        "in_progress": dict(session.game.player.progress_quests),
     }
-    
+
     return jsonify(quests)
 
 @app.route("/combat", methods=["GET"])
@@ -482,24 +482,7 @@ def get_combat_state():
     if not session:
         return jsonify({"error": "Session not found"}), 404
     
-    # This function assumes the game has a combat state
-    state = session.get_current_state()
-    combat = state.get("combat", {})
-    
-    # Check whether the character is in combat
-    # The default value depends on the structure used by the game
-    in_combat = combat.get("active", False)
-    
-    if not in_combat:
-        return jsonify({"in_combat": False})
-    
-    return jsonify({
-        "in_combat": True,
-        "round": combat.get("round", 1),
-        "turn_of": combat.get("turn_of", "player"),
-        "enemies": combat.get("enemies", []),
-        "available_actions": combat.get("available_actions", [])
-    })
+    return jsonify(session.get_combat_state())
 
 @app.route("/combat_action", methods=["POST"])
 def run_combat_action():
@@ -541,12 +524,11 @@ def run_combat_action():
     
     # Get the updated combat state
     state = session.get_current_state()
-    combat = state.get("combat", {})
-    
+
     return jsonify({
         "output": structured_output,
         "state": state,
-        "combat": combat
+        "combat": session.get_combat_state()
     })
 
 @app.route("/npcs", methods=["GET"])
@@ -562,11 +544,7 @@ def get_npc():
     if not session:
         return jsonify({"error": "Session not found"}), 404
     
-    # This function assumes the game state keeps track of the NPCs
-    state = session.get_current_state()
-    npc = state.get("present_npc", [])
-    
-    return jsonify(npc)
+    return jsonify(session.get_npcs_in_location())
 
 @app.route("/item", methods=["POST"])
 def interact_with_item():
@@ -653,14 +631,10 @@ def get_log():
     if not session:
         return jsonify({"error": "Session not found"}), 404
     
-    # This function assumes the game keeps a log of events
-    state = session.get_current_state()
-    log = state.get("log_events", [])
-    
-    # Limit the number of events returned
+    # The session keeps a rolling log of the events the engine emitted.
     max_events = int(request.args.get("max", 50))
-    log = log[-max_events:] if len(log) > max_events else log
-    
+    log = session.get_log(max_events)
+
     return jsonify({
         "events": log
     })
@@ -735,51 +709,32 @@ def get_available_actions():
     if not session:
         return jsonify({"error": "Session not found"}), 404
     
-    # This function assumes the game can return the available actions
-    # in the current context (e.g. based on state, position, present NPCs, etc.)
     state = session.get_current_state()
-    
-    # Get the name of the current state
-    state_name = "NoneState"
-    if session.game.current_state():
-        state_name = type(session.game.current_state()).__name__
-    
+    state_name = state.get("state", "NoneState")
+
     # Define different actions depending on the context
     actions_context = {
         "base": ["examine", "pick_up", "talk", "use", "look"],
         "combat": ["attack", "defend", "run", "use item"],
         "dialogue": ["talk", "ask", "offer", "goodbye"],
-        "commerce": ["buy", "sell", "examine", "exit"],
+        "market": ["buy", "sell", "examine", "exit"],
         "inventory": ["use", "equip", "drop", "examine"]
     }
-    
-    # The available actions can be extracted from the state or inferred from the context
-    actions = []
-    
-    # If the game provides the available actions directly, use them
-    if "available_actions" in state:
-        actions = state["available_actions"]
+
+    if session.get_combat_state().get("in_combat"):
+        actions = actions_context["combat"]
+    elif state_name == "DialogueState":
+        actions = actions_context["dialogue"]
+    elif state_name == "MarketState":
+        actions = actions_context["market"]
+    elif state_name == "InventoryManagementState":
+        actions = actions_context["inventory"]
     else:
-        # Otherwise, infer the actions from the context
-        if "combat" in state and state["combat"].get("active", False):
-            actions = actions_context["combat"]
-        elif state_name == "DialogueState":
-            actions = actions_context["dialogue"]
-        elif state_name == "CommercioState":
-            actions = actions_context["commerce"]
-        else:
-            actions = actions_context["base"]
-    
-    # Add information about the valid targets for the actions
-    targets = {
-        "items": state.get("items_environment", []),
-        "npc": state.get("present_npc", []),
-        "directions": state.get("exits", [])
-    }
-    
+        actions = actions_context["base"]
+
     return jsonify({
         "actions": actions,
-        "targets": targets,
+        "targets": session.get_nearby_targets(),
         "context": state_name
     })
 
@@ -895,6 +850,8 @@ def save_preferences():
         session.save_preferences(preferences)
         save_session(session_id, session)
         return jsonify({"message": "Preferences saved successfully"})
+    except TypeError as e:
+        return jsonify({"error": f"Invalid preferences: {str(e)}"}), 400
     except Exception as e:
         return jsonify({"error": f"Error while saving the preferences: {str(e)}"}), 500
 
@@ -1128,12 +1085,12 @@ def get_item_details():
     if item.get("type") == "weapon":
         detailed_item["uses"].append({"action": "equip", "description": "Equip this weapon"})
         detailed_item["uses"].append({"action": "examine", "description": "Examine the weapon in detail"})
-    elif item.get("type") == "potion":
-        detailed_item["uses"].append({"action": "use", "description": "Drink the potion"})
-        detailed_item["uses"].append({"action": "examine", "description": "Examine the potion in detail"})
-    elif item.get("type") == "food":
-        detailed_item["uses"].append({"action": "eat", "description": "Eat the food"})
-        detailed_item["uses"].append({"action": "examine", "description": "Examine the food in detail"})
+    elif item.get("type") in ("heal", "light_heal", "grave_heal", "buff", "poison", "bomb"):
+        detailed_item["uses"].append({"action": "use", "description": "Use this item"})
+        detailed_item["uses"].append({"action": "examine", "description": "Examine the item in detail"})
+    elif item.get("type") in ("armor", "accessory"):
+        detailed_item["uses"].append({"action": "equip", "description": "Equip this item"})
+        detailed_item["uses"].append({"action": "examine", "description": "Examine the item in detail"})
     
     # Always add the option to discard
     detailed_item["uses"].append({"action": "drop", "description": "Drop the item"})
