@@ -1,7 +1,7 @@
 
 # Dungeon Master AI – Python RPG Engine (Backend Only)
 
-This repository contains the **backend core** of a modular role-playing game (RPG) engine, designed in Python using a clean object-oriented architecture and a stack-based finite state machine (FSM). The project aims to evolve into an AI-driven, narratively rich RPG system, where a virtual Dungeon Master powered by GPT can enhance player immersion.
+This repository contains the **backend core** of a modular role-playing game (RPG) engine, designed in Python using a clean object-oriented architecture and a stack-based finite state machine (FSM). The project aims to evolve into an AI-driven, narratively rich RPG system, where a virtual Dungeon Master powered by an LLM (Claude by default) can enhance player immersion.
 
 ![Image description](Image.png)
 
@@ -68,9 +68,9 @@ Each game phase (map exploration, combat, dialogues, inventory management) is ha
 ✅ Enhanced placement of NPCs and interactive objects on maps:  
    - Precise predefined positions to improve gameplay experience  
    - Alternative positioning system when main positions are occupied  
-⬜ Add modular I/O interfaces (text, GUI, AI)  
+✅ Add modular I/O interfaces (text, GUI, AI)  
 ⬜ Web frontend (probably React)  
-⬜ Implement Dungeon Master AI using GPT  
+🟡 Implement Dungeon Master AI (Claude narration slice; decisions remain deterministic)  
 ⬜ D&D rules improvement and adherence to official system  
 ⬜ Magic and spells system implementation  
 ⬜ Multiple combatants implementation (more enemies/allies)  
@@ -83,7 +83,7 @@ Each game phase (map exploration, combat, dialogues, inventory management) is ha
 
 This project will serve as the backend foundation for an AI-driven narrative experience. Planned integrations include:
 
-- GPT-powered Dungeon Master that reacts to in-game events and generates dynamic descriptions or dialogues
+- LLM-powered Dungeon Master (Claude by default) that reacts to in-game events and generates dynamic descriptions or dialogues — the first slice, narration, is in `ai/`
 - Natural language command parsing
 - Decision tree to narrative generation mapping
 - Future web UI or terminal interface based on abstracted `IOInterface`
@@ -123,11 +123,45 @@ python -m pytest
 
 CI runs the same suite on Python 3.10 and 3.13 (`.github/workflows/tests.yml`).
 
+## 🧙 AI Dungeon Master (optional)
+
+The engine can append one short, atmospheric Dungeon Master paragraph per turn. The
+deterministic engine text is always shown unchanged; the model only adds prose. If the
+feature is off, credentials are missing, the request times out, or the model refuses,
+the game simply continues without the extra paragraph.
+
+Install the optional dependency:
+
+```bash
+pip install -r requirements-ai.txt
+```
+
+Provide credentials (an `ANTHROPIC_API_KEY`, or an `ant auth login` profile), then opt in:
+
+```bash
+# bash
+DM_AI_NARRATION=1 python main.py
+DM_AI_NARRATION=1 python server.py
+
+# PowerShell
+$env:DM_AI_NARRATION="1"; python main.py
+$env:DM_AI_NARRATION="1"; python server.py
+```
+
+Optional settings:
+
+- `DM_AI_MODEL` — default `claude-opus-5-5`
+- `DM_AI_MAX_TOKENS` — default `1024`
+- `DM_AI_TIMEOUT` — request timeout in seconds, default `20`
+- `DM_AI_PROVIDER` — only `claude` is implemented today
+
+The test suite uses a fake narrator, so it never makes network calls.
+
 ## 👥 Contribute
 I'm seeking collaborators who want to help build:
 
 - Web interface (HIGH PRIORITY)
-- AI narrative engine (GPT-based)
+- AI narrative engine (Claude-based)
 - Storyline and world-building
 - UI/UX feedback or playtesting
 

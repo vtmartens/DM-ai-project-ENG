@@ -3,7 +3,7 @@ import pkgutil
 
 import pytest
 
-PACKAGES = ("core", "entities", "items", "states", "util", "world")
+PACKAGES = ("ai", "core", "entities", "items", "states", "util", "world")
 
 
 def _all_modules():

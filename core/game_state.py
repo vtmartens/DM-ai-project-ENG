@@ -1,5 +1,6 @@
 import time
 
+from ai.io import attach_game, create_game_io
 from core.game import Game
 from core.io_interface import GameIO
 
@@ -70,8 +71,9 @@ class GameState:
             player: The player object
             initial_state: The initial game state (e.g. TavernState)
         """
-        self.io_buffer = WebGameIO()
+        self.io_buffer = create_game_io(WebGameIO())
         self.game = Game(player, initial_state, io_handler=self.io_buffer)
+        attach_game(self.io_buffer, self.game)
         self.last_output = ""
         # Per-session player preferences (client settings, not game rules)
         self.preferences = {}
@@ -96,16 +98,18 @@ class GameState:
         player = Player.from_dict(data["player"])
 
         # Create an io_buffer instance
-        io_buffer = WebGameIO()
+        io_buffer = create_game_io(WebGameIO())
 
         # Create a temporary Game instance
         game = Game(player, None, io_handler=io_buffer, temporary=True)
+        attach_game(io_buffer, game)
         game.load()  # load the game state
 
         # Create the GameState instance
         instance = cls(player, game.current_state())
         instance.game = game
         instance.io_buffer = io_buffer
+        attach_game(instance.io_buffer, game)
         instance.last_output = data.get("output", "")
         instance.preferences = data.get("preferences", {})
         instance.event_log = list(data.get("event_log", []))
@@ -131,7 +135,10 @@ class GameState:
         # Process the command in the current state
         if self.game.current_state():
             self.game.current_state().run(self.game)
-        
+
+        # Flush any buffered output (AI narration, when enabled) before reading it
+        self.io_buffer.flush()
+
         # Store and return the output
         self.last_output = self.io_buffer.get_output_text()
 

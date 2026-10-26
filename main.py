@@ -10,6 +10,7 @@ from entities.entity import Entity
 from world.map import Map
 from world.map_manager import MapManager
 from core.io_interface import TerminalIO
+from ai.io import attach_game, create_game_io
 import json
 import os
 
@@ -52,11 +53,13 @@ def request_class(io_handler):
 
 
 def main():
-    # Create an I/O object that will be used throughout the application
-    io_handler = TerminalIO()
-    
+    # Create an I/O object that will be used throughout the application.
+    # create_game_io only wraps it when AI narration is enabled and configured.
+    io_handler = create_game_io(TerminalIO())
+
     # Create a temporary game object for the initial messages
     game_temp = Game(None, None, io_handler, temporary=True)
+    attach_game(io_handler, game_temp)
     
     game_temp.io.show_message("Welcome, adventurer!")
     
@@ -68,10 +71,12 @@ def main():
     if selection == "2":
         # Create a temporary game just for loading, passing the io_handler
         game_temp = Game(None, None, io_handler, temporary=True)
-        
+        attach_game(io_handler, game_temp)
+
         if game_temp.load():
             # If loading succeeded, create the real game with the initial state
             game = Game(game_temp.player, None, io_handler)
+            attach_game(io_handler, game)
             # Set the current map
             game.map_manager.set_current_map(game.player.current_map)
             # Load the map selection state
@@ -88,6 +93,7 @@ def main():
             player = Player(name, char_class)
             # Create the game with the player
             game = Game(player, None, io_handler)
+            attach_game(io_handler, game)
             # Load the map selection state
             game.push_state(MapSelectionState(game))
             
@@ -102,6 +108,7 @@ def main():
         
         # Create the game with the player
         game = Game(player, None, io_handler)
+        attach_game(io_handler, game)
 
         # Welcome message
         game.io.show_message(f"Welcome {player.name} the {player.char_class}! Your adventure is about to begin.")

@@ -39,6 +39,10 @@ class GameIO(ABC):
         # Empty default implementation
         return []
 
+    def flush(self):
+        """Emits any buffered output. The default implementation does nothing."""
+        pass
+
 # Base implementation for the terminal
 class TerminalIO(GameIO):
     def __init__(self):

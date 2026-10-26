@@ -1,0 +1,3 @@
+# Optional AI Dungeon Master narration (ai/).
+# Also provide credentials: ANTHROPIC_API_KEY or an `ant auth login` profile.
+anthropic>=1.17,<2

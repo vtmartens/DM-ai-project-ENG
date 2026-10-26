@@ -180,6 +180,8 @@ class Game:
             try:
                 # Run the current state
                 self.current_state().run(self)
+                # Emit buffered output (AI narration, when enabled)
+                self.io.flush()
             except Exception as e:
                 self.io.show_message(f"Error while running the state: {e}")
                 import traceback

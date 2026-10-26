@@ -49,6 +49,33 @@ The pass also fixed the following, each covered by a regression test:
    recognises `heal` / `light_heal` / `grave_heal` / `buff` / `poison` / `bomb` and
    armour/accessories.
 
+## AI Dungeon Master vertical slice (2026-10-26)
+
+The first AI feature is narration only. The engine remains authoritative: `ai/io.py`'s
+`NarratingIO` decorator forwards every engine message immediately and unchanged, batches the
+turn's narrative events, and *appends* one short DM paragraph before the next prompt. Because
+nothing is replaced, menus, numbers and outcomes cannot be broken by the model. If the
+feature is disabled, credentials are absent, the call times out, or the model refuses, no
+paragraph is added and play continues normally.
+
+- **Provider:** Claude through the official `anthropic` SDK (`requirements-ai.txt`).
+  Default model `claude-opus-5-5`, `max_tokens=1024`, `output_config.effort="low"`, and the
+  server-side refusal fallback (`server-side-fallback-2026-06-01`, fallback
+  `claude-opus-4-8`). `stop_reason` `refusal` or `max_tokens` yields no narration.
+- **Opt-in:** `DM_AI_NARRATION=1`; optional `DM_AI_MODEL`, `DM_AI_MAX_TOKENS`,
+  `DM_AI_TIMEOUT`, `DM_AI_PROVIDER`. No flag means no wrapper and no API imports.
+- **Context sent:** player name/class/HP, map and position, active state name, and nearby
+  item/NPC names (`ai/context.py`). Inventory is deliberately excluded to keep requests small.
+- **Web sessions:** `NarratingIO` drops its client from the pickle and rebuilds the narrator
+  from the environment on load, so `sessions/*.pickle` stay serializable.
+- **Tests:** `tests/test_narrating_io.py`, `tests/test_claude_narrator.py`,
+  `tests/test_ai_factory.py`. All model calls are faked; the suite makes no network calls.
+  The beta request shape (`betas`, `fallbacks`, `output_config`) was checked against the
+  installed `anthropic` 1.17.0 SDK; no live API request was made in this pass.
+
+Deliberate non-goals for this slice: natural-language command parsing, AI decisions, and
+conversation memory across turns. The narrator has no authority over game state.
+
 ## Fixed, at your request — these are deliberate behaviour changes
 
 The translation was otherwise behaviour-preserving; the following are real fixes made after
@@ -166,7 +193,7 @@ of these were introduced by the translation.
 | Residual Italian (glossary-derived denylist + accented characters) | 0 hits |
 | **Original Italian vs translated, identical input** | **46/46 placements, identical sequence** |
 | Flask API in-process (test client, no socket) | 31 × 200, 0 raised |
-| `pytest` suite (imports, state stack, save/load, items, data integrity, API) | 90 passed |
+| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration) | 120 passed |
 
 The last comparison is the strongest evidence: the pristine Italian code and the finished
 English code place every object and NPC in exactly the same cells.

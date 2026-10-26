@@ -23,6 +23,19 @@ def run_from_repository_root(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def disable_ai_narration(monkeypatch):
+    """Tests must never make real model calls, even on a developer's machine."""
+    for name in (
+        "DM_AI_NARRATION",
+        "DM_AI_PROVIDER",
+        "DM_AI_MODEL",
+        "DM_AI_MAX_TOKENS",
+        "DM_AI_TIMEOUT",
+    ):
+        monkeypatch.delenv(name, raising=False)
+
+
+@pytest.fixture(autouse=True)
 def isolated_runtime_dirs(tmp_path, monkeypatch, run_from_repository_root):
     """Point every runtime directory at a throw-away location for this test."""
     import server
