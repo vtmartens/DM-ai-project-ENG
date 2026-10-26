@@ -165,8 +165,14 @@ class MarketState(BaseGameState):
             map = game.map_manager.get_map("market")
             if map:
                 game.map_manager.set_current_map("market")
-                x, y = map.player_start_position
-                game.player.set_position("market", x, y)
+                # Entering through a map door already placed the player at a
+                # valid tile; only fall back to the start position otherwise.
+                if (
+                    game.player.current_map != "market"
+                    or not map.is_valid_position(game.player.x, game.player.y)
+                ):
+                    x, y = map.player_start_position
+                    game.player.set_position("market", x, y)
                 # Populate the map with interactive objects and NPCs
                 game.map_manager.transfer_items_from_state("market", self)
             self.first_visit_completed = True

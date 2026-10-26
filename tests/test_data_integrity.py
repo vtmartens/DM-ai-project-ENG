@@ -121,6 +121,24 @@ def test_tavern_exit_door_changes_map(recording_io):
     assert (game.player.x, game.player.y) == (12, 2)
 
 
+def test_tavern_exit_enters_market_state():
+    from core.game_state import GameState
+    from entities.player import Player
+    from states.tavern import TavernState
+
+    session = GameState(Player("Door State", "fighter"), TavernState())
+    session.process_command("", provide_input=False)
+    session.process_command("9")  # open MapState
+    session.game.player.set_position("tavern", 12, 13)
+    session.io_buffer.clear()
+
+    session.process_command("south")  # step through the exit
+
+    assert type(session.game.current_state()).__name__ == "MarketState"
+    assert session.game.player.current_map == "market"
+    assert (session.game.player.x, session.game.player.y) == (12, 2)
+
+
 def test_dialogue_option_targets_exist():
     conversations = _load(ROOT / "data" / "npc" / "conversations.json")
 

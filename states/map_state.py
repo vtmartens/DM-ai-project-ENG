@@ -181,9 +181,18 @@ class MapState(BaseState):
     
     def _manage_change_map(self, game, origin_map, destination_map):
         """Handle the state change based on the map change"""
-        # Web sessions do not need the extra y/n pause; stay in MapState on
-        # the destination map and let the player continue.
+        # Web sessions do not need the extra y/n pause: enter the destination
+        # state directly when it has one (market/tavern). Cellar has no state,
+        # so stay in MapState and keep exploring.
         if not getattr(game.io, "pause_for_confirmation", True):
+            if destination_map == "market":
+                from states.market import MarketState
+
+                game.change_state(MarketState(game))
+            elif destination_map == "tavern":
+                from states.tavern import TavernState
+
+                game.change_state(TavernState(game))
             return
 
         # If the map change implies a state change
