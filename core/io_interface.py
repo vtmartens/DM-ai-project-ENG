@@ -49,6 +49,14 @@ class GameIO(ABC):
         """Shows AI-generated prose. Defaults to a normal narrative message."""
         self.show_message(text)
 
+    @property
+    def pause_for_confirmation(self) -> bool:
+        """Whether ``press_enter`` should block for a confirmation prompt.
+
+        Terminals block; request/response web sessions do not need to.
+        """
+        return True
+
     def flush(self):
         """Emits any buffered output. The default implementation does nothing."""
         pass

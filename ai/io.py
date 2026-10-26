@@ -34,6 +34,10 @@ class NarratingIO(GameIO):
         self.game = game
         return self
 
+    @property
+    def pause_for_confirmation(self) -> bool:
+        return getattr(self.base, "pause_for_confirmation", True)
+
     def show_message(self, text: str) -> None:
         self.base.show_message(text)
         self.pending.append({"type": "narrative", "text": text})

@@ -116,22 +116,22 @@ class NPC(Entity):
         
         # Convert the data format from the JSON file to the format used internally
         if conv_data:
+            # Work on a copy: DataManager caches this dict. Mutating the cached
+            # options in place made the second call see tuples, skip them, and
+            # overwrite the options with an empty list.
+            conv_data = dict(conv_data)
+
             # Adapt the options format if necessary
             if "options" in conv_data:
                 options = []
                 for opt in conv_data["options"]:
-                    # Handle both the array-of-arrays and array-of-objects formats
-                    if isinstance(opt, list):
-                        # If opt is a list [text, destination]
+                    # Handle array, tuple and object formats, in any call order
+                    if isinstance(opt, (list, tuple)) and len(opt) >= 2:
                         options.append((opt[0], opt[1]))
                     elif isinstance(opt, dict):
-                        # If opt is a dictionary {"text": "...", "destination": "..."}
-                        options.append((opt["text"], opt["destination"]))
-                    else:
-                        # Unrecognized format, ignore
-                        continue
+                        options.append((opt.get("text", ""), opt.get("destination")))
                 conv_data["options"] = options
-            
+
             return conv_data
         
         return None

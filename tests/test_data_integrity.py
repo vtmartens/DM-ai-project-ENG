@@ -57,6 +57,21 @@ def test_map_start_positions_are_walkable():
         )
 
 
+def test_npc_conversation_options_are_idempotent():
+    from entities.npc import NPC
+    from util.data_manager import get_data_manager
+
+    # Reload in case an earlier test already converted the cached node.
+    get_data_manager().load_data("npc", "conversations.json", reload=True)
+    npc = NPC("Durnan")
+
+    first = npc.get_conversation("start")
+    second = npc.get_conversation("start")
+
+    assert first["options"]
+    assert second["options"] == first["options"]
+
+
 def test_dialogue_option_targets_exist():
     conversations = _load(ROOT / "data" / "npc" / "conversations.json")
 

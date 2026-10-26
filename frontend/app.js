@@ -63,6 +63,14 @@ const el = {
   loadModal: document.getElementById("load-modal"),
   closeLoadModal: document.getElementById("close-load-modal"),
   modalSavesList: document.getElementById("modal-saves-list"),
+  combatCard: document.getElementById("combat-card"),
+  dialogueCard: document.getElementById("dialogue-card"),
+  showMap: document.getElementById("show-map"),
+  mapModal: document.getElementById("map-modal"),
+  closeMapModal: document.getElementById("close-map-modal"),
+  mapModalTitle: document.getElementById("map-modal-title"),
+  mapMeta: document.getElementById("map-meta"),
+  mapAscii: document.getElementById("map-ascii"),
   toast: document.getElementById("toast"),
 };
 
@@ -247,10 +255,12 @@ function enterGame(sessionId, state, output) {
   } else if (state && state.output) {
     appendMessage(state.output, "narrative");
   }
+  scrollLogToBottom();
 
   el.startScreen.classList.add("hidden");
   el.gameScreen.classList.remove("hidden");
   closeItemPanel();
+  closeMapModal();
 
   if (state) renderState(state);
   refreshSidePanels(state);
@@ -279,6 +289,7 @@ async function restoreSession() {
     } catch {
       appendMessage("Session resumed.", "system");
     }
+    scrollLogToBottom();
 
     refreshSidePanels(state);
     el.commandInput.focus();
@@ -301,6 +312,11 @@ function clearSession() {
   el.startScreen.classList.remove("hidden");
   el.log.innerHTML = "";
   store.log = [];
+  el.combatCard.classList.add("hidden");
+  el.combatCard.innerHTML = "";
+  el.dialogueCard.classList.add("hidden");
+  el.dialogueCard.innerHTML = "";
+  closeMapModal();
   refreshSaves();
 }
 
@@ -342,6 +358,87 @@ function renderState(state) {
   if (state.preferences?.theme && !localStorage.getItem(THEME_KEY)) {
     applyTheme(state.preferences.theme, true);
   }
+
+  renderCombat(state.combat);
+  renderDialogue(state.dialogue);
+}
+
+function renderCombat(combat) {
+  if (!combat || !combat.in_combat) {
+    el.combatCard.classList.add("hidden");
+    el.combatCard.innerHTML = "";
+    return;
+  }
+
+  el.combatCard.classList.remove("hidden");
+  el.combatCard.innerHTML = "";
+
+  const head = document.createElement("div");
+  head.className = "combat-head";
+  const title = document.createElement("h3");
+  title.textContent = `Combat — round ${combat.round ?? 1}`;
+  const turn = document.createElement("span");
+  turn.className = "muted";
+  turn.textContent = `Turn: ${combat.turn_of ?? "player"}`;
+  head.append(title, turn);
+  el.combatCard.appendChild(head);
+
+  for (const enemy of combat.enemies || []) {
+    const row = document.createElement("div");
+    row.className = "enemy-row";
+    const name = document.createElement("span");
+    name.textContent = enemy.name;
+    const hp = document.createElement("span");
+    hp.className = "muted";
+    hp.textContent = `${enemy.hp} / ${enemy.max_hp} HP`;
+    row.append(name, hp);
+
+    const bar = document.createElement("div");
+    bar.className = "enemy-hp-bar";
+    const fill = document.createElement("div");
+    fill.className = "enemy-hp-fill";
+    const ratio = enemy.max_hp > 0 ? Math.max(0, Math.min(1, enemy.hp / enemy.max_hp)) : 0;
+    fill.style.width = `${ratio * 100}%`;
+    bar.appendChild(fill);
+
+    el.combatCard.append(row, bar);
+  }
+}
+
+function renderDialogue(dialogue) {
+  if (!dialogue || !dialogue.active) {
+    el.dialogueCard.classList.add("hidden");
+    el.dialogueCard.innerHTML = "";
+    return;
+  }
+
+  el.dialogueCard.classList.remove("hidden");
+  el.dialogueCard.innerHTML = "";
+
+  const head = document.createElement("div");
+  head.className = "combat-head";
+  const title = document.createElement("h3");
+  title.textContent = dialogue.npc || "Dialogue";
+  const node = document.createElement("span");
+  node.className = "muted";
+  node.textContent = dialogue.node || "";
+  head.append(title, node);
+
+  const text = document.createElement("p");
+  text.textContent = dialogue.text || "";
+
+  const options = document.createElement("div");
+  options.className = "dialogue-options";
+  for (const option of dialogue.options || []) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "ghost small";
+    button.textContent = `${option.index}. ${option.text}`;
+    button.addEventListener("click", () => sendCommand(String(option.index)));
+    options.appendChild(button);
+  }
+
+  el.dialogueCard.append(head, text, options);
 }
 
 function renderStats(stats) {
@@ -490,6 +587,15 @@ function renderQuickActions(data) {
 
 /* --------------------------------------------------------------- log */
 
+function scrollLogToBottom() {
+  // The immediate set can run before the new nodes are laid out; the frame
+  // callback catches the real scrollHeight.
+  el.log.scrollTop = el.log.scrollHeight;
+  window.requestAnimationFrame(() => {
+    el.log.scrollTop = el.log.scrollHeight;
+  });
+}
+
 function appendOutput(messages) {
   const incoming = (messages || []).filter((message) => message && message.text != null);
   if (!incoming.length) return;
@@ -513,10 +619,23 @@ function appendOutput(messages) {
   for (let index = start; index < incoming.length; index += 1) {
     appendMessage(incoming[index].text, incoming[index].type);
   }
+  scrollLogToBottom();
 }
 
 function appendMessage(text, type = "narrative") {
   if (text == null || text === "") return;
+
+  // The runner can carry the previous prompt into the next batch. One prompt
+  // line is enough; the input box is the actual prompt.
+  const previous = store.log[store.log.length - 1];
+  if (
+    type === "prompt" &&
+    previous &&
+    previous.type === "prompt" &&
+    previous.text === text
+  ) {
+    return;
+  }
 
   const entry = document.createElement("div");
   entry.className = `log-entry ${type || "narrative"}`;
@@ -542,8 +661,6 @@ function appendMessage(text, type = "narrative") {
   body.textContent = text;
   entry.appendChild(body);
 
-  const nearBottom =
-    el.log.scrollHeight - el.log.scrollTop - el.log.clientHeight < 80;
   el.log.appendChild(entry);
   store.log.push({ text, type });
 
@@ -551,8 +668,6 @@ function appendMessage(text, type = "narrative") {
     store.log.shift();
     if (el.log.firstElementChild) el.log.firstElementChild.remove();
   }
-
-  if (nearBottom) el.log.scrollTop = el.log.scrollHeight;
 }
 
 /* ----------------------------------------------------------- commands */
@@ -582,6 +697,7 @@ async function sendCommand(command) {
     refreshSidePanels(data.state);
   } catch (error) {
     appendMessage(error.message, "error");
+    scrollLogToBottom();
     if (error.status === 404) {
       clearSession();
       showToast("Session expired. Start a new game.", "error");
@@ -810,6 +926,25 @@ function closeLoadModal() {
   el.loadModal.classList.add("hidden");
 }
 
+async function showMapView() {
+  if (!store.sessionId) return;
+  try {
+    const data = await api(
+      `/map_view?session_id=${encodeURIComponent(store.sessionId)}`
+    );
+    el.mapModalTitle.textContent = `${String(data.map).replace(/^\w/, (c) => c.toUpperCase())} — Map`;
+    el.mapMeta.textContent = `Position (${data.position.x}, ${data.position.y}) · ${data.width} × ${data.height}`;
+    el.mapAscii.textContent = data.ascii;
+    el.mapModal.classList.remove("hidden");
+  } catch (error) {
+    showToast(error.message, "error");
+  }
+}
+
+function closeMapModal() {
+  el.mapModal.classList.add("hidden");
+}
+
 /* ------------------------------------------------------------- toast */
 
 function showToast(message, kind = "") {
@@ -835,13 +970,19 @@ function bindEvents() {
   el.loadGame.addEventListener("click", openLoadModal);
   el.newGame.addEventListener("click", newGame);
   el.refreshInventory.addEventListener("click", () => refreshSidePanels(store.state));
+  el.showMap.addEventListener("click", showMapView);
   el.closeLoadModal.addEventListener("click", closeLoadModal);
+  el.closeMapModal.addEventListener("click", closeMapModal);
   el.loadModal.addEventListener("click", (event) => {
     if (event.target === el.loadModal) closeLoadModal();
+  });
+  el.mapModal.addEventListener("click", (event) => {
+    if (event.target === el.mapModal) closeMapModal();
   });
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
       closeLoadModal();
+      closeMapModal();
       closeItemPanel();
     }
   });

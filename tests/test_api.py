@@ -5,6 +5,7 @@ PUBLIC_ENDPOINTS = ("/", "/classes")
 SESSION_ENDPOINTS = (
     "/state",
     "/map",
+    "/map_view",
     "/position",
     "/inventory",
     "/stats",
@@ -175,10 +176,37 @@ def test_state_exposes_the_contract_fields(client):
             "active_quests",
             "completed_quests",
             "preferences",
+            "combat",
+            "dialogue",
         ]
     ) <= set(state)
     assert "mana" in state["stats"]
     assert state["position"]["map"]
+    assert state["combat"]["in_combat"] is False
+    assert state["dialogue"]["active"] is False
+
+
+def test_map_view_returns_an_ascii_grid(client):
+    session_id = _start(client)
+
+    data = client.get("/map_view", query_string={"session_id": session_id}).get_json()
+
+    assert data["map"] == "tavern"
+    assert data["width"] > 0 and data["height"] > 0
+    assert "P" in data["ascii"]
+    assert len(data["ascii"].splitlines()) == data["height"]
+
+
+def test_travel_moves_the_player_to_another_map(client):
+    session_id = _start(client)
+
+    client.post("/command", json={"session_id": session_id, "command": "2"})
+    result = client.post(
+        "/command", json={"session_id": session_id, "command": "1"}
+    ).get_json()
+
+    assert result["state"]["state"] == "MapState"
+    assert result["state"]["position"]["map"] == "cellar"
 
 
 def test_abilities_expose_class_abilities_and_skills(client):
@@ -226,8 +254,12 @@ def test_second_choice_enters_dialogue(client):
         "/command", json={"session_id": session_id, "command": "1"}
     ).get_json()
     texts = [message["text"] for message in command["output"]]
+    dialogue = command["state"]["dialogue"]
 
     assert any("Welcome to the Yawning Portal" in text for text in texts)
+    assert dialogue["active"] is True
+    assert dialogue["options"]
+    assert {"index", "text", "target"} <= set(dialogue["options"][0])
 
 
 def test_explore_returns_real_nearby_targets(client):

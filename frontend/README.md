@@ -28,6 +28,9 @@ You can also set `localStorage["dm_api_base"]`.
 - Live adventure log, including AI narration styled separately (`type: "narration"`).
 - Command input, quick actions from `GET /available_actions`, and menu-number play.
 - Character panel: HP, level, gold, location, stats, abilities, skills.
+- Map modal (`GET /map_view`) with the ASCII map and the player's position.
+- Combat card with enemy name/HP and the current round (from `state.combat`).
+- Clickable dialogue options (from `state.dialogue`), in addition to typing numbers.
 - Inventory list with item details and use/equip actions.
 - Save button that writes a timestamped save.
 - Light/dark theme, persisted through `POST /preferences` when a session exists.

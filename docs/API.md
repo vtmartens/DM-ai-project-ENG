@@ -86,9 +86,15 @@ a server restart. A stale `session_id` returns `404`.
   },
   "active_quests": [],
   "completed_quests": [],
-  "preferences": {}
+  "preferences": {},
+  "combat": {"in_combat": false},
+  "dialogue": {"active": false}
 }
 ```
+
+`combat` and `dialogue` are context snapshots with the same shapes as `GET /combat` and the
+`dialogue` field of `POST /dialogue`; clients can render combat/enemy HP and clickable
+dialogue options directly from `/state`.
 
 **Stat values are effective modifiers**, not base ability scores: the engine exposes
 `strength`, `dexterity`, etc. as `modifier_*` values. Do not render them as raw D&D ability
@@ -330,6 +336,22 @@ Returns the player's map, coordinates, and serializable nearby items/NPCs:
   "nearby_npcs": [{"position": [6, 6], "name": "Durnan", "type": null}]
 }
 ```
+
+#### `GET /map_view?session_id=...`
+
+Returns the current map as an ASCII grid with the player marked `P`:
+
+```json
+{
+  "map": "tavern",
+  "width": 25,
+  "height": 15,
+  "position": {"x": 5, "y": 5},
+  "ascii": "#########################\n#F..o.....F......#\n..."
+}
+```
+
+Walls are `#`, floors are `.`, and letters are NPC/item tokens.
 
 #### `POST /move`
 

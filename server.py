@@ -93,6 +93,7 @@ def home():
             "GET /inventory": "Get the player's inventory",
             "GET /stats": "Get the player's stats",
             "GET /position": "Get the player's position",
+            "GET /map_view": "Get the current map as an ASCII grid",
             "GET /missions": "Get active/completed quests",
             "GET /classes": "Get information about the available classes",
             "GET /saves": "Get the list of available saves (legacy shape)",
@@ -445,6 +446,26 @@ def get_stats():
         "max_hp": state.get("max_hp", 0),
         "stats": state.get("stats", {})
     })
+
+@app.route("/map_view", methods=["GET"])
+def get_map_view():
+    """Get the current map as an ASCII grid with the player marked."""
+    session_id = request.args.get("session_id")
+
+    if not session_id:
+        return jsonify({"error": "Session ID not provided"}), 400
+
+    session = active_sessions.get(session_id) or load_session(session_id)
+
+    if not session:
+        return jsonify({"error": "Session not found"}), 404
+
+    view = session.get_map_view()
+    if not view:
+        return jsonify({"error": "Map not available"}), 404
+
+    return jsonify(view)
+
 
 @app.route("/position", methods=["GET"])
 def get_position():

@@ -117,6 +117,10 @@ conversation memory across turns. The narrator has no authority over game state.
   in the same request instead of one command late (previously the first choice produced
   "I don't understand what you want to do with ''"). `TavernState` also avoids re-rendering
   the opening menu, and the client collapses repeated menu blocks.
+- Fixed the log's auto-scroll. Command output was appended below the fold while the log
+  stayed at the top, so a valid command such as "talk to Durnan" looked like it did
+  nothing. The client now scrolls to the bottom after each batch and collapses consecutive
+  duplicate prompts.
 - Verified live: `/app`, `/app/styles.css`, `/app/app.js`, `/start`, `/state`,
   `/abilities`, `/inventory`, `/available_actions`, `/command`, `/save`, `/list_saves` and
   a session-less `/load` all returned the expected data. With AI narration enabled,
@@ -124,6 +128,22 @@ conversation memory across turns. The narrator has no authority over game state.
 - Verified in a real headless browser (Selenium): class selection, start, talk list,
   Durnan's dialogue options, inventory item details, and AI narration all worked with no
   empty-command errors.
+
+## Web flow hardening (2026-10-26)
+
+- `press_enter` is now non-blocking when `GameIO.pause_for_confirmation` is false.
+  `WebGameIO` returns false (and `NarratingIO` delegates to its base), so the map-selection
+  travel flow no longer stalls after "You head toward Cellar…". Terminals still pause.
+- Added `GET /map_view` (ASCII grid with `P`), plus `combat` and `dialogue` snapshots in
+  `/state`. The client now has a map modal, a combat card with enemy HP, and clickable
+  dialogue options.
+- Fixed `NPC.get_conversation` mutating the `DataManager` cached conversation. The first
+  call converted options to tuples; the second call skipped them and wrote an empty list,
+  so dialogue options disappeared. It now copies the node and accepts list/tuple/object
+  option formats.
+- Verified in a real headless browser: map modal on the tavern and cellar, travel
+  (tavern → cellar), Durnan's dialogue options and clicking through to `info_tavern`,
+  and a combat round with the enemy HP updating (75 → 69). 150 tests pass.
 
 ## Fixed, at your request — these are deliberate behaviour changes
 
@@ -243,7 +263,7 @@ of these were introduced by the translation.
 | Residual Italian (glossary-derived denylist + accented characters) | 0 hits |
 | **Original Italian vs translated, identical input** | **46/46 placements, identical sequence** |
 | Flask API in-process (test client, no socket) | 31 × 200, 0 raised |
-| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, web client routes) | 145 passed |
+| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, web client routes) | 150 passed |
 | Live smoke test (Flask server, `/app`, start/state/abilities/inventory/actions/command/save/load) | passed |
 
 The last comparison is the strongest evidence: the pristine Italian code and the finished

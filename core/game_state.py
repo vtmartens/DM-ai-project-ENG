@@ -22,6 +22,10 @@ class WebGameIO(GameIO):
     def show_narration(self, text: str):
         """Stores AI-generated prose separately so clients can style it"""
         self.buffer.append({"type": "narration", "text": text})
+
+    @property
+    def pause_for_confirmation(self) -> bool:
+        return False
     
     def system_message(self, text: str):
         """Stores a system message in the buffer"""
@@ -363,6 +367,24 @@ class GameState:
             "options": options,
         }
 
+    def get_map_view(self):
+        """Returns the current map as an ASCII grid with the player marked."""
+        player = self.game.player
+        if not player.current_map:
+            return None
+
+        current_map = self.game.map_manager.get_map(player.current_map)
+        if not current_map:
+            return None
+
+        return {
+            "map": player.current_map,
+            "width": current_map.width,
+            "height": current_map.height,
+            "position": {"x": player.x, "y": player.y},
+            "ascii": current_map.generate_ascii_representation((player.x, player.y)),
+        }
+
     def get_nearby_targets(self):
         """Returns names of nearby items/NPCs and walkable directions."""
         position = self.get_player_position() or {}
@@ -429,7 +451,9 @@ class GameState:
             "stats": stats,
             "active_quests": list(self.game.player.active_quests),
             "completed_quests": list(self.game.player.completed_quests),
-            "preferences": dict(self.preferences)
+            "preferences": dict(self.preferences),
+            "combat": self.get_combat_state(),
+            "dialogue": self.get_dialogue_state(),
         }
     
     def save(self, file_path="save.json"):

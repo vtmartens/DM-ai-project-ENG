@@ -38,6 +38,14 @@ def _game_stub():
     )
 
 
+def test_web_narration_does_not_pause_for_confirmation():
+    from core.game_state import WebGameIO
+
+    io = NarratingIO(WebGameIO(), NullNarrator())
+
+    assert io.pause_for_confirmation is False
+
+
 def test_engine_text_is_forwarded_immediately(recording_io):
     narrator = FakeNarrator()
     io = NarratingIO(recording_io, narrator)

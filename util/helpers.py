@@ -6,9 +6,11 @@ def press_enter(game=None):
     Args:
         game: The game instance (optional if not required)
     """
-    # Use the game context if available
+    # Use the game context if available. Web sessions do not block on a
+    # press-enter confirmation; the next command naturally continues.
     if game:
-        game.io.request_input("Press Enter to continue...")
+        if getattr(game.io, "pause_for_confirmation", True):
+            game.io.request_input("Press Enter to continue...")
     else:
         input("Press Enter to continue...")
 
