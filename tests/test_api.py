@@ -600,6 +600,64 @@ def test_natural_language_attack_targets_an_npc(client):
     assert result["state"]["combat"]["enemies"][0]["name"] == "Durnan"
 
 
+@pytest.mark.parametrize(
+    ("npc_name", "position"),
+    [("Specter", (5, 5)), ("Cultist", (12, 8))],
+)
+def test_defeated_cellar_npc_is_removed_from_the_map(client, npc_name, position):
+    import server
+
+    session_id = _start(client)
+    client.post("/command", json={"session_id": session_id, "command": "go to cellar"})
+    client.post(
+        "/command",
+        json={"session_id": session_id, "command": f"attack the {npc_name}"},
+    )
+
+    session = server.active_sessions[session_id]
+    combat = session.game.current_state()
+    assert type(combat).__name__ == "CombatState"
+    combat.opponent.hp = 1
+
+    result = client.post(
+        "/command", json={"session_id": session_id, "command": "1"}
+    ).get_json()
+    cellar = session.game.map_manager.get_map("cellar")
+    view = client.get(
+        "/map_view", query_string={"session_id": session_id}
+    ).get_json()
+    legend_names = {name for entry in view["legend"] for name in entry["names"]}
+
+    assert result["state"]["state"] == "MapState"
+    assert position not in cellar.npc
+    assert len(cellar.npc) == 1
+    assert npc_name not in legend_names
+
+
+def test_loading_a_session_prunes_already_defeated_npcs(client):
+    import server
+
+    session_id = _start(client)
+    client.post("/command", json={"session_id": session_id, "command": "go to cellar"})
+    session = server.active_sessions[session_id]
+    cellar = session.game.map_manager.get_map("cellar")
+    for npc in cellar.npc.values():
+        npc.hp = 0
+
+    server.save_session(session_id, session)
+    server.active_sessions.clear()
+
+    view = client.get(
+        "/map_view", query_string={"session_id": session_id}
+    ).get_json()
+    legend_names = {name for entry in view["legend"] for name in entry["names"]}
+    loaded = server.load_session(session_id)
+
+    assert "Specter" not in legend_names
+    assert "Cultist" not in legend_names
+    assert loaded.game.map_manager.get_map("cellar").npc == {}
+
+
 def test_natural_language_examine_shows_a_description(client):
     session_id = _start(client)
 

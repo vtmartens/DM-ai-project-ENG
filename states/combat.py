@@ -367,7 +367,8 @@ class CombatState(BaseState):
             
         if self.opponent.hp <= 0:
             game.io.show_message(f"\nYou defeated {self.opponent.name}!")
-            
+            self._remove_defeated_npc(game)
+
             # Handle the reward
             gained_gold = min(self.opponent.gold, 20)  # Max 20 coins
             self.opponent.gold -= gained_gold
@@ -398,7 +399,30 @@ class CombatState(BaseState):
             return True
             
         return False
-        
+
+    def _remove_defeated_npc(self, game):
+        """Removes a defeated NPC from the map and from NPC menus."""
+        npc = self.hostile_npc
+        if npc is None:
+            return
+
+        game.map_manager.remove_npc(game.player.current_map, npc)
+
+        name = str(getattr(npc, "name", "")).casefold()
+        if not name:
+            return
+
+        for state in game.state_stack:
+            if state is self:
+                continue
+            present = getattr(state, "present_npcs", None)
+            if not isinstance(present, dict):
+                continue
+            for key, candidate in list(present.items()):
+                candidate_name = str(getattr(candidate, "name", key)).casefold()
+                if candidate is npc or candidate_name == name:
+                    present.pop(key, None)
+
     def _manage_attack(self, player, game):
         """Handle the player's attack"""
         # Use the player's effective strength, which includes weapon and accessory bonuses

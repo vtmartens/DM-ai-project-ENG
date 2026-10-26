@@ -312,7 +312,41 @@ class MapManager:
     def get_map(self, name):
         """Returns a map by name"""
         return self.maps.get(name)
-    
+
+    def remove_npc(self, map_name, npc):
+        """Removes an NPC from a map, matching by identity or name."""
+        map_obj = self.maps.get(map_name)
+        if map_obj is None or npc is None:
+            return None
+
+        for position, candidate in list(map_obj.npc.items()):
+            if candidate is npc:
+                del map_obj.npc[position]
+                return position
+
+        name = getattr(npc, "name", None)
+        if name:
+            for position, candidate in list(map_obj.npc.items()):
+                if _same_object_name(getattr(candidate, "name", ""), name):
+                    del map_obj.npc[position]
+                    return position
+
+        return None
+
+    def prune_defeated_npcs(self):
+        """Removes NPCs at 0 HP left on maps by older sessions."""
+        removed = []
+        for map_name, map_obj in self.maps.items():
+            for position, npc in list(map_obj.npc.items()):
+                hp = getattr(npc, "hp", 1)
+                if isinstance(hp, (int, float)) and hp <= 0:
+                    del map_obj.npc[position]
+                    removed.append((map_name, getattr(npc, "name", "?"), position))
+
+        if removed:
+            logging.info("Removed %d defeated NPC(s) from persisted maps", len(removed))
+        return removed
+
     def set_current_map(self, name):
         """Sets the current map for easy reference"""
         if name in self.maps:
@@ -636,6 +670,7 @@ class MapManager:
 
             # Apply fixes to map layout/exits made since this save was written.
             self.refresh_static_map_data()
+            self.prune_defeated_npcs()
 
             return True
         except Exception as e:
@@ -804,6 +839,7 @@ class MapManager:
 
             # Apply fixes to map layout/exits made since this save was written.
             self.refresh_static_map_data()
+            self.prune_defeated_npcs()
 
             logger.info(f"Maps loaded successfully from {save_path}")
             return True
