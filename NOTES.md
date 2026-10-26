@@ -243,8 +243,11 @@ conversation memory across turns. The narrator has no authority over game state.
   no dedicated state, so it stays in `MapState`). `MarketState` preserves a valid arrival
   position instead of resetting to its start tile, so the tavern exit lands at `(12, 2)`
   with the market menu shown.
-- Added tests for the visible exit, walking through it, and the state transition. 175 tests
-  pass.
+- Added `go to exit` / `leave`: pathfinds to the nearest map door, steps through it, and
+  enters the destination state (market/tavern; cellar stays in MapState). This makes leaving
+  the tavern one command instead of walking the grid manually.
+- Added tests for the visible exit, walking through it, the state transition, and the
+  `go to exit` / `leave` commands. 177 tests pass.
 
 ## Fixed, at your request — these are deliberate behaviour changes
 
@@ -367,7 +370,7 @@ of these were introduced by the translation.
 | Residual Italian (glossary-derived denylist + accented characters) | 0 hits |
 | **Original Italian vs translated, identical input** | **46/46 placements, identical sequence** |
 | Flask API in-process (test client, no socket) | 31 × 200, 0 raised |
-| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, web client routes, browser smoke) | 175 passed |
+| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, web client routes, browser smoke) | 177 passed |
 | Live smoke test (Flask server, `/app`, start/state/abilities/inventory/actions/command/save/load) | passed |
 
 The last comparison is the strongest evidence: the pristine Italian code and the finished

@@ -29,6 +29,18 @@ def normalize_name(value) -> str:
 
 def parse_targeted_command(command):
     """Returns (action, target) or None for a non-targeted command."""
+    text = command.strip().casefold()
+    if text in {
+        "leave",
+        "leave tavern",
+        "leave the tavern",
+        "leave market",
+        "leave the market",
+        "leave cellar",
+        "leave the cellar",
+    }:
+        return "go", "exit"
+
     for action, pattern in TARGETED_PATTERNS:
         match = re.match(pattern, command.strip(), re.IGNORECASE)
         if not match:
@@ -202,6 +214,74 @@ def resolve_map_object(game, target):
     return match_name(candidates, target)
 
 
+def resolve_map_door(game, target):
+    """Finds a map exit: (position, destination, label) or None."""
+    current_map = (
+        game.map_manager.get_map(game.player.current_map)
+        if game.player.current_map
+        else None
+    )
+    if not current_map or not current_map.doors:
+        return None
+
+    wanted = normalize_name(target)
+    generic = wanted in {"exit", "door", "way out", "leave", ""}
+
+    if not generic:
+        for position, destination in current_map.doors.items():
+            destination_name = destination[0]
+            label = f"exit to {destination_name}"
+            if (
+                normalize_name(destination_name) in wanted
+                or wanted in normalize_name(label)
+                or wanted in normalize_name(destination_name)
+            ):
+                return position, destination_name, label
+
+    player = game.player
+    position, destination = min(
+        current_map.doors.items(),
+        key=lambda item: abs(item[0][0] - player.x)
+        + abs(item[0][1] - player.y),
+    )
+    return position, destination[0], f"exit to {destination[0]}"
+
+
+def _enter_destination_state(game, destination):
+    if destination == "market":
+        from states.market import MarketState
+
+        game.change_state(MarketState(game))
+    elif destination == "tavern":
+        from states.tavern import TavernState
+
+        game.change_state(TavernState(game))
+    else:
+        from states.map_state import MapState
+
+        game.change_state(MapState(origin_state=game.current_state()))
+
+
+def leave_through_door(game, door_position, destination, label) -> bool:
+    """Walks to a map exit, steps through it, and enters the destination state."""
+    if not walk_to_target(game, door_position, label):
+        return False
+
+    player = game.player
+    dx = door_position[0] - player.x
+    dy = door_position[1] - player.y
+    if abs(dx) + abs(dy) != 1:
+        return False
+
+    result = player.move(dx, dy, game.map_manager)
+    if not result.get("change_map"):
+        return False
+
+    _enter_destination_state(game, destination)
+    game.io.show_message(f"You leave through the {label}.")
+    return True
+
+
 def handle_targeted_command(game, action, target, extra_npcs=()) -> bool:
     """Executes a targeted command. False means the caller should open its menu."""
     if action == "talk":
@@ -265,6 +345,13 @@ def handle_targeted_command(game, action, target, extra_npcs=()) -> bool:
                 game.io.show_message(
                     f"You cannot find a path to {getattr(obj, 'name', target)}."
                 )
+            return True
+
+        door = resolve_map_door(game, target)
+        if door is not None:
+            position, destination, label = door
+            if not leave_through_door(game, position, destination, label):
+                game.io.show_message(f"You cannot find a path to the {label}.")
             return True
 
         game.io.show_message(f"There is no place called {target}.")

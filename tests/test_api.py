@@ -411,6 +411,33 @@ def test_command_does_not_repeat_the_opening_menu(client):
     assert any("Who do you want to talk to?" in text for text in texts)
 
 
+def test_go_to_exit_leaves_the_tavern(client):
+    session_id = _start(client)
+
+    result = client.post(
+        "/command", json={"session_id": session_id, "command": "go to exit"}
+    ).get_json()
+    texts = [message["text"] for message in result["output"]]
+
+    assert result["state"]["state"] == "MarketState"
+    assert result["state"]["position"]["map"] == "market"
+    assert result["state"]["position"]["x"] == 12
+    assert result["state"]["position"]["y"] == 2
+    assert any("You move to exit to market" in text for text in texts)
+    assert any("You leave through the exit to market" in text for text in texts)
+
+
+def test_leave_alias_works(client):
+    session_id = _start(client)
+
+    result = client.post(
+        "/command", json={"session_id": session_id, "command": "leave"}
+    ).get_json()
+
+    assert result["state"]["state"] == "MarketState"
+    assert result["state"]["position"]["map"] == "market"
+
+
 def test_map_view_shows_the_tavern_exit(client):
     session_id = _start(client)
 

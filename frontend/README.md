@@ -32,7 +32,8 @@ You can also set `localStorage["dm_api_base"]`.
   direction words such as “south” or “move east”. Unknown targets fall back to the normal
   menu.
 - Direct approach with pathfinding: “go to Durnan” or “walk to barrel” moves next to the
-  target in one command, respecting walls and occupied cells.
+  target in one command, respecting walls and occupied cells. “go to exit” / “leave” walks
+  to the nearest map exit, steps through it and enters the destination state.
 - Character panel: HP, level, gold, location, abilities, skills; ability scores show the
   base value with its effective modifier (for example `INT 16 (+4)`), matching the class
   preview.

@@ -175,9 +175,10 @@ Free-text commands are still accepted. In the tavern hub and on the map screen t
 resolves targets deterministically: `talk to Durnan`, `attack the goblin`,
 `use Healing Potion`, `go to the market`, `examine the chair`, `interact with the barrel`.
 `go` / `walk` / `move` / `approach` to an NPC or object also pathfinds to an adjacent cell
-in one command, respecting walls and occupied cells. On the map screen, `south`,
-`move east`, etc. also move directly. Unknown targets show a message and fall back to the
-corresponding menu.
+in one command, respecting walls and occupied cells. `go to exit` (or `leave`) walks to the
+nearest map exit, steps through it and enters the destination state. On the map screen,
+`south`, `move east`, etc. also move directly. Unknown targets show a message and fall back
+to the corresponding menu.
 
 #### `GET /state?session_id=...`
 
