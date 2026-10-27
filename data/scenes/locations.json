@@ -1,0 +1,38 @@
+{
+  "tavern": {
+    "title": "The Yawning Portal",
+    "description": "Warm firelight and pipe smoke fill the Yawning Portal. Adventurers trade rumours over scarred tables while the great well yawns in the floor."
+  },
+  "market": {
+    "title": "The Market",
+    "description": "Stalls crowd the market square beneath awnings snapped by the wind. Merchants call prices over the splash of the fountain and the smell of spice and old stone."
+  },
+  "cellar": {
+    "title": "The Cellar",
+    "description": "Damp stone steps descend into a cellar thick with dust and old cobwebs. Casks and broken furniture crowd the walls, and the air holds a faint, sour chill."
+  },
+  "warehouse": {
+    "title": "The Old Warehouse",
+    "description": "Dust hangs in the lantern light of the old warehouse. Crates and loading hooks fill the long floor, while the cult's marks still stain the beams."
+  },
+  "vault": {
+    "title": "The Sealed Vault",
+    "description": "Cold iron and rune-carved stone frame the sealed vault. Every footstep echoes through the chamber, and the air tastes of metal and old magic."
+  },
+  "road": {
+    "title": "The Trade Road",
+    "description": "The Trade Road stretches east beneath a wide sky. Wind combs the grass at its edges, and the broken waystation rises at the far end of the route."
+  },
+  "waystation": {
+    "title": "The Broken Waystation",
+    "description": "The Broken Waystation leans against the road like a tired sentinel. Its palisade is patched, its campfire cold, and the strongbox waits in the shadow of the old walls."
+  },
+  "underroad": {
+    "title": "The Underroad",
+    "description": "A low tunnel runs beneath the waystation, its walls slick with seepage. Old lanterns and stacked crates mark the smugglers' route into the dark."
+  },
+  "sanctum": {
+    "title": "The Sealed Sanctum",
+    "description": "Rune-light coils through the sealed sanctum. Black stone pillars rise around a silent hall where the air itself seems to hold its breath."
+  }
+}

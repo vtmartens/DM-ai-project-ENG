@@ -20,6 +20,7 @@ _RECENT_SKIP_TYPES = {
     "map",
     "hint",
     "recap",
+    "description",
     "narration",
 }
 _RECENT_SKIP_PREFIXES = (

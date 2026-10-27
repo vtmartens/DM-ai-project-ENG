@@ -155,6 +155,7 @@ def home():
             "GET /landmark": "Get the current landmark panel summary",
             "POST /hint": "Ask the Dungeon Master for a hint",
             "POST /recap": "Get a recap of the story so far",
+            "POST /describe": "Describe the current scene",
             "GET /item_details": "Get details about a specific item",
             "GET /abilities": "Get the player's abilities",
             "POST /use_ability": "Use a player ability",
@@ -718,6 +719,37 @@ def session_recap():
     if isinstance(getattr(session, "event_log", None), list):
         session.event_log.append(
             {"type": "recap", "text": result["recap"], "time": time.time()}
+        )
+        if len(session.event_log) > 500:
+            del session.event_log[:-500]
+
+    return jsonify({"session_id": session_id, **result})
+
+
+@app.route("/describe", methods=["POST"])
+def describe_scene():
+    """Describe the current location, optionally coloured by the narrator."""
+    data = request.json or {}
+    session_id = data.get("session_id")
+
+    session, error = get_session_or_error(session_id)
+    if error:
+        return error
+
+    from ai.scene import generate_scene
+
+    narrator = getattr(getattr(session, "io_buffer", None), "narrator", None)
+    memory = getattr(getattr(session, "io_buffer", None), "memory", None)
+    result = generate_scene(session.game, narrator=narrator, memory=memory)
+
+    # Keep the description in the session log so a reload shows it too.
+    if isinstance(getattr(session, "event_log", None), list):
+        session.event_log.append(
+            {
+                "type": "description",
+                "text": result["description"],
+                "time": time.time(),
+            }
         )
         if len(session.event_log) > 500:
             del session.event_log[:-500]

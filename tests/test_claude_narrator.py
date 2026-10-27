@@ -116,6 +116,33 @@ def test_model_and_token_limit_can_be_overridden():
     assert call["max_tokens"] == 256
 
 
+def test_scene_uses_the_scene_prompt_and_a_small_token_budget():
+    narrator, client = _narrator(FakeResponse("Firelight moves across the taproom."))
+
+    assert (
+        narrator.describe("The Yawning Portal is warm and crowded.", CONTEXT)
+        == "Firelight moves across the taproom."
+    )
+
+    call = client.messages.calls[0]
+    assert call["max_tokens"] == 256
+    assert "scene" in call["system"].lower()
+    assert "Yawning Portal" in call["messages"][0]["content"]
+
+
+def test_scene_refusal_falls_back():
+    narrator, _ = _narrator(FakeResponse("Ignored", stop_reason="refusal"))
+
+    assert narrator.describe("The Yawning Portal is warm.", CONTEXT) is None
+
+
+def test_no_scene_skips_the_client():
+    narrator, client = _narrator(FakeResponse())
+
+    assert narrator.describe("", CONTEXT) is None
+    assert client.messages.calls == []
+
+
 def test_hint_uses_the_hint_prompt_and_a_small_token_budget():
     narrator, client = _narrator(FakeResponse("The lock sighs open."))
 

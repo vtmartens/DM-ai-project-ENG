@@ -94,6 +94,7 @@ const el = {
   forgeMeta: document.getElementById("forge-meta"),
   forgeList: document.getElementById("forge-list"),
   askHint: document.getElementById("ask-hint"),
+  showScene: document.getElementById("show-scene"),
   showRecap: document.getElementById("show-recap"),
   mapModal: document.getElementById("map-modal"),
   closeMapModal: document.getElementById("close-map-modal"),
@@ -1354,6 +1355,11 @@ function appendMessage(text, type = "narrative") {
     kind.className = "log-kind";
     kind.textContent = "Hint";
     entry.appendChild(kind);
+  } else if (type === "description") {
+    const kind = document.createElement("span");
+    kind.className = "log-kind";
+    kind.textContent = "Scene";
+    entry.appendChild(kind);
   } else if (type === "recap") {
     const kind = document.createElement("span");
     kind.className = "log-kind";
@@ -1454,6 +1460,7 @@ function setBusy(busy, status = "") {
   el.loadGame.disabled = busy;
   el.newGame.disabled = busy;
   if (el.askHint) el.askHint.disabled = busy;
+  if (el.showScene) el.showScene.disabled = busy;
   if (el.showRecap) el.showRecap.disabled = busy;
   if (el.showShop) el.showShop.disabled = busy;
   if (el.showBounties) el.showBounties.disabled = busy;
@@ -1773,6 +1780,36 @@ async function askHint() {
   } finally {
     store.busy = false;
     el.askHint.disabled = false;
+    el.commandStatus.textContent = "";
+  }
+}
+
+async function describeScene() {
+  if (!store.sessionId || store.busy) return;
+
+  store.busy = true;
+  el.showScene.disabled = true;
+  el.commandStatus.textContent = "Describing the scene…";
+
+  try {
+    const data = await api("/describe", {
+      method: "POST",
+      body: { session_id: store.sessionId },
+    });
+    if (data && data.description) {
+      appendMessage(data.description, "description");
+      scrollLogToBottom();
+    }
+  } catch (error) {
+    appendMessage(error.message, "error");
+    scrollLogToBottom();
+    if (error.status === 404) {
+      clearSession();
+      showToast("Session expired. Start a new game.", "error");
+    }
+  } finally {
+    store.busy = false;
+    el.showScene.disabled = false;
     el.commandStatus.textContent = "";
   }
 }
@@ -2273,6 +2310,7 @@ function bindEvents() {
   el.showBounties.addEventListener("click", showBountyBoard);
   el.showForge.addEventListener("click", showForge);
   el.askHint.addEventListener("click", askHint);
+  el.showScene.addEventListener("click", describeScene);
   el.showRecap.addEventListener("click", showRecap);
   el.closeLoadModal.addEventListener("click", closeLoadModal);
   el.closeMapModal.addEventListener("click", closeMapModal);

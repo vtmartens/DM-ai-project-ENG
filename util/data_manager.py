@@ -44,6 +44,7 @@ class DataManager:
             "cycles": DATA_DIR / "cycles",
             "party": DATA_DIR / "party",
             "road": DATA_DIR / "road",
+            "scenes": DATA_DIR / "scenes",
             "assets_info": DATA_DIR / "assets_info"
         }
         

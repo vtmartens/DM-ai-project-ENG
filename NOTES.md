@@ -1261,6 +1261,29 @@ entirely. The doors that existed were also misaligned with the map exits.
   hidden-wagon search and manifest readiness, all three outcomes, the Runner's Satchel,
   achievement completion, repeat suppression and Underroad menu access. 685 tests pass.
 
+## AI scene descriptions (2026-10-27)
+
+- Added `data/scenes/locations.json` with one deterministic description for every map
+  (`tavern`, `market`, `cellar`, `warehouse`, `vault`, `road`, `waystation`, `underroad`
+  and `sanctum`). `DataManager` now registers the `scenes` data directory.
+- `ai/scene.py` builds the engine description from the location entry plus nearby NPCs and
+  objects, cleared-area state, stealth and the current state (combat/dialogue). Hidden
+  objects stay hidden. `generate_scene` optionally asks the narrator for atmosphere and
+  returns `source: "engine"` on any failure, refusal or disabled narration. It never changes
+  state.
+- Added `describe` to the narrator protocol, `NullNarrator`, Claude and OpenAI adapters,
+  with a dedicated scene prompt in `ai/prompts.py` and a 256-token cap. The scene prompt
+  keeps the engine facts authoritative and forbids new places, items, NPCs or outcomes.
+- `POST /describe` returns `session_id`, `description` and `source`, logs a
+  `type: "description"` event and reuses the session narrator/memory. Recaps exclude
+  descriptions from their recent-event input.
+- The web client gained a **Scene** button in the log actions, a `Scene` log label, a
+  description log style and busy-state handling. Assets are at `?v=43`.
+- Tests: `tests/test_scene.py` covers catalogue coverage, deterministic descriptions,
+  nearby NPCs, cleared/stealth wording, AI success/failure/decline, narrators without
+  `describe`, no state mutation and the API/logging path. Narrator adapter tests cover the
+  scene prompt on both providers. 703 tests pass.
+
 ## Deliberate translation choices worth knowing
 
 - **`hp_base` / `mana_base` were left as-is.** They are consistent between code and JSON

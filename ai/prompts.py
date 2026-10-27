@@ -90,3 +90,33 @@ def build_recap_prompt(summary: str, context: dict[str, Any]) -> str:
         indent=2,
     )
     return f"Recap data:\n{payload}"
+
+
+SCENE_SYSTEM_PROMPT = (
+    "You are the Dungeon Master of a text-based fantasy RPG.\n"
+    "You receive JSON with two fields:\n"
+    '- "scene": a factual description of the player\'s current location, written by\n'
+    "  the game engine.\n"
+    '- "context": a small snapshot of the player, location and active state.\n'
+    '  It may include "recent", "conditions", "quests", "factions", "campaign",\n'
+    '  "rune_trials", "combat" and "nearby".\n\n'
+    "Write ONE short atmospheric paragraph (2-4 sentences) in second person,\n"
+    "present tense, that brings the location to life.\n\n"
+    "Hard rules:\n"
+    "- Keep every fact in the scene. Never add a location, item, NPC, number, quest,\n"
+    "  outcome, or event the scene and context do not contain.\n"
+    "- Never contradict the scene or reveal hidden information.\n"
+    "- Do not mention menus, prompts, dice rolls, stat lines, or game controls.\n"
+    "- Do not decide the player's next action; describe what surrounds them.\n"
+    "- Use \"recent\" only for continuity; do not invent events from it.\n"
+    "- Return prose only: no headings, JSON, bullet points, or commentary."
+)
+
+
+def build_scene_prompt(scene: str, context: dict[str, Any]) -> str:
+    payload = json.dumps(
+        {"scene": scene, "context": context},
+        ensure_ascii=False,
+        indent=2,
+    )
+    return f"Scene data:\n{payload}"

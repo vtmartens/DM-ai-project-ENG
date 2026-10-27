@@ -1,11 +1,12 @@
 # AI Dungeon Master setup
 
-The AI Dungeon Master is optional. It appends one short atmospheric paragraph to a turn and
-can rephrase the engine's hints and session recaps; the deterministic engine text is always
-shown unchanged. It also keeps a small bounded memory of recent engine events so narration,
-hints and recaps can refer back to what just happened. If the model is unavailable, slow,
-misconfigured, or refuses, the game continues without the paragraph and hints/recaps fall
-back to the engine wording.
+The AI Dungeon Master is optional. It appends one short atmospheric paragraph to a turn,
+can rephrase the engine's hints and session recaps, and can add colour to location
+descriptions; the deterministic engine text is always shown unchanged. It also keeps a
+small bounded memory of recent engine events so narration, hints, scenes and recaps can
+refer back to what just happened. If the model is unavailable, slow, misconfigured, or
+refuses, the game continues without the paragraph and these extras fall back to the engine
+wording.
 
 This guide focuses on setups that do **not** require a paid API: local inference (Ollama,
 LM Studio) and free cloud tiers. For the default Claude provider, see the README.
@@ -162,6 +163,15 @@ refusal the engine hint is returned with `source: "engine"`.
 AI hints use the same configuration as narration: set `DM_AI_NARRATION=1` (and the provider
 variables below). Without it, the Hint button still works with engine wording.
 
+## Scene descriptions
+
+The web client's **Scene** button calls `POST /describe`. The engine builds a deterministic
+description from `data/scenes/locations.json`, the nearby NPCs/objects, cleared-area state
+and stealth. When a narrator is configured, it is asked to add atmosphere around those same
+facts in two to four sentences. The model cannot add locations, items, NPCs or outcomes, and
+it never changes state. On failure, refusal or disabled narration, the engine description is
+returned with `source: "engine"`. Scenes use the same configuration as hints and narration.
+
 ## Recaps
 
 The web client's **Recap** button calls `POST /recap`. The engine builds a deterministic
@@ -173,7 +183,7 @@ returned with `source: "engine"`. Recaps use the same configuration as hints and
 
 ## Narrator context
 
-Narration, hints and recaps share one compact serializable context:
+Narration, hints, scene descriptions and recaps share one compact serializable context:
 
 - player name, class, level, HP and position
 - active quests and completed-quest count
@@ -200,7 +210,7 @@ process memory only.
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `DM_AI_NARRATION` | off | Must be `1`, `true`, `yes`, or `on` to enable narration and AI-phrased hints/recaps |
+| `DM_AI_NARRATION` | off | Must be `1`, `true`, `yes`, or `on` to enable narration and AI-phrased hints/scenes/recaps |
 | `DM_AI_PROVIDER` | `claude` | `claude`, or `openai` / `openai-compatible` |
 | `DM_AI_MODEL` | `claude-opus-5-5` (Claude), `gpt-4o-mini` (OpenAI-compatible) | Model name |
 | `DM_AI_BASE_URL` | — | OpenAI-compatible base URL; falls back to `OPENAI_BASE_URL` |
@@ -219,6 +229,7 @@ process memory only.
 | Very slow turns | Use a smaller model, enable GPU offload, or raise `DM_AI_TIMEOUT`. The game waits for the narration before showing the prompt |
 | Empty narration from a reasoning model | Some models spend the token budget on hidden reasoning; use a non-reasoning instruct model or raise `DM_AI_MAX_TOKENS` |
 | Hints show engine wording | AI hints need `DM_AI_NARRATION=1`; a failure or refusal also falls back to the engine hint |
+| Scenes show engine wording | AI scene colour needs `DM_AI_NARRATION=1`; a failure or refusal also falls back to the engine description |
 | The DM forgets recent events | Memory defaults to 8 entries; raise `DM_AI_MEMORY_TURNS` (max 20) or check that `DM_AI_MEMORY_TURNS` is not `0` |
 | Engine menus or numbers changed | They cannot be changed by the narrator; it only appends text. If you see this, report it as a bug |
 

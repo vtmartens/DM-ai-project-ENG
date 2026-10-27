@@ -125,6 +125,33 @@ def test_api_failure_falls_back_silently():
     assert narrator.narrate(EVENTS, CONTEXT) is None
 
 
+def test_scene_uses_the_scene_prompt_and_a_small_token_budget():
+    narrator, client = _narrator(FakeResponse("Firelight moves across the taproom."))
+
+    assert (
+        narrator.describe("The Yawning Portal is warm and crowded.", CONTEXT)
+        == "Firelight moves across the taproom."
+    )
+
+    call = client.chat.completions.calls[0]
+    assert call["max_tokens"] == 256
+    assert "scene" in call["messages"][0]["content"].lower()
+    assert "Yawning Portal" in call["messages"][1]["content"]
+
+
+def test_scene_truncation_falls_back():
+    narrator, _ = _narrator(FakeResponse("Cut off", finish_reason="length"))
+
+    assert narrator.describe("The Yawning Portal is warm.", CONTEXT) is None
+
+
+def test_no_scene_skips_the_client():
+    narrator, client = _narrator(FakeResponse())
+
+    assert narrator.describe("", CONTEXT) is None
+    assert client.chat.completions.calls == []
+
+
 def test_hint_uses_the_hint_prompt_and_a_small_token_budget():
     narrator, client = _narrator(FakeResponse("The lock sighs open."))
 

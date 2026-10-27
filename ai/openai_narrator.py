@@ -8,9 +8,11 @@ from ai.narrator import Narrator
 from ai.prompts import (
     HINT_SYSTEM_PROMPT,
     RECAP_SYSTEM_PROMPT,
+    SCENE_SYSTEM_PROMPT,
     SYSTEM_PROMPT,
     build_hint_prompt,
     build_recap_prompt,
+    build_scene_prompt,
     build_user_prompt,
 )
 
@@ -75,6 +77,15 @@ class OpenAINarrator(Narrator):
         return self._complete(
             RECAP_SYSTEM_PROMPT,
             build_recap_prompt(summary, context),
+            min(self.max_tokens, 256),
+        )
+
+    def describe(self, scene: str, context: dict[str, Any]) -> str | None:
+        if self._disabled or not scene:
+            return None
+        return self._complete(
+            SCENE_SYSTEM_PROMPT,
+            build_scene_prompt(scene, context),
             min(self.max_tokens, 256),
         )
 

@@ -114,9 +114,12 @@ You can also set `localStorage["dm_api_base"]`.
 - **Hint** button (`POST /hint`) that appends a Dungeon Master hint to the log. The engine
   always supplies a deterministic hint; when AI narration is enabled the model may rephrase
   it, and any failure falls back to the engine wording.
+- **Scene** button (`POST /describe`) that appends a location description built from the
+  scene catalogue, nearby NPCs/objects, cleared-area state and stealth. AI narration may add
+  atmosphere around the same facts, with the same engine fallback.
 - **Recap** button (`POST /recap`) that appends a “Previously” summary of the player, quests,
   conditions, factions, campaign choices, Rune Trials and recent events. It uses the same
-  engine fallback and optional AI rephrasing as hints. Both hints and recaps share the
+  engine fallback and optional AI rephrasing as hints. Hints, scenes and recaps share the
   narrator's compact world context.
 - Clickable dialogue options (from `state.dialogue`), in addition to typing numbers. The
   play area puts the Adventure log (with the DM narration first) at the top, and the NPC

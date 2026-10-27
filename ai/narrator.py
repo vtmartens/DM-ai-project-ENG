@@ -20,6 +20,10 @@ class Narrator(Protocol):
         """Rewrites a deterministic recap, or returns None to use it unchanged."""
         ...
 
+    def describe(self, scene: str, context: dict[str, Any]) -> str | None:
+        """Adds atmosphere around a deterministic scene, or returns None."""
+        ...
+
 
 class NullNarrator:
     """A narrator that never adds text. Useful as an explicit no-op."""
@@ -33,4 +37,7 @@ class NullNarrator:
         return None
 
     def recap(self, summary: str, context: dict[str, Any]) -> str | None:
+        return None
+
+    def describe(self, scene: str, context: dict[str, Any]) -> str | None:
         return None

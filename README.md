@@ -88,11 +88,12 @@ Each game phase (map exploration, combat, dialogues, inventory management) is ha
 - Save/load integrity preserves equipped weapon, armor and accessory bonuses, level-up defense, initiative, conditions and recruited allies across round trips
 - Achievements: movement, combat wins (including clean streaks), item collection, map exploration, gold, legendary equipment and quests completed without fighting, plus bounty claims, road victories, clearing the Waystation and Underroad, equipment purchases, defeat recovery, defeating the Iron Sentinel and all three faction side quests unlock the twenty-three achievements in `data/achievements/achievements.json`; progress and unlock times survive save/load
 - Ask the Dungeon Master for a hint: deterministic hints point at the active quest, a locked door and matching key, low HP, a nearby NPC/object, the current combat target, or a prone/staggered/blinded/restrained/charmed combat warning; `POST /hint` and the web client's Hint button optionally have the configured AI narrator rephrase them, with no state changes and an engine fallback
+- AI scene descriptions: `POST /describe` and the web client's Scene button return a short location description built from `data/scenes/locations.json`, nearby NPCs/objects, cleared-area state and stealth. The configured narrator can add atmosphere around the same facts; any failure returns the engine description. The result is logged as a `description` event and never changes game state
 - Session recap: the web client's Recap button and `POST /recap` summarize the player, location, HP/mana, gold, active and completed quests, conditions, faction standing, Runeheart/Sanctum choices, Rune Trials progress, capstone status, defeats and recent events. The engine text is always available; the configured narrator may rephrase it, with the same fallback and no state changes
 - Campaign dashboard: `GET /campaign` and the web client's Campaign panel track the seven main-story chapters, campaign completion, Runeheart choice, faction standing, Rune Trials best/runs, Rune Shards and capstone unlock status. Chapter rows show active, ready, complete or not-started states
 - Landmark panels: `GET /landmark` and the web client's Landmark card surface the current Waystation, Underroad, Sanctum, Rune Trials or Forge state. They show location description, cleared/looted/wave/boon/shard status and clickable actions, while the numbered terminal menus remain available
 - New Cycle (New Game+): after turning in the Sealed Sanctum quest, tavern option 16 restarts the story and world state while keeping level, equipment, achievements, faction standing, Rune Shards, Rune Trials records and forged gear. Each cycle increments `player.cycle`; enemy HP/damage/AC and rewards scale from `data/cycles/cycles.json`, and cycle 2 unlocks the Cyclebreaker achievement
-- AI world awareness: narration, hints and recaps receive a compact context covering quests, conditions, faction standing and shop discounts, campaign choices, Rune Trials depth, combat target/round/cover/flanking, nearby names and recent memory. The AI never changes state or reveals hidden information
+- AI world awareness: narration, hints, scene descriptions and recaps receive a compact context covering quests, conditions, faction standing and shop discounts, campaign choices, Rune Trials depth, combat target/round/cover/flanking, nearby names and recent memory. The AI never changes state or reveals hidden information
 - Direct approach with pathfinding: “go to Durnan” or “walk to barrel” moves next to the target in one command; “go to exit” or “leave” walks to the nearest map exit and steps through it (works from the tavern and the market)
 - Fully testable backend (no Pygame dependencies in this repo)
 - Centralized data loading system via data_manager.py using JSON format
@@ -121,13 +122,13 @@ Each game phase (map exploration, combat, dialogues, inventory management) is ha
    - Alternative positioning system when main positions are occupied  
 ✅ Add modular I/O interfaces (text, GUI, AI)  
 🟡 Web client (dependency-free SPA in `frontend/`; React/Vite optional later)  
-🟡 Implement Dungeon Master AI (narration, hint and recap rephrasing slices; decisions remain deterministic)
+🟡 Implement Dungeon Master AI (narration, hint, scene-description and recap rephrasing slices; decisions remain deterministic)
 🟡 D&D rules improvement (saving throws, advantage/disadvantage, attack rolls and AC, blinded/restrained/charmed conditions with counterplay, maneuvers, cover and flanking); broader combat tuning remains future work
 🟡 Class abilities, mana and level-based unlocks; utility spells (Knock, Mage Hand, Guidance, Detect Magic, Disguise Self, Comprehend Languages) added, broader non-combat spell utility remains future work\
 🟡 Multiple enemies, target selection, allies and curated encounters; broader encounter tuning and balancing remain future work\
 ⬜ Online multiplayer implementation  
 ⬜ AI-generated game scenarios and realistic NPC faces  
-⬜ AI-generated game scenes implementation  
+🟡 AI-generated scene descriptions added; richer generated scenes remain future work
 ⬜ AI voice synthesis integration for DM narration  
 
 ## 🧠 Future Vision: Dungeon Master AI

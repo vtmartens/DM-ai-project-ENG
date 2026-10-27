@@ -42,8 +42,8 @@ emitted **before** the engine `narrative` messages it was generated from, so cli
 render in order show the DM paragraph first. `narrative` is the engine's own text and is
 authoritative; `narration` is optional prose and must never be treated as game state. `map`
 is preformatted ASCII; render it in a monospace, whitespace-preserving block. `hint` entries
-come from `POST /hint` and `recap` entries from `POST /recap`; both are also kept in the
-event log.
+come from `POST /hint`, `description` entries from `POST /describe` and `recap` entries from
+`POST /recap`; all are also kept in the event log.
 
 ## Session flow
 
@@ -51,7 +51,7 @@ event log.
 2. Keep the `session_id` and send it with every session-scoped request.
 3. `POST /command` advances the game and returns `output` plus the updated `state`.
 4. Side panels use `GET /state`, `/abilities`, `/inventory`, `/available_actions`,
-   `GET /bounties`, `POST /hint` and `POST /recap`.
+   `GET /bounties`, `POST /hint`, `POST /describe` and `POST /recap`.
 5. `POST /save` / `POST /load` manage files under `saves/`.
 
 Sessions are cached in memory and persisted as `sessions/session_<id>.pickle`; they survive
@@ -298,6 +298,29 @@ the model rephrases the same facts; any failure or refusal returns the engine re
 The same opt-in narrator receives a compact context containing conditions, active quests,
 faction standing, campaign flags, Rune Trials progress, combat target/round/cover/flanking,
 nearby names and recent memory. See [`AI_SETUP.md`](AI_SETUP.md#narrator-context).
+
+#### `POST /describe`
+
+```json
+{"session_id": "uuid"}
+```
+
+Returns a short description of the current location:
+
+```json
+{
+  "session_id": "uuid",
+  "description": "Warm firelight and pipe smoke fill the Yawning Portal. ...",
+  "source": "engine"
+}
+```
+
+The deterministic description comes from `data/scenes/locations.json` plus the player's
+nearby NPCs/objects, cleared-area state and stealth flag. With a narrator configured,
+`source` is `"ai"` and the model adds atmosphere around the same facts; any failure or
+refusal returns the engine description with `source: "engine"`. Descriptions never change
+game state. The result is appended to `/log` with `type: "description"` and is excluded from
+the next recap's recent-event input.
 
 #### `POST /save`
 
