@@ -166,5 +166,16 @@
       "gold": 120,
       "experience": 220
     }
+  },
+  "quiet_cargo": {
+    "title": "The Quiet Cargo",
+    "description": "The Watch impounded a wagon of medicine meant for the families who live along the Underroad. Nessa, one of the surviving runners, wants the manifest back before the evidence room swallows it.",
+    "objective": "Search the Watch impound wagon parked beside the old warehouse in the market.",
+    "target_item": "Cargo Manifest",
+    "turn_in": "Nessa",
+    "reward": {
+      "gold": 120,
+      "experience": 220
+    }
   }
 }

@@ -1236,6 +1236,31 @@ entirely. The doors that existed were also misaligned with the map exits.
   and the spider/bandit sources. Data integrity validates the new condition flags and
   escape actions. 675 tests pass.
 
+## The Quiet Cargo — Underroad side quest (2026-10-27)
+
+- Nessa, a surviving tunnel runner, is reachable from the cleared Underroad menu as menu
+  option 5 / `talk to Nessa`. Her dialogue is offered only after `underroad_chapter` is
+  completed and `quiet_cargo` has not started; the informational branch is gated the same
+  way so it cannot bypass the offer condition.
+- **The Quiet Cargo** (`quiet_cargo`) asks the player to search the hidden **Watch Impound
+  Wagon** at `(23, 8)` in the market, beside the old warehouse. The wagon is a concealed
+  chest (detection DC 13) and yields the target-item **Cargo Manifest**, which readies the
+  quest through the existing item-acquisition hook.
+- Turn-in has three outcomes from Nessa's dialogue:
+  - give the manifest to Nessa: +8 Underroad Smugglers and the unique **Runner's Satchel**
+    (defense +1, dexterity +1, rare);
+  - send it to Violet's Watch: +8 Violet's Watch and 100 gold;
+  - sell it to Mirt: +8 Mirt's Network and 100 gold.
+  All three complete the quest, grant the base 120 gold/220 XP reward and unlock The Quiet
+  Cargo achievement.
+- The wagon token is `Q` to avoid colliding with Violet's `I` on the same market map.
+  Documents, accessories, the NPC definition, dialogue graph, quest, achievement and docs
+  were updated; no frontend asset change was needed because the Underroad menu and dialogue
+  card consume the existing `available_actions` and dialogue data.
+- Tests: `tests/test_quiet_cargo.py` covers offer gating (including the info-branch bypass),
+  hidden-wagon search and manifest readiness, all three outcomes, the Runner's Satchel,
+  achievement completion, repeat suppression and Underroad menu access. 685 tests pass.
+
 ## Deliberate translation choices worth knowing
 
 - **`hp_base` / `mana_base` were left as-is.** They are consistent between code and JSON

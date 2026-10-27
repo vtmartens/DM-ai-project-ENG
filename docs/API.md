@@ -783,6 +783,14 @@ quest and unlocks the Underroad Delver achievement. The cleared cache grants the
 Underroad Signet and 75 gold once. The Underroad map is hidden from the destination menu
 until the Waystation is cleared.
 
+After the chapter is turned in, the cleared tunnel also offers `talk to Nessa` (menu option
+5). Nessa gives **The Quiet Cargo**: search the hidden Watch Impound Wagon beside the old
+warehouse for the Cargo Manifest, then return to her. The manifest can go to Nessa
+(+8 Underroad Smugglers and the Runner's Satchel), Violet's Watch (+8 Violet's Watch and
+100 gold) or Mirt's Network (+8 Mirt's Network and 100 gold); all complete the quest and
+unlock The Quiet Cargo achievement. The wagon is a hidden object with detection DC 13, so
+it is found through the map's normal `search` action.
+
 #### The Sealed Sanctum
 
 After the Underroad is cleared and its cache has been claimed, the Underroad menu offers

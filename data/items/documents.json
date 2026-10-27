@@ -12,5 +12,12 @@
     "effect": {},
     "value": 60,
     "description": "A merchant's private ledger listing cursed relics sold under the table"
+  },
+  {
+    "name": "Cargo Manifest",
+    "type": "document",
+    "effect": {},
+    "value": 55,
+    "description": "A Watch impound manifest listing medicine, lamp oil and blankets bound for the Underroad"
   }
 ]

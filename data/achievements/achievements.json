@@ -263,5 +263,17 @@
       "type": "quest_completed",
       "value": "silent_partner"
     }
+  },
+  {
+    "id": "quiet_cargo",
+    "name": "The Quiet Cargo",
+    "description": "Recover the Underroad's impounded medicine wagon manifest",
+    "icon": "achievement_map.png",
+    "difficulty": "medium",
+    "score": 30,
+    "condition": {
+      "type": "quest_completed",
+      "value": "quiet_cargo"
+    }
   }
 ] 

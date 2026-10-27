@@ -723,5 +723,95 @@
         ["I will come back later.", null]
       ]
     }
+  },
+  "Nessa": {
+    "start": {
+      "text": "A wiry runner steps out of the tunnel shadows. 'You are the one who walked through the Lord's hall and came out breathing. The Watch took our medicine wagon before the dust settled. I need someone with clean hands and a reason to be near the old warehouse.'",
+      "options": [
+        ["What happened to the cargo?", "quiet_cargo_offer", {"all": [{"quest": "underroad_chapter", "status": "completed"}, {"quest": "quiet_cargo", "status": "not_started"}]}],
+        ["About the impounded cargo...", "quiet_cargo_reminder", {"quest": "quiet_cargo", "status": "active"}],
+        ["I found the cargo manifest.", "quiet_cargo_turn_in", {"quest": "quiet_cargo", "status": "ready"}],
+        ["What happened to the tunnel families?", "quiet_cargo_done", {"quest": "quiet_cargo", "status": "completed"}],
+        ["Who are you?", "nessa_info"],
+        ["Not now.", null]
+      ]
+    },
+    "nessa_info": {
+      "text": "Nessa turns her wrist, showing the old Watch brand beneath a leather cuff. 'I ran cargo for the Lord because the tunnel pays better than the docks. When he fell, the Watch finally remembered our names. They took the wagon and called it evidence. The families below just call it winter.'",
+      "options": [
+        ["Tell me about the wagon.", "quiet_cargo_offer", {"all": [{"quest": "underroad_chapter", "status": "completed"}, {"quest": "quiet_cargo", "status": "not_started"}]}],
+        ["I will come back later.", null]
+      ]
+    },
+    "quiet_cargo_offer": {
+      "text": "The wagon is parked beside the old warehouse, under a canvas tarp. The manifest is in a false bottom under the driver's bench; without it, the Watch can hold the cargo for months. Bring it to me and I can make sure the medicine reaches the tunnel families - or you can decide who deserves the leverage.",
+      "options": [
+        ["I will find the manifest.", "quiet_cargo_accept"],
+        ["Not now.", null]
+      ]
+    },
+    "quiet_cargo_accept": {
+      "text": "Search the wagon itself; the tarp hides more than cargo. Once you have the manifest, come back to the Underroad. The Watch will not miss it until the next shift change.",
+      "effect": {"type": "start_quest", "quest": "quiet_cargo"},
+      "options": [
+        ["I will return with it.", null]
+      ]
+    },
+    "quiet_cargo_reminder": {
+      "text": "The impound wagon is parked beside the old warehouse in the market. Search near it; the false bottom is hidden under the driver's bench. Bring the manifest back to the Underroad.",
+      "options": [
+        ["I am on my way.", null]
+      ]
+    },
+    "quiet_cargo_turn_in": {
+      "text": "Nessa reads the manifest twice, then looks up. 'Medicine, blankets, lamp oil. The Watch will call it contraband, but the tunnel will call it winter. What do you want to do with it?'",
+      "options": [
+        ["Give it to Nessa.", "quiet_cargo_nessa"],
+        ["Send it to Violet's Watch.", "quiet_cargo_violet"],
+        ["Sell it to Mirt.", "quiet_cargo_mirt"]
+      ]
+    },
+    "quiet_cargo_nessa": {
+      "text": "Nessa folds the manifest into her sleeve. 'The runners will remember this. So will the families.' She presses a flat courier's satchel into your hands, its hidden pockets already heavy with a few coins.",
+      "effect": [
+        {"type": "remove_item", "item": "Cargo Manifest"},
+        {"type": "adjust_reputation", "faction": "underroad_smugglers", "amount": 8},
+        {"type": "add_item", "item": "Runner's Satchel"},
+        {"type": "complete_quest", "quest": "quiet_cargo"}
+      ],
+      "options": [
+        ["See that they get it.", null]
+      ]
+    },
+    "quiet_cargo_violet": {
+      "text": "Nessa listens, then nods once. 'The Watch healer is fair. She will make sure the medicine is logged, not lost.' A runner carries the manifest into the market, and Violet's people send back a purse and a receipt stamped with the Watch seal.",
+      "effect": [
+        {"type": "remove_item", "item": "Cargo Manifest"},
+        {"type": "adjust_reputation", "faction": "violet_watch", "amount": 8},
+        {"type": "add_gold", "amount": 100},
+        {"type": "complete_quest", "quest": "quiet_cargo"}
+      ],
+      "options": [
+        ["The Watch owes the tunnel that much.", null]
+      ]
+    },
+    "quiet_cargo_mirt": {
+      "text": "Nessa laughs without much humour. 'Mirt will sell the route back to us before the ink dries. Still, coin spends the same.' The manifest disappears into Mirt's network, and a heavy purse arrives before the next bell.",
+      "effect": [
+        {"type": "remove_item", "item": "Cargo Manifest"},
+        {"type": "adjust_reputation", "faction": "mirt_network", "amount": 8},
+        {"type": "add_gold", "amount": 100},
+        {"type": "complete_quest", "quest": "quiet_cargo"}
+      ],
+      "options": [
+        ["Business is business.", null]
+      ]
+    },
+    "quiet_cargo_done": {
+      "text": "Nessa is counting crates with two other runners. 'The tunnel families have medicine again. The Watch has its paperwork. Mirt has his cut, if that is the road you chose. The Underroad remembers who moved the cargo.'",
+      "options": [
+        ["Keep the tunnel open.", null]
+      ]
+    }
   }
 } 

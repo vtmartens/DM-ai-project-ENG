@@ -86,5 +86,13 @@
     "value": 400,
     "rarity": "legendary",
     "description": "A heart-shaped rune of living stone, still warm with the sanctum's power"
+  },
+  {
+    "name": "Runner's Satchel",
+    "type": "accessory",
+    "effect": {"defense": 1, "dexterity": 1},
+    "value": 160,
+    "rarity": "rare",
+    "description": "A flat courier's satchel with hidden pockets and a reinforced strap"
   }
 ]

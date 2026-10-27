@@ -721,5 +721,25 @@
     "magical": false,
     "condition": {"id": "blinded", "turns": 2},
     "token": "T"
+  },
+  {
+    "name": "Watch Impound Wagon",
+    "type": "chest",
+    "description": "A canvas-covered Watch wagon with a false bottom beneath the driver's bench.",
+    "state": "closed",
+    "requires_key": false,
+    "hidden": true,
+    "detection_dc": 13,
+    "provides_cover": true,
+    "token": "Q",
+    "content": [
+      {
+        "name": "Cargo Manifest",
+        "type": "document",
+        "effect": {},
+        "value": 55,
+        "description": "A Watch impound manifest listing medicine, lamp oil and blankets bound for the Underroad"
+      }
+    ]
   }
 ]

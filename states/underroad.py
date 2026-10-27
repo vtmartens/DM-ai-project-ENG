@@ -19,7 +19,13 @@ class UnderroadState(BaseGameState):
     def available_actions(self, game=None):
         game = game or getattr(self, "game", None)
         if game is not None and self._cleared(game.player):
-            return ["confront", "cache", "sanctum", "leave"]
+            return [
+                "confront",
+                "cache",
+                "sanctum",
+                "talk to Nessa",
+                "leave",
+            ]
         return ["confront", "cache", "leave"]
 
     def run(self, game):
@@ -96,6 +102,7 @@ class UnderroadState(BaseGameState):
         game.io.show_message("3. Return to the waystation")
         if cleared:
             game.io.show_message("4. Enter the Sealed Sanctum")
+            game.io.show_message("5. Speak with Nessa")
 
         choice = str(
             game.io.request_input("\nChoice: ") or ""
@@ -120,6 +127,15 @@ class UnderroadState(BaseGameState):
                 return
         elif choice in {"4", "sanctum", "sealed", "ward"}:
             if self._enter_sanctum(game):
+                return
+        elif choice in {
+            "5",
+            "nessa",
+            "talk to nessa",
+            "speak with nessa",
+            "talk",
+        }:
+            if self._talk_to_nessa(game):
                 return
         elif choice in {"3", "leave", "return", "waystation", "exit"}:
             self._leave(game)
@@ -210,6 +226,21 @@ class UnderroadState(BaseGameState):
         from states.sanctum import SanctumState
 
         game.change_state(SanctumState(game))
+        return True
+
+    def _talk_to_nessa(self, game):
+        """Opens the surviving runner's dialogue from the cleared tunnel."""
+        if not self._cleared(game.player):
+            game.io.show_message(
+                "The tunnel is still held by the smugglers. No one is "
+                "waiting to talk."
+            )
+            return False
+
+        from entities.npc import NPC
+        from states.dialogue import DialogueState
+
+        game.push_state(DialogueState(NPC("Nessa")))
         return True
 
     def _leave(self, game):

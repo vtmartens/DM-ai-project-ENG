@@ -57,6 +57,10 @@
     {
       "name": "Merchant's Lockbox",
       "position": [5, 9]
+    },
+    {
+      "name": "Watch Impound Wagon",
+      "position": [23, 8]
     }
   ],
   "cellar": [
