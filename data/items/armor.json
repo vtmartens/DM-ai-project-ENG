@@ -40,5 +40,13 @@
     "effect": {"defense": 5},
     "value": 70,
     "description": "Armor made of small overlapping metal scales"
+  },
+  {
+    "name": "Rune-Ward Plate",
+    "type": "armor",
+    "effect": {"defense": 8, "intelligence": 1},
+    "value": 500,
+    "rarity": "legendary",
+    "description": "Black sanctum plate inlaid with ward-runes that turn aside blade and spell alike"
   }
 ] 

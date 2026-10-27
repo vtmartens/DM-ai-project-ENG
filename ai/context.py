@@ -192,6 +192,10 @@ def build_context(game, memory=None) -> dict[str, Any]:
     if best or runs:
         context["rune_trials"] = {"best": best, "runs": runs}
 
+    shards = int(getattr(player, "rune_shards", 0) or 0)
+    if shards:
+        context["rune_shards"] = shards
+
     combat = _combat_context(game)
     if combat:
         context["combat"] = combat

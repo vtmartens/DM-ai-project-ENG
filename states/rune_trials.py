@@ -1,6 +1,7 @@
 """Repeatable post-campaign Rune Trials arena."""
 
 from core.achievements import record_event
+from core.crafting import add_rune_shards
 from core.quests import build_ally_party
 from core.trials import (
     apply_boon,
@@ -9,6 +10,7 @@ from core.trials import (
     completion_reward,
     get_boon,
     max_waves,
+    wave_definition,
 )
 from states.base_state import BaseGameState
 from states.combat import CombatState
@@ -156,6 +158,10 @@ class RuneTrialsState(BaseGameState):
             int(getattr(player, "rune_trials_best", 0) or 0),
             self.wave,
         )
+        wave = wave_definition(self.wave) or {}
+        wave_shards = int(wave.get("rune_shards", 0) or 0)
+        if wave_shards:
+            add_rune_shards(player, wave_shards, game)
         record_event(player, "rune_trials_updated", game=game)
 
         if self.wave >= limit:
@@ -165,10 +171,13 @@ class RuneTrialsState(BaseGameState):
             reward = completion_reward()
             gold = int(reward.get("gold", 0) or 0)
             experience = int(reward.get("experience", 0) or 0)
+            shards = int(reward.get("rune_shards", 0) or 0)
             if gold:
                 player.add_gold(gold, game)
             if experience:
                 player.gain_experience(experience, game)
+            if shards:
+                add_rune_shards(player, shards, game)
             game.io.show_message(
                 "\nThe Rune Trials are complete. The sanctum's light "
                 "settles, and the gate waits for another run."

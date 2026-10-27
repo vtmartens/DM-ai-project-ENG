@@ -517,6 +517,7 @@ def test_rune_trial_definitions_are_well_formed():
         assert int(reward.get("gold", 0)) >= 0, wave
         assert int(reward.get("experience", 0)) >= 0, wave
         assert reward.get("gold") or reward.get("experience"), wave
+        assert int(wave.get("rune_shards", 0)) >= 0, wave
         for spec in wave.get("enemies", []) or []:
             assert spec.get("monster_type") in monsters, spec
 
@@ -531,6 +532,25 @@ def test_rune_trial_definitions_are_well_formed():
             "mana",
             "clear_conditions",
         }, boon
+
+
+def test_crafting_recipes_are_well_formed():
+    recipes = _load(ROOT / "data" / "crafting" / "recipes.json")
+    items = {
+        item["name"]
+        for file_name in INVENTORY_FILES
+        for item in _load(ITEMS_DIR / file_name)
+    }
+
+    assert recipes
+    for recipe_id, recipe in recipes.items():
+        assert recipe.get("id") == recipe_id
+        assert recipe.get("name")
+        assert recipe.get("description")
+        assert int(recipe.get("shards", 0)) >= 1
+        assert int(recipe.get("gold", 0)) >= 0
+        assert recipe.get("result") in items, recipe_id
+        assert isinstance(recipe.get("unique", False), bool)
 
 
 def test_encounter_definitions_are_well_formed():

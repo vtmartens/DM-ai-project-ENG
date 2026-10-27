@@ -83,6 +83,11 @@ const el = {
   closeBountyModal: document.getElementById("close-bounty-modal"),
   bountyMeta: document.getElementById("bounty-meta"),
   bountyList: document.getElementById("bounty-list"),
+  showForge: document.getElementById("show-forge"),
+  forgeModal: document.getElementById("forge-modal"),
+  closeForgeModal: document.getElementById("close-forge-modal"),
+  forgeMeta: document.getElementById("forge-meta"),
+  forgeList: document.getElementById("forge-list"),
   askHint: document.getElementById("ask-hint"),
   showRecap: document.getElementById("show-recap"),
   mapModal: document.getElementById("map-modal"),
@@ -363,6 +368,7 @@ function clearSession() {
   store.achievements = [];
   closeMapModal();
   closeLoadModal();
+  closeForgeModal();
   refreshSaves();
 }
 
@@ -421,6 +427,10 @@ function renderState(state) {
     state.state === "TavernState" || state.state === "BountyBoardState";
   el.showBounties.classList.toggle("hidden", !inTavern);
   if (!inTavern && activeModal === el.bountyModal) closeBountyModal();
+
+  const inForge = state.state === "ForgeState";
+  el.showForge.classList.toggle("hidden", !inForge);
+  if (!inForge && activeModal === el.forgeModal) closeForgeModal();
 }
 
 function applyState(state) {
@@ -1196,6 +1206,7 @@ function setBusy(busy, status = "") {
   if (el.showRecap) el.showRecap.disabled = busy;
   if (el.showShop) el.showShop.disabled = busy;
   if (el.showBounties) el.showBounties.disabled = busy;
+  if (el.showForge) el.showForge.disabled = busy;
   el.commandStatus.textContent = status;
 }
 
@@ -1562,6 +1573,112 @@ function closeBountyModal() {
   closeModal(el.bountyModal);
 }
 
+async function showForge() {
+  if (!store.sessionId || store.busy) return;
+  try {
+    const data = await api(
+      `/forge?session_id=${encodeURIComponent(store.sessionId)}`
+    );
+    renderForge(data);
+    openModal(el.forgeModal);
+  } catch (error) {
+    showToast(error.message, "error");
+  }
+}
+
+function closeForgeModal() {
+  closeModal(el.forgeModal);
+}
+
+function renderForge(data) {
+  const shards = Number(data?.shards || 0);
+  const gold = Number(data?.gold || 0);
+  el.forgeMeta.textContent = `Rune Shards: ${shards} · Gold: ${gold}`;
+  el.forgeList.innerHTML = "";
+
+  const recipes = data?.recipes || [];
+  if (!recipes.length) {
+    const note = document.createElement("p");
+    note.className = "empty-note";
+    note.textContent = "The forge has no recipes.";
+    el.forgeList.appendChild(note);
+    return;
+  }
+
+  for (const recipe of recipes) {
+    const row = document.createElement("div");
+    row.className = "shop-entry";
+    const info = document.createElement("div");
+    info.className = "shop-info";
+    const name = document.createElement("strong");
+    name.textContent = recipe.name || recipe.id || "Recipe";
+    const meta = document.createElement("p");
+    meta.className = "shop-meta";
+    meta.textContent = `${recipe.shards} shards · ${recipe.gold} gold → ${
+      recipe.result || "item"
+    }`;
+    info.append(name, meta);
+    if (recipe.description) {
+      const description = document.createElement("p");
+      description.className = "shop-description";
+      description.textContent = recipe.description;
+      info.appendChild(description);
+    }
+    if (recipe.reasons?.length) {
+      const reasons = document.createElement("p");
+      reasons.className = "shop-meta";
+      reasons.textContent = recipe.reasons.join(" · ");
+      info.appendChild(reasons);
+    }
+
+    const action = document.createElement("div");
+    action.className = "shop-action";
+    const status = document.createElement("span");
+    status.className = "shop-price";
+    status.textContent = recipe.crafted ? "Forged" : recipe.unique ? "Unique" : "Repeatable";
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "primary small";
+    button.textContent = recipe.crafted ? "Forged" : "Craft";
+    button.disabled = !recipe.can_craft;
+    if (!recipe.can_craft && recipe.reasons?.length) {
+      button.title = recipe.reasons.join("; ");
+    }
+    button.addEventListener("click", () => forgeAction(recipe.id));
+    action.append(status, button);
+    row.append(info, action);
+    el.forgeList.appendChild(row);
+  }
+}
+
+async function forgeAction(recipeId) {
+  if (!store.sessionId || store.busy) return;
+
+  store.busy = true;
+  setBusy(true, "Working the Rune Forge…");
+  try {
+    const data = await api("/forge/craft", {
+      method: "POST",
+      body: { session_id: store.sessionId, recipe_id: recipeId },
+    });
+    appendOutput(data.output);
+    if (data.state) applyState(data.state);
+    if (data.forge) renderForge(data.forge);
+    if (data.message) {
+      showToast(data.message, data.crafted ? "success" : "error");
+    }
+    refreshSidePanels(data.state);
+  } catch (error) {
+    showToast(error.message, "error");
+    if (error.status === 404) {
+      clearSession();
+    }
+  } finally {
+    store.busy = false;
+    setBusy(false, "");
+  }
+}
+
 function renderBounties(data) {
   const gold = Number(data?.gold || 0);
   const active = Number(data?.active_count || 0);
@@ -1903,12 +2020,14 @@ function bindEvents() {
   el.showMap.addEventListener("click", showMapView);
   el.showShop.addEventListener("click", showShop);
   el.showBounties.addEventListener("click", showBountyBoard);
+  el.showForge.addEventListener("click", showForge);
   el.askHint.addEventListener("click", askHint);
   el.showRecap.addEventListener("click", showRecap);
   el.closeLoadModal.addEventListener("click", closeLoadModal);
   el.closeMapModal.addEventListener("click", closeMapModal);
   el.closeShopModal.addEventListener("click", closeShopModal);
   el.closeBountyModal.addEventListener("click", closeBountyModal);
+  el.closeForgeModal.addEventListener("click", closeForgeModal);
   el.loadModal.addEventListener("click", (event) => {
     if (event.target === el.loadModal) closeLoadModal();
   });
@@ -1920,6 +2039,9 @@ function bindEvents() {
   });
   el.bountyModal.addEventListener("click", (event) => {
     if (event.target === el.bountyModal) closeBountyModal();
+  });
+  el.forgeModal.addEventListener("click", (event) => {
+    if (event.target === el.forgeModal) closeForgeModal();
   });
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {

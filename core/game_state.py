@@ -294,6 +294,36 @@ class GameState:
             "reputation": self.get_reputation_state(),
         }
 
+    def get_forge_state(self):
+        """Returns the Sanctum Forge recipes and current resources."""
+        from core.crafting import recipe_entries, rune_shards
+        from states.forge import ForgeState
+
+        current = self.game.current_state()
+        if not isinstance(current, ForgeState):
+            return None
+        player = self.game.player
+        return {
+            "shards": rune_shards(player),
+            "gold": int(getattr(player, "gold", 0) or 0),
+            "recipes": recipe_entries(player),
+        }
+
+    def forge_craft(self, recipe_id):
+        """Crafts one recipe and records its engine output."""
+        from core.crafting import craft_recipe
+        from states.forge import ForgeState
+
+        current = self.game.current_state()
+        if not isinstance(current, ForgeState):
+            return {"success": False, "message": "The forge is not available."}
+
+        self.io_buffer.clear()
+        result = craft_recipe(self.game.player, recipe_id, self.game)
+        self.io_buffer.flush()
+        self._record_output()
+        return result
+
     def shop_buy(self, item_name):
         """Buys a market item and records its engine output."""
         from core.shop import buy_item
@@ -543,6 +573,7 @@ class GameState:
             "ac": getattr(player, "armor_class", 10),
             "attack_bonus": getattr(player, "attack_bonus", 0),
             "stealthed": bool(getattr(player, "stealthed", False)),
+            "rune_shards": int(getattr(player, "rune_shards", 0) or 0),
         }
 
     def get_abilities(self):
@@ -710,6 +741,9 @@ class GameState:
                     getattr(self.game.player, "rune_trials_runs", 0) or 0
                 ),
             },
+            "rune_shards": int(
+                getattr(self.game.player, "rune_shards", 0) or 0
+            ),
             "preferences": dict(self.preferences),
             "combat": self.get_combat_state(),
             "dialogue": self.get_dialogue_state(),

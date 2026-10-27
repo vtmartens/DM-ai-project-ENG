@@ -94,6 +94,9 @@ You can also set `localStorage["dm_api_base"]`.
 - **Reputation** panel driven by `state.reputation` / `GET /reputation`, showing each
   faction's standing, tier and description. Mirt's Network discounts are also shown in the
   Shop modal's gold line.
+- **Forge** button in the Sanctum opens a focus-trapped modal (`GET /forge`,
+  `POST /forge/craft`) listing recipes, Rune Shard/gold costs, requirements and one-time
+  forged status.
 - **Hint** button (`POST /hint`) that appends a Dungeon Master hint to the log. The engine
   always supplies a deterministic hint; when AI narration is enabled the model may rephrase
   it, and any failure falls back to the engine wording.

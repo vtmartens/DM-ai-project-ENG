@@ -24,7 +24,7 @@ class SanctumState(BaseGameState):
         if not self._ward_passed(game.player):
             return ["amulet", "force", "leave"]
         if self._cleared(game.player):
-            return ["vault", "trials", "leave"]
+            return ["vault", "trials", "forge", "leave"]
         return ["confront", "vault", "leave"]
 
     def run(self, game):
@@ -216,6 +216,7 @@ class SanctumState(BaseGameState):
         game.io.show_message("3. Return to the Underroad")
         if cleared:
             game.io.show_message("4. Enter the Rune Trials")
+            game.io.show_message("5. Use the Rune Forge")
 
         choice = str(
             game.io.request_input("\nChoice: ") or ""
@@ -232,6 +233,9 @@ class SanctumState(BaseGameState):
             return
         elif choice in {"4", "trials", "trial", "rune trials"}:
             if self._enter_trials(game):
+                return
+        elif choice in {"5", "forge", "craft", "rune forge"}:
+            if self._enter_forge(game):
                 return
         else:
             game.io.show_message("Invalid choice.")
@@ -369,6 +373,20 @@ class SanctumState(BaseGameState):
         from states.rune_trials import RuneTrialsState
 
         game.change_state(RuneTrialsState(game))
+        return True
+
+    def _enter_forge(self, game):
+        if not self._cleared(game.player):
+            game.io.show_message(
+                "The forge is cold. Defeat the Rune Warden first."
+            )
+            return False
+        game.io.show_message(
+            "You approach the Rune Forge. Shards hum in the black basin."
+        )
+        from states.forge import ForgeState
+
+        game.change_state(ForgeState(game))
         return True
 
     def _leave(self, game):

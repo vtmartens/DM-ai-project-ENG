@@ -119,6 +119,7 @@ a server restart. A stale `session_id` returns `404`.
     "shop_discount": 0
   },
   "rune_trials": {"best": 0, "runs": 0},
+  "rune_shards": 0,
   "preferences": {},
   "combat": {"in_combat": false},
   "dialogue": {"active": false}
@@ -582,6 +583,46 @@ Sells a non-equipped inventory item for half its value. Returns `output`, `state
 Both shop actions are also available as normal commands, for example `buy Chainmail` or
 `shop` to browse the numbered stock list.
 
+#### `GET /forge?session_id=...`
+
+Available while the current state is `ForgeState` inside the cleared Sanctum. Returns the
+player's Rune Shards, gold and recipe list:
+
+```json
+{
+  "shards": 5,
+  "gold": 80,
+  "recipes": [
+    {
+      "id": "rune_draught",
+      "name": "Rune Draught",
+      "description": "Brew a restorative rune-water potion.",
+      "shards": 2,
+      "gold": 20,
+      "result": "Rune Draught",
+      "unique": false,
+      "crafted": false,
+      "can_craft": true,
+      "reasons": []
+    }
+  ]
+}
+```
+
+Recipes live in `data/crafting/recipes.json`. `reasons` explains insufficient shards/gold
+or an already-forged unique item.
+
+#### `POST /forge/craft`
+
+```json
+{"session_id": "uuid", "recipe_id": "rune_draught"}
+```
+
+Returns `output`, `state`, `crafted`, `message` and the refreshed `forge` object. Successful
+crafts consume shards and gold, add the result item and mark unique recipes with a
+`crafted:<recipe_id>` reward flag. Outside `ForgeState`, `/forge` and `/forge/craft` return
+`409`.
+
 #### `GET /bounties?session_id=...`
 
 Returns the tavern bounty board. Only available in `TavernState` or `BountyBoardState`;
@@ -751,6 +792,8 @@ After the Underroad is cleared and its cache has been claimed, the Underroad men
 - `vault` opens the Runeheart vault once for 120 gold and a choice: keep the unique
   Runeheart Amulet, give it to Mirt for +12 Mirt's Network standing and an extra 200 gold,
   or give it to Violet for +12 Violet's Watch standing and an extra 100 gold.
+- `trials` opens the repeatable Rune Trials endgame.
+- `forge` opens the Rune Forge crafting state.
 - `leave` returns to the Underroad.
 
 `/available_actions` reflects the current phase (`amulet`/`force` before the ward, then
@@ -766,9 +809,11 @@ After clearing the Sanctum, the cleared Sanctum menu offers **Enter the Rune Tri
 
 - Five escalating waves built from existing monsters.
 - Data-driven modifiers (`Empowered`, `Warded`, `Frenzied`) adjust enemy HP, damage or AC.
+- Each wave awards Rune Shards, and a full clear adds completion shards.
 - After each non-final victory, choose one boon: restore HP, restore mana or clear
   conditions.
 - `state.rune_trials.best` tracks the deepest wave reached; `runs` counts full clears.
+  `state.rune_shards` is the crafting currency.
 - A completed run grants the trial completion reward and unlocks the Rune Trials Adept and
   Champion achievements. A defeat or flight ends the current run but preserves best depth.
 
@@ -811,9 +856,10 @@ market it includes `shop`, `buy` and `sell`, which drive the shop modal and the 
 terminal shop. The map advertises `search`, `sneak` and its four movement directions. The waystation
 advertises `confront`, `strongbox`, `rest`, `underroad` and `leave`; the Underroad advertises
 `confront`, `cache` and `leave`, adding `sanctum` after the area is cleared; the Sealed
-Sanctum advertises its current `amulet`/`force` or `confront`/`vault`/`trials` actions; the
-Rune Trials advertise `begin`/`leave`, then their current boons; the bounty board advertises
-`accept`, `claim` and `leave`; the Rune Pillar advertises `study` and `leave`.
+Sanctum advertises its current `amulet`/`force` or `confront`/`vault`/`trials`/`forge`
+actions; the Rune Trials advertise `begin`/`leave`, then their current boons; the Rune Forge
+advertises its recipe ids and `leave`; the bounty board advertises `accept`, `claim` and
+`leave`; the Rune Pillar advertises `study` and `leave`.
 Bounty contracts are ordinary quests with `bounty: true` and `repeatable: true`, so their
 progress and ready state appear in `GET /missions` and the web quest panel. Claimed bounties
 return to the available list, while only the latest completion record is kept.

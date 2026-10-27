@@ -1083,6 +1083,21 @@ entirely. The doors that existed were also misaligned with the map exits.
 - Tests cover context fields, faction/campaign/trial recap text, combat condition hints and
   the existing no-AI fallback paths. 602 tests pass.
 
+## Rune-forged crafting (2026-10-27)
+
+- Added `Player.rune_shards`, awarded by every Rune Trial wave and the full-clear bonus.
+  Shards persist through save/load and are exposed in `/state`, the player summary and AI
+  context/recap.
+- Added `data/crafting/recipes.json` and `core/crafting.py`: repeatable Rune Draught plus
+  unique Rune-Forged Blade and Rune-Ward Plate recipes. Unique crafts record
+  `crafted:<recipe_id>` in `claimed_rewards`.
+- Added the `ForgeState` Sanctum station with a numbered recipe menu, costs, requirements
+  and one-time status, plus `GET /forge` and `POST /forge/craft`.
+- Added a focus-trapped Forge modal to the web client; assets are at `v=35`.
+- Added legendary crafted items to the weapon/armor data and a rare Rune Draught potion.
+- Tests cover recipe data, resource consumption, unique-once crafting, missing resources,
+  shard persistence, Sanctum access and the forge API. 613 tests pass.
+
 ## Deliberate translation choices worth knowing
 
 - **`hp_base` / `mana_base` were left as-is.** They are consistent between code and JSON

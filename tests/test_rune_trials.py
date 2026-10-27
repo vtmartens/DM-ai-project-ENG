@@ -105,6 +105,7 @@ def test_wave_victory_advances_to_a_boon(recording_io):
     assert isinstance(game.current_state(), RuneTrialsState)
     assert state.phase == "boon"
     assert player.rune_trials_best == 1
+    assert player.rune_shards == 2
     assert "Choose a boon" in recording_io.text
 
 
@@ -157,6 +158,7 @@ def test_completing_all_waves_grants_rewards_and_achievements(recording_io):
     assert player.rune_trials_best == max_waves()
     assert player.rune_trials_runs == 1
     assert player.gold == before_gold + 250
+    assert player.rune_shards == 10
     assert "rune_trials_adept" in player.achievements
     assert "rune_trials_champion" in player.achievements
 

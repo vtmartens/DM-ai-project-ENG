@@ -54,5 +54,13 @@
     "effect": {"escape": true},
     "value": 15,
     "description": "Creates a cloud of smoke that makes it easier to flee"
+  },
+  {
+    "name": "Rune Draught",
+    "type": "heal",
+    "effect": {"heal": 30},
+    "value": 90,
+    "rarity": "rare",
+    "description": "A shimmering potion of rune-water that restores 30 hit points"
   }
 ] 

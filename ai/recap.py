@@ -248,6 +248,10 @@ def build_recap(game, memory=None, events=None) -> str:
     if trials_summary:
         parts.append(trials_summary)
 
+    shards = int(getattr(player, "rune_shards", 0) or 0)
+    if shards:
+        parts.append(f"Rune Shards: {shards}.")
+
     if level >= 10:
         parts.append("Class capstone unlocked.")
 

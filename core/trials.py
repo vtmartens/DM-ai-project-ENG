@@ -127,6 +127,7 @@ def build_trial_wave(number):
         "enemies": enemies,
         "source": "rune_trials",
         "wave": int(number),
+        "rune_shards": max(0, int(wave.get("rune_shards", 0) or 0)),
         "modifier": modifier,
     }
 

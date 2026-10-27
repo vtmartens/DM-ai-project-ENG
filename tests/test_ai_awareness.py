@@ -28,6 +28,7 @@ def _game(recording_io):
     player.cleared_areas = ["sanctum"]
     player.rune_trials_best = 4
     player.rune_trials_runs = 1
+    player.rune_shards = 6
     game = Game(player, None, recording_io, temporary=True)
     game.set_initial_map("tavern")
     start_quest(player, "shadows_of_the_market", game)
@@ -59,6 +60,7 @@ def test_context_includes_world_quests_factions_campaign_and_trials(recording_io
         "sanctum_complete": True,
     }
     assert context["rune_trials"] == {"best": 4, "runs": 1}
+    assert context["rune_shards"] == 6
     assert context["combat"]["covering"] is True
     assert context["combat"]["flanking"] is True
     assert context["combat"]["target"] == "Training Dummy"
@@ -75,6 +77,7 @@ def test_recap_includes_factions_campaign_trials_and_capstone(recording_io):
     assert "Runeheart choice: you gave the Runeheart to Mirt." in recap
     assert "The Sealed Sanctum is complete." in recap
     assert "Best Rune Trial depth: wave 4 (1 completed run)." in recap
+    assert "Rune Shards: 6." in recap
     assert "Class capstone unlocked." in recap
 
 

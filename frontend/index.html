@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark light">
   <title>DM AI — Dungeon Master</title>
-  <link rel="stylesheet" href="styles.css?v=34">
+  <link rel="stylesheet" href="styles.css?v=35">
 </head>
 <body>
   <a class="skip-link" href="#main-content">Skip to content</a>
@@ -133,6 +133,7 @@
               <button id="show-map" class="ghost small" type="button">Map</button>
               <button id="show-shop" class="ghost small hidden" type="button" title="Browse the market" aria-label="Browse the market">Shop</button>
               <button id="show-bounties" class="ghost small hidden" type="button" title="Open the bounty board" aria-label="Open the bounty board">Bounties</button>
+              <button id="show-forge" class="ghost small hidden" type="button" title="Open the Rune Forge" aria-label="Open the Rune Forge">Forge</button>
               <button id="ask-hint" class="ghost small" type="button" title="Ask the Dungeon Master for a hint" aria-label="Ask the Dungeon Master for a hint">Hint</button>
               <button id="show-recap" class="ghost small" type="button" title="Recap the story so far" aria-label="Recap the story so far">Recap</button>
               <button id="save-game" class="ghost small" type="button">Save</button>
@@ -210,8 +211,20 @@
     </div>
   </div>
 
+  <!-- Rune Forge modal -->
+  <div id="forge-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="forge-modal-title">
+    <div class="modal-card card">
+      <div class="card-header">
+        <h2 id="forge-modal-title">Rune Forge</h2>
+        <button id="close-forge-modal" class="ghost small" type="button">Close</button>
+      </div>
+      <p id="forge-meta" class="muted"></p>
+      <div id="forge-list" class="shop-list"></div>
+    </div>
+  </div>
+
   <div id="toast" class="toast hidden" role="status"></div>
 
-  <script src="app.js?v=34"></script>
+  <script src="app.js?v=35"></script>
 </body>
 </html>

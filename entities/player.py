@@ -53,6 +53,7 @@ class Player(Entity):
         self.reputation = {}
         self.rune_trials_best = 0
         self.rune_trials_runs = 0
+        self.rune_shards = 0
         self.allies = []
         self.defeats = 0
         self.cleared_areas = []
@@ -534,6 +535,7 @@ class Player(Entity):
             "rune_trials_runs": int(
                 getattr(self, "rune_trials_runs", 0) or 0
             ),
+            "rune_shards": int(getattr(self, "rune_shards", 0) or 0),
             "allies": list(getattr(self, "allies", [])),
             "defeats": int(getattr(self, "defeats", 0) or 0),
             "cleared_areas": list(getattr(self, "cleared_areas", [])),
@@ -618,6 +620,7 @@ class Player(Entity):
         player.rune_trials_runs = int(
             data.get("rune_trials_runs", 0) or 0
         )
+        player.rune_shards = int(data.get("rune_shards", 0) or 0)
         player.allies = list(data.get("allies", []))
         player.defeats = int(data.get("defeats", 0) or 0)
         player.cleared_areas = list(data.get("cleared_areas", []) or [])

@@ -180,7 +180,7 @@ Narration, hints and recaps share one compact serializable context:
 - conditions
 - faction standing and the current merchant discount, when nonzero
 - campaign flags such as the Sanctum clear, Runeheart choice and quest completion
-- Rune Trials best depth and completed runs
+- Rune Trials best depth, completed runs and Rune Shard count
 - active combat round, target, enemies, allies, Cover and Flanking
 - nearby item/NPC names and bounded recent-event memory
 

@@ -133,6 +133,8 @@ def home():
             "GET /shop": "Get the market stock and sellable inventory",
             "POST /shop/buy": "Buy a market item",
             "POST /shop/sell": "Sell an inventory item",
+            "GET /forge": "Get the Sanctum Forge recipes",
+            "POST /forge/craft": "Craft a Rune Shard recipe",
             "GET /bounties": "Get the tavern bounty board",
             "POST /bounties/accept": "Accept a bounty contract",
             "POST /bounties/claim": "Claim a ready bounty contract",
@@ -827,8 +829,9 @@ def get_available_actions():
             "leave",
         ],
         "underroad": ["confront", "cache", "sanctum", "leave"],
-        "sanctum": ["amulet", "force", "confront", "vault", "trials", "leave"],
+        "sanctum": ["amulet", "force", "confront", "vault", "trials", "forge", "leave"],
         "rune_trials": ["begin", "leave"],
+        "forge": ["rune_draught", "rune_forged_blade", "rune_ward_plate", "leave"],
         "bounty_board": ["accept", "claim", "leave"],
         "rune_pillar": ["study", "leave"],
         "road_event": ["leave"],
@@ -871,6 +874,14 @@ def get_available_actions():
             chooser()
             if callable(chooser)
             else actions_context["rune_trials"]
+        )
+    elif state_name == "ForgeState":
+        forge = session.game.current_state()
+        chooser = getattr(forge, "available_actions", None)
+        actions = (
+            chooser()
+            if callable(chooser)
+            else actions_context["forge"]
         )
     elif state_name == "BountyBoardState":
         actions = actions_context["bounty_board"]
@@ -963,6 +974,49 @@ def shop_sell():
         "message": result.get("message", ""),
         "shop": session.get_shop_state(),
     })
+
+@app.route("/forge", methods=["GET"])
+def get_forge():
+    """Get the Sanctum Forge recipes and resources."""
+    session_id = request.args.get("session_id")
+    session, error = get_session_or_error(session_id)
+    if error:
+        return error
+
+    forge = session.get_forge_state()
+    if forge is None:
+        return jsonify(
+            {"error": "The Rune Forge is only available in the Sanctum."}
+        ), 409
+    return jsonify(forge)
+
+
+@app.route("/forge/craft", methods=["POST"])
+def craft_at_forge():
+    """Craft one recipe at the Sanctum Forge."""
+    data = request.json or {}
+    session_id = data.get("session_id")
+    recipe_id = data.get("recipe_id")
+    if not recipe_id:
+        return jsonify({"error": "Recipe ID not provided"}), 400
+
+    session, error = get_session_or_error(session_id)
+    if error:
+        return error
+
+    result = session.forge_craft(str(recipe_id))
+    save_session(session_id, session)
+    structured_output = session.io_buffer.get_structured_output()
+    session.io_buffer.clear()
+
+    return jsonify({
+        "output": structured_output,
+        "state": session.get_current_state(),
+        "crafted": bool(result.get("success")),
+        "message": result.get("message", ""),
+        "forge": session.get_forge_state(),
+    })
+
 
 @app.route("/bounties", methods=["GET"])
 def get_bounties():

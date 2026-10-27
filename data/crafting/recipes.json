@@ -1,0 +1,29 @@
+{
+  "rune_draught": {
+    "id": "rune_draught",
+    "name": "Rune Draught",
+    "description": "Brew a restorative rune-water potion.",
+    "shards": 2,
+    "gold": 20,
+    "result": "Rune Draught",
+    "unique": false
+  },
+  "rune_forged_blade": {
+    "id": "rune_forged_blade",
+    "name": "Rune-Forged Blade",
+    "description": "Forge a rune-edged weapon from a trial shard.",
+    "shards": 10,
+    "gold": 200,
+    "result": "Rune-Forged Blade",
+    "unique": true
+  },
+  "rune_ward_plate": {
+    "id": "rune_ward_plate",
+    "name": "Rune-Ward Plate",
+    "description": "Forge sanctum plate that turns aside blade and spell.",
+    "shards": 10,
+    "gold": 200,
+    "result": "Rune-Ward Plate",
+    "unique": true
+  }
+}

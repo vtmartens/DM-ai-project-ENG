@@ -1,6 +1,6 @@
 {
   "max_waves": 5,
-  "completion_reward": {"gold": 250, "experience": 500},
+  "completion_reward": {"gold": 250, "experience": 500, "rune_shards": 5},
   "modifiers": {
     "empowered": {
       "name": "Empowered",
@@ -44,6 +44,7 @@
       "title": "The First Gate",
       "description": "Two rune sentinels wake as the trial gate closes behind you.",
       "modifier": "empowered",
+      "rune_shards": 2,
       "reward": {"gold": 25, "experience": 80},
       "enemies": [
         {"monster_type": "rune_sentinel", "name": "Gate Sentinel A"},
@@ -54,6 +55,7 @@
       "title": "The Broken Company",
       "description": "Bandits and a lean wolf stalk the second hall.",
       "modifier": "frenzied",
+      "rune_shards": 3,
       "reward": {"gold": 35, "experience": 120},
       "enemies": [
         {"monster_type": "bandit", "name": "Trial Bandit A"},
@@ -65,6 +67,7 @@
       "title": "The Warded Hall",
       "description": "Three rune sentinels lock their shields across the hall.",
       "modifier": "warded",
+      "rune_shards": 3,
       "reward": {"gold": 50, "experience": 180},
       "enemies": [
         {"monster_type": "rune_sentinel", "name": "Ward Sentinel A"},
@@ -76,6 +79,7 @@
       "title": "The Smuggler's Echo",
       "description": "The trial remembers the Underroad: a smuggler lord and his runners stand in the smoke.",
       "modifier": "frenzied",
+      "rune_shards": 4,
       "reward": {"gold": 75, "experience": 260},
       "enemies": [
         {"monster_type": "smuggler_lord", "name": "Echo of the Smuggler Lord"},
@@ -87,6 +91,7 @@
       "title": "The Runeheart",
       "description": "The Rune Warden rises one last time, its heart burning through the dark.",
       "modifier": "empowered",
+      "rune_shards": 5,
       "reward": {"gold": 150, "experience": 600},
       "enemies": [
         {"monster_type": "rune_warden", "name": "Rune Warden Echo"},

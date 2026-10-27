@@ -64,5 +64,13 @@
     "value": 300,
     "rarity": "rare",
     "description": "A rune-etched blade that hums when the vault is disturbed"
+  },
+  {
+    "name": "Rune-Forged Blade",
+    "type": "weapon",
+    "effect": {"strength": 7, "dexterity": 1},
+    "value": 500,
+    "rarity": "legendary",
+    "description": "A blade folded around a Rune Trial shard, its edge bright with contained force"
   }
 ]
