@@ -70,6 +70,7 @@ const el = {
   loadGame: document.getElementById("load-game"),
   newGame: document.getElementById("new-game"),
   itemPanel: document.getElementById("item-panel"),
+  landmarkCard: document.getElementById("landmark-card"),
   loadModal: document.getElementById("load-modal"),
   closeLoadModal: document.getElementById("close-load-modal"),
   modalSavesList: document.getElementById("modal-saves-list"),
@@ -414,6 +415,7 @@ function renderState(state) {
   renderReputation(state.reputation || {});
   renderParty(state.party || {});
   renderCampaign(state.campaign || {});
+  renderLandmark(state.landmark || {});
 
   if (state.preferences?.theme && !localStorage.getItem(THEME_KEY)) {
     applyTheme(state.preferences.theme, true);
@@ -938,6 +940,58 @@ async function setPartyStance(allyName, stance) {
   } catch (error) {
     showToast(error.message, "error");
   }
+}
+
+function renderLandmark(data) {
+  if (!data?.active) {
+    el.landmarkCard.classList.add("hidden");
+    el.landmarkCard.innerHTML = "";
+    return;
+  }
+
+  el.landmarkCard.classList.remove("hidden");
+  el.landmarkCard.innerHTML = "";
+
+  const head = document.createElement("div");
+  head.className = "landmark-head";
+  const title = document.createElement("h3");
+  title.textContent = data.title || "Landmark";
+  head.appendChild(title);
+  el.landmarkCard.appendChild(head);
+
+  if (data.description) {
+    const description = document.createElement("p");
+    description.className = "landmark-description";
+    description.textContent = data.description;
+    el.landmarkCard.appendChild(description);
+  }
+
+  const statuses = document.createElement("div");
+  statuses.className = "tag-list";
+  for (const status of data.status || []) {
+    const tag = document.createElement("span");
+    tag.className = "tag";
+    tag.textContent = status;
+    statuses.appendChild(tag);
+  }
+  if (statuses.children.length) el.landmarkCard.appendChild(statuses);
+
+  const actions = document.createElement("div");
+  actions.className = "landmark-actions";
+  for (const action of data.actions || []) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "ghost small";
+    button.textContent = landmarkActionLabel(action);
+    button.addEventListener("click", () => sendCommand(action));
+    actions.appendChild(button);
+  }
+  if (actions.children.length) el.landmarkCard.appendChild(actions);
+}
+
+function landmarkActionLabel(action) {
+  const text = String(action || "").replace(/_/g, " ");
+  return text.replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
 function renderCampaign(data) {

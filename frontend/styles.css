@@ -371,6 +371,11 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
 }
 .condition-list .empty-note { padding: 0; background: none; border: 0; }
 
+.landmark-card { display: grid; gap: 8px; }
+.landmark-head h3 { margin: 0; }
+.landmark-description { margin: 0; color: var(--text-muted); font-size: 13px; line-height: 1.45; }
+.landmark-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+
 .party-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
 .party-list li { display: grid; gap: 5px; padding: 7px 8px; border-radius: 8px; background: var(--bg-input); border: 1px solid var(--border); }
 .party-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }

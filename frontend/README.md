@@ -93,6 +93,9 @@ You can also set `localStorage["dm_api_base"]`.
   active/ready/complete states, campaign completion, Runeheart choice, Rune Trials progress,
   Rune Shards, cycle number and capstone status. After campaign completion, the tavern offers
   **Begin a new cycle** in its numbered menu.
+- **Landmark** card driven by `state.landmark` / `GET /landmark`, showing a description,
+  status tags and action buttons for the Waystation, Underroad, Sanctum, Rune Trials and
+  Rune Forge. The numbered menus remain available in the log.
 - Achievements panel driven by `GET /achievements`, with an unlocked/total count, score,
   description and unlock date for each entry. Locked achievements stay visible as goals,
   and a toast announces new unlocks as they happen.

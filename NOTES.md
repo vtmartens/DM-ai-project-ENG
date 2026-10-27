@@ -1140,6 +1140,17 @@ entirely. The doors that existed were also misaligned with the map exits.
   cleansing, command parsing, party data, API updates and combat snapshot exposure. 631 tests
   pass.
 
+## Landmark panels (2026-10-27)
+
+- Added `GameState.get_landmark_state()` and `GET /landmark`. It reports the current
+  Waystation, Underroad, Sanctum, Rune Trials or Forge with a description, status entries and
+  the same action list as its numbered menu; non-landmark states return `active: false`.
+- Added `WaystationState.available_actions()` and included the landmark object in `/state`.
+- Added a client Landmark card with status tags and clickable action buttons, leaving the
+  terminal-style menus untouched. Assets are at `v=39`.
+- Tests cover each landmark's status/actions, inactive states, `/state` exposure, the API
+  endpoint and missing-session errors. 636 tests pass.
+
 ## Deliberate translation choices worth knowing
 
 - **`hp_base` / `mana_base` were left as-is.** They are consistent between code and JSON

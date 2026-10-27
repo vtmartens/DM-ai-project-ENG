@@ -272,6 +272,144 @@ class GameState:
         self._record_output()
         return used
 
+    def get_landmark_state(self):
+        """Returns a UI summary for the current menu-driven landmark."""
+        from core.trials import max_waves
+        from states.forge import ForgeState
+        from states.rune_trials import RuneTrialsState
+        from states.sanctum import SanctumState
+        from states.underroad import UnderroadState
+        from states.waystation import WaystationState
+
+        state = self.game.current_state()
+        name = type(state).__name__ if state else "NoneState"
+        player = self.game.player
+
+        chooser = getattr(state, "available_actions", None)
+        actions = []
+        if callable(chooser):
+            try:
+                actions = list(chooser(self.game))
+            except TypeError:
+                actions = list(chooser())
+
+        if isinstance(state, WaystationState):
+            cleared = state._is_cleared(player)
+            looted = state._is_looted(player)
+            status = [
+                "cleared" if cleared else "occupied",
+                "strongbox looted" if looted else "strongbox waiting",
+            ]
+            description = (
+                "The ruined waystation is quiet. The bandits are gone, and "
+                "the old strongbox waits beside the cold campfire."
+                if cleared
+                else "Bandits have fortified the ruined waystation. Their "
+                "chief holds court beside a cold campfire."
+            )
+            return {
+                "active": True,
+                "id": "waystation",
+                "title": "The Broken Waystation",
+                "description": description,
+                "status": status,
+                "actions": actions,
+            }
+
+        if isinstance(state, UnderroadState):
+            cleared = state._cleared(player)
+            looted = state._looted(player)
+            status = [
+                "cleared" if cleared else "smugglers active",
+                "cache looted" if looted else "cache waiting",
+            ]
+            description = (
+                "The smuggler tunnel is quiet now. Crates and old lanterns "
+                "line the walls."
+                if cleared
+                else "A low tunnel runs beneath the waystation. Shadowed "
+                "runners guard the route."
+            )
+            return {
+                "active": True,
+                "id": "underroad",
+                "title": "The Underroad",
+                "description": description,
+                "status": status,
+                "actions": actions,
+            }
+
+        if isinstance(state, SanctumState):
+            ward = state._ward_passed(player)
+            cleared = state._cleared(player)
+            looted = state._looted(player)
+            status = [
+                "ward passed" if ward else "warded threshold",
+                "cleared" if cleared else "Rune Warden standing",
+                "vault looted" if looted else "vault sealed",
+            ]
+            description = (
+                "The Rune Warden is still and the Runeheart vault waits in "
+                "the silence."
+                if cleared
+                else "A black threshold of interlocking runes fills the hall. "
+                "The Rune Warden waits beyond."
+            )
+            return {
+                "active": True,
+                "id": "sanctum",
+                "title": "The Sealed Sanctum",
+                "description": description,
+                "status": status,
+                "actions": actions,
+            }
+
+        if isinstance(state, RuneTrialsState):
+            limit = max_waves()
+            status = [
+                f"wave {state.wave} / {limit}"
+                if state.wave <= limit
+                else "all waves complete",
+                f"best wave {int(getattr(player, 'rune_trials_best', 0) or 0)}",
+            ]
+            if state.boons:
+                status.append("boons: " + ", ".join(state.boons))
+            description = (
+                "Rune-light circles the silent sanctum. Each victory offers "
+                "a boon before the next wave."
+                if state.wave <= limit
+                else "The trial gate is quiet. Another run waits."
+            )
+            return {
+                "active": True,
+                "id": "rune_trials",
+                "title": "The Rune Trials",
+                "description": description,
+                "status": status,
+                "actions": actions,
+            }
+
+        if isinstance(state, ForgeState):
+            from core.crafting import recipe_entries, rune_shards
+
+            recipes = recipe_entries(player)
+            status = [
+                f"{rune_shards(player)} Rune Shards",
+                f"{int(getattr(player, 'gold', 0) or 0)} gold",
+                f"{len(recipes)} recipes",
+            ]
+            return {
+                "active": True,
+                "id": "forge",
+                "title": "The Rune Forge",
+                "description": "Rune-light pools in a basin of black stone. "
+                "Shards can be worked into potions and living-metal gear.",
+                "status": status,
+                "actions": actions,
+            }
+
+        return {"active": False, "state": name}
+
     def get_party_state(self):
         """Returns recruited allies and their current stances."""
         from core.party import party_entries
@@ -871,6 +1009,7 @@ class GameState:
             "reputation": self.get_reputation_state(),
             "party": self.get_party_state(),
             "campaign": self.get_campaign_state(),
+            "landmark": self.get_landmark_state(),
             "rune_trials": {
                 "best": int(
                     getattr(self.game.player, "rune_trials_best", 0) or 0

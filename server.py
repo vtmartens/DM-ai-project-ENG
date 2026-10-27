@@ -152,6 +152,7 @@ def home():
             "GET /campaign": "Get main-story and endgame progress",
             "GET /party": "Get recruited allies and stances",
             "POST /party/stance": "Set a recruited ally's stance",
+            "GET /landmark": "Get the current landmark panel summary",
             "POST /hint": "Ask the Dungeon Master for a hint",
             "POST /recap": "Get a recap of the story so far",
             "GET /item_details": "Get details about a specific item",
@@ -1395,6 +1396,17 @@ def get_reputation():
         return error
 
     return jsonify(session.get_reputation_state())
+
+
+@app.route("/landmark", methods=["GET"])
+def get_landmark():
+    """Get the current menu-driven landmark summary."""
+    session_id = request.args.get("session_id")
+    session, error = get_session_or_error(session_id)
+    if error:
+        return error
+
+    return jsonify(session.get_landmark_state())
 
 
 @app.route("/campaign", methods=["GET"])

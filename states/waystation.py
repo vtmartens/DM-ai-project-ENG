@@ -14,6 +14,18 @@ class WaystationState(BaseGameState):
         self.phase = "main_menu"
         self.last_input = None
 
+    def available_actions(self, game=None):
+        game = game or getattr(self, "game", None)
+        if game is not None and self._is_cleared(game.player):
+            return [
+                "confront",
+                "strongbox",
+                "rest",
+                "underroad",
+                "leave",
+            ]
+        return ["confront", "strongbox", "rest", "leave"]
+
     def run(self, game):
         self._ensure_map(game)
         if self.phase == "main_menu":

@@ -122,6 +122,7 @@ a server restart. A stale `session_id` returns `404`.
   "rune_shards": 0,
   "cycle": 1,
   "party": {"allies": []},
+  "landmark": {"active": false, "state": "TavernState"},
   "preferences": {},
   "combat": {"in_combat": false},
   "dialogue": {"active": false}
@@ -1112,6 +1113,31 @@ Set `attack`, `guard` or `support`. Returns `output`, `state`, `changed` and the
 `Violet: attack`, `Violet: guard` and `Violet: support`, and `/combat` ally rows include
 `stance`/`stance_label`. Guard adds +1 AC to the player while the guarding ally lives;
 Support heals or clears one condition once per fight.
+
+#### `GET /landmark?session_id=...`
+
+Returns the UI summary for the current menu-driven landmark. Outside a landmark state:
+
+```json
+{"active": false, "state": "TavernState"}
+```
+
+Inside one:
+
+```json
+{
+  "active": true,
+  "id": "waystation",
+  "title": "The Broken Waystation",
+  "description": "The ruined waystation is quiet...",
+  "status": ["cleared", "strongbox waiting"],
+  "actions": ["confront", "strongbox", "rest", "underroad", "leave"]
+}
+```
+
+Landmark IDs are `waystation`, `underroad`, `sanctum`, `rune_trials` and `forge`. Status
+entries cover clear/loot/ward/wave/boon/shard state; actions are the same commands accepted by
+the corresponding state. The object is also included in `GET /state`.
 
 #### New Cycle
 
