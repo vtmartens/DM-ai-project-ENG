@@ -88,6 +88,9 @@ You can also set `localStorage["dm_api_base"]`.
   colour-coded tags and update after each action.
 - Quests panel driven by `GET /missions`, showing each active quest and its objective.
   Completed objectives change to “Ready to turn in — speak to …” until rewards are collected.
+- **Campaign** panel driven by `state.campaign` / `GET /campaign`, with seven chapter rows,
+  active/ready/complete states, campaign completion, Runeheart choice, Rune Trials progress,
+  Rune Shards and capstone status.
 - Achievements panel driven by `GET /achievements`, with an unlocked/total count, score,
   description and unlock date for each entry. Locked achievements stay visible as goals,
   and a toast announces new unlocks as they happen.

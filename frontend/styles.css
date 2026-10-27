@@ -383,6 +383,20 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
 .tag.reputation-trusted,
 .tag.reputation-allied { color: var(--success); border-color: color-mix(in srgb, var(--success) 45%, var(--border)); }
 
+.campaign-summary { margin: 0 0 7px; font-size: 12px; line-height: 1.35; }
+.campaign-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
+.campaign-chapter { display: grid; gap: 3px; padding: 7px 8px; border-radius: 8px; background: var(--bg-input); border: 1px solid var(--border); }
+.campaign-chapter.ready { border-color: color-mix(in srgb, var(--accent) 55%, var(--border)); }
+.campaign-chapter.completed { opacity: 0.8; }
+.campaign-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.campaign-chapter strong { font-size: 13px; color: var(--accent-strong); }
+.campaign-chapter span { font-size: 12px; line-height: 1.35; }
+.campaign-chapter .empty-note { padding: 0; background: none; border: 0; }
+.tag.campaign-completed { color: var(--success); border-color: color-mix(in srgb, var(--success) 45%, var(--border)); }
+.tag.campaign-ready { color: var(--accent-strong); border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); }
+.tag.campaign-active { color: var(--info); border-color: color-mix(in srgb, var(--info) 45%, var(--border)); }
+.tag.campaign-not_started { color: var(--text-muted); border-color: var(--border-strong); }
+
 .quest-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .quest-list li { display: grid; gap: 3px; padding: 8px 9px; border-radius: 8px; background: var(--bg-input); border: 1px solid var(--border); }
 .quest-list li.ready { border-color: color-mix(in srgb, var(--accent) 55%, var(--border)); }

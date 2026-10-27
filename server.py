@@ -149,6 +149,7 @@ def home():
             "GET /tutorial": "Get information about the tutorials",
             "GET /achievements": "Get the player's achievements",
             "GET /reputation": "Get faction standing and shop discounts",
+            "GET /campaign": "Get main-story and endgame progress",
             "POST /hint": "Ask the Dungeon Master for a hint",
             "POST /recap": "Get a recap of the story so far",
             "GET /item_details": "Get details about a specific item",
@@ -1391,6 +1392,18 @@ def get_reputation():
         return error
 
     return jsonify(session.get_reputation_state())
+
+
+@app.route("/campaign", methods=["GET"])
+def get_campaign():
+    """Get main-story chapters and endgame progression."""
+    session_id = request.args.get("session_id")
+
+    session, error = get_session_or_error(session_id)
+    if error:
+        return error
+
+    return jsonify(session.get_campaign_state())
 
 @app.route("/item_details", methods=["GET"])
 def get_item_details():

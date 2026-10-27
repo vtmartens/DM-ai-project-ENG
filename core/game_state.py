@@ -272,6 +272,105 @@ class GameState:
         self._record_output()
         return used
 
+    def get_campaign_state(self):
+        """Returns main-story progress plus endgame progression."""
+        from core.abilities import player_abilities
+        from core.quests import quest_catalogue
+
+        player = self.game.player
+        catalogue = quest_catalogue()
+        chapter_ids = (
+            "shadows_of_the_market",
+            "vargas_debt",
+            "violet_warning",
+            "sentinel_sigil",
+            "waystation_trouble",
+            "underroad_chapter",
+            "sanctum_chapter",
+        )
+        active = {
+            quest.get("id"): quest
+            for quest in (getattr(player, "active_quests", []) or [])
+            if isinstance(quest, dict)
+        }
+        completed = {
+            quest.get("id")
+            for quest in (getattr(player, "completed_quests", []) or [])
+            if isinstance(quest, dict)
+        }
+
+        chapters = []
+        for quest_id in chapter_ids:
+            definition = catalogue.get(quest_id, {})
+            active_quest = active.get(quest_id)
+            if active_quest is not None:
+                status = str(active_quest.get("status", "active"))
+            elif quest_id in completed:
+                status = "completed"
+            else:
+                status = "not_started"
+            chapters.append(
+                {
+                    "id": quest_id,
+                    "title": definition.get("title", quest_id),
+                    "objective": definition.get("objective", ""),
+                    "turn_in": definition.get("turn_in", ""),
+                    "status": status,
+                }
+            )
+
+        claimed = {
+            flag
+            for flag in (getattr(player, "claimed_rewards", []) or [])
+            if isinstance(flag, str)
+        }
+        runeheart_choice = None
+        if "runeheart_kept" in claimed:
+            runeheart_choice = "kept"
+        elif "runeheart_mirt" in claimed:
+            runeheart_choice = "mirt"
+        elif "runeheart_violet" in claimed:
+            runeheart_choice = "violet"
+
+        capstone = None
+        for ability in player_abilities(player, include_locked=True):
+            if int(ability.get("required_level", 0) or 0) == 10:
+                capstone = {
+                    "name": ability.get("name", ""),
+                    "unlocked": bool(ability.get("unlocked", False)),
+                }
+                break
+
+        state = self.game.current_state()
+        state_name = type(state).__name__ if state else "NoneState"
+        location = str(getattr(player, "current_map", "") or "")
+        landmark = {
+            "state": state_name,
+            "location": location,
+        }
+
+        return {
+            "chapters": chapters,
+            "completed_chapters": sum(
+                1 for chapter in chapters if chapter["status"] == "completed"
+            ),
+            "total_chapters": len(chapters),
+            "campaign_complete": "sanctum_chapter" in completed,
+            "runeheart_choice": runeheart_choice,
+            "reputation": self.get_reputation_state(),
+            "rune_trials": {
+                "best": int(
+                    getattr(player, "rune_trials_best", 0) or 0
+                ),
+                "runs": int(
+                    getattr(player, "rune_trials_runs", 0) or 0
+                ),
+            },
+            "rune_shards": int(getattr(player, "rune_shards", 0) or 0),
+            "capstone": capstone,
+            "landmark": landmark,
+        }
+
     def get_reputation_state(self):
         """Returns faction standing and the current shop discount."""
         from core.factions import reputation_entries, shop_discount
@@ -733,6 +832,7 @@ class GameState:
                 getattr(self.game.player, "stealthed", False)
             ),
             "reputation": self.get_reputation_state(),
+            "campaign": self.get_campaign_state(),
             "rune_trials": {
                 "best": int(
                     getattr(self.game.player, "rune_trials_best", 0) or 0

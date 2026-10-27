@@ -1098,6 +1098,17 @@ entirely. The doors that existed were also misaligned with the map exits.
 - Tests cover recipe data, resource consumption, unique-once crafting, missing resources,
   shard persistence, Sanctum access and the forge API. 613 tests pass.
 
+## Campaign dashboard (2026-10-27)
+
+- Added `GameState.get_campaign_state()` and `GET /campaign`. It reports the seven main-story
+  chapters with active/ready/completed/not-started status, campaign completion, Runeheart
+  choice, faction standing, Rune Trials best/runs, Rune Shards, capstone unlock state and the
+  current landmark.
+- Included the campaign object in `/state` and added a client Campaign panel with progress,
+  chapter objectives/status tags and endgame summary. Assets are at `v=36`.
+- Tests cover chapter status mapping, endgame fields, `/state` exposure, the API endpoint and
+  missing-session errors. 616 tests pass.
+
 ## Deliberate translation choices worth knowing
 
 - **`hp_base` / `mana_base` were left as-is.** They are consistent between code and JSON

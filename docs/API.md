@@ -1049,6 +1049,35 @@ Network `shop_discount` reduces market buy prices. Dialogue options may gate on
 combined with quest conditions through `all` / `any`. The same reputation object is included
 in `GET /state`.
 
+#### `GET /campaign?session_id=...`
+
+```json
+{
+  "chapters": [
+    {
+      "id": "vargas_debt",
+      "title": "A Debt to Collect",
+      "objective": "Find Vargas in the old warehouse and collect Mirt's debt.",
+      "turn_in": "Mirt",
+      "status": "active"
+    }
+  ],
+  "completed_chapters": 1,
+  "total_chapters": 7,
+  "campaign_complete": false,
+  "runeheart_choice": null,
+  "reputation": {"factions": [], "shop_discount": 0},
+  "rune_trials": {"best": 0, "runs": 0},
+  "rune_shards": 0,
+  "capstone": {"name": "Last Stand", "unlocked": false},
+  "landmark": {"state": "TavernState", "location": "tavern"}
+}
+```
+
+Chapters use the seven main story quests and report `not_started`, `active`, `ready` or
+`completed`. The same campaign object is included in `GET /state`; the web client renders it
+as the Campaign panel.
+
 #### `GET /tutorial?session_id=...&type=combat`
 
 Returns all tutorials or one category from `data/tutorials/tutorials.json`.

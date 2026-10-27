@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark light">
   <title>DM AI — Dungeon Master</title>
-  <link rel="stylesheet" href="styles.css?v=35">
+  <link rel="stylesheet" href="styles.css?v=36">
 </head>
 <body>
   <a class="skip-link" href="#main-content">Skip to content</a>
@@ -94,6 +94,15 @@
         <section class="card">
           <div class="card-header"><h3>Quests</h3></div>
           <ul id="quest-list" class="quest-list"></ul>
+        </section>
+
+        <section class="card">
+          <div class="card-header">
+            <h3>Campaign</h3>
+            <span id="campaign-progress" class="achievement-count">0 / 0</span>
+          </div>
+          <p id="campaign-summary" class="campaign-summary muted"></p>
+          <ul id="campaign-list" class="campaign-list"></ul>
         </section>
 
         <section class="card">
@@ -225,6 +234,6 @@
 
   <div id="toast" class="toast hidden" role="status"></div>
 
-  <script src="app.js?v=35"></script>
+  <script src="app.js?v=36"></script>
 </body>
 </html>
