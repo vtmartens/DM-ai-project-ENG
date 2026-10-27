@@ -812,7 +812,8 @@ def get_available_actions():
         "combat": ["attack", "defend", "run", "use item"],
         "dialogue": ["talk", "ask", "offer", "goodbye"],
         "market": ["buy", "sell", "examine", "exit"],
-        "inventory": ["use", "equip", "drop", "examine"]
+        "inventory": ["use", "equip", "drop", "examine"],
+        "tavern": ["rest", "talk", "fight", "travel", "inventory", "map", "save"]
     }
 
     if session.get_combat_state().get("in_combat"):
@@ -823,6 +824,8 @@ def get_available_actions():
         actions = actions_context["market"]
     elif state_name == "InventoryManagementState":
         actions = actions_context["inventory"]
+    elif state_name == "TavernState":
+        actions = actions_context["tavern"]
     else:
         actions = actions_context["base"]
 

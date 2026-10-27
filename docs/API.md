@@ -185,8 +185,11 @@ in one command, respecting walls and occupied cells. `go to exit` (or `leave`) w
 nearest map exit, steps through it and enters the destination state; `go to exit to cellar`
 picks a named exit when a map has more than one. On the map screen, `south`, `move east`,
 etc. also move directly. Unknown targets show a message and fall back to the corresponding
-menu. Map layout and exits are refreshed from `data/maps/` when an older save or session
-is loaded, so fixes to door coordinates apply to existing games.
+menu. In the tavern, `rest`, `sleep`, `recover` and `nap` take a long rest (10 gold), restore
+HP and mana to their maximum and clear all conditions; the command is refused with a message
+if you are already at full health and mana with no conditions, or if you cannot pay. Map
+layout and exits are refreshed from `data/maps/` when an older save or session is loaded, so
+fixes to door coordinates apply to existing games.
 
 Keyed doors block both walking and `go to <map>`. A matching key in the inventory opens
 the route (fast travel reports the unlock) and `Knock` opens a locked door within two
@@ -512,7 +515,7 @@ Returns a list of NPC names placed on the current map.
 
 ```json
 {
-  "actions": ["examine", "pick_up", "talk", "use", "look"],
+  "actions": ["rest", "talk", "fight", "travel", "inventory", "map", "save"],
   "targets": {
     "items": ["table"],
     "npc": ["Durnan"],
@@ -521,6 +524,10 @@ Returns a list of NPC names placed on the current map.
   "context": "TavernState"
 }
 ```
+
+The action list depends on the current state: combat, dialogue, market, inventory and the
+tavern each advertise their own commands. In the tavern, `rest` is the long-rest action
+(10 gold; restores HP and mana and clears conditions).
 
 #### `POST /dialogue`
 

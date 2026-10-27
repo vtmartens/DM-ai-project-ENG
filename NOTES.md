@@ -627,7 +627,21 @@ entirely. The doors that existed were also misaligned with the map exits.
   `Weakened · 2 turns`).
 - Tests: apply/refresh, tick damage and expiry, save-to-end, disadvantage, weapon-damage
   reduction, ability application, end-of-turn ticking, persistence and data integrity.
-  389 tests pass. Non-combat duration ticking/rest recovery remains future work.
+  Non-combat duration ticking remains future work; the tavern rest now clears conditions.
+
+## Tavern rest loop (2026-10-27)
+
+- Tavern menu option 14, **Rest at the inn (10 gold)**, plus natural-language `rest`,
+  `sleep`, `recover` and `nap`.
+- `TavernState._rest` refuses without charging when HP and mana are full and there are no
+  conditions. With less than 10 gold it refuses and reports the shortfall. Otherwise it
+  charges 10 gold, restores HP and mana to maximum, and clears every entry in
+  `player.conditions` — poison, Guidance, advantage/disadvantage and timed
+  burning/frightened/weakened — naming what was cleared in the log.
+- `GET /available_actions` now has a TavernState action list led by `rest`, so the web
+  client renders a Rest quick action.
+- Tests: full/partial recovery, mana restoration, condition clearing and labels, natural
+  language, insufficient gold, already-rested, and the advertised action. 396 tests pass.
 
 ## Deliberate translation choices worth knowing
 
@@ -657,7 +671,7 @@ entirely. The doors that existed were also misaligned with the map exits.
 | Residual Italian (glossary-derived denylist + accented characters) | 0 hits |
 | **Original Italian vs translated, identical input** | **46/46 placements, identical sequence** |
 | Flask API in-process (test client, no socket) | 31 × 200, 0 raised |
-| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, AI memory, hints, achievements, utility spells, locks, vault, quests, enemy abilities, encounters, saving throws, conditions, combat status, accessibility, web client routes, browser smoke/mobile) | 389 passed |
+| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, AI memory, hints, achievements, utility spells, locks, vault, quests, enemy abilities, encounters, saving throws, conditions, combat status, rest, accessibility, web client routes, browser smoke/mobile) | 396 passed |
 | Live smoke test (Flask server, `/app`, start/state/abilities/inventory/actions/command/save/load) | passed |
 
 The last comparison is the strongest evidence: the pristine Italian code and the finished

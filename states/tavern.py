@@ -11,11 +11,14 @@ from states.commands import handle_targeted_command, parse_targeted_command
 from world.map import Map
 from world.map_manager import MapManager
 from util.data_manager import get_data_manager
+from core.conditions import condition_catalogue
 import logging
 
 
 class TavernState(BaseGameState):
     """Class representing the tavern state"""
+
+    REST_COST = 10
 
     def __init__(self, game=None):
         super().__init__(game)
@@ -163,6 +166,7 @@ class TavernState(BaseGameState):
             game.io.show_message("11. Interact with the environment")
             game.io.show_message("12. Save game")
             game.io.show_message("13. Exit the game")
+            game.io.show_message(f"14. Rest at the inn ({self.REST_COST} gold)")
             self.contextual_data["main_menu_rendered"] = True
 
         # Gets the command from input and stores it
@@ -236,12 +240,15 @@ class TavernState(BaseGameState):
             self.phase = "save_game"
         elif selection == "13":
             game.active = False
+        elif selection == "14":
+            self._rest(game)
         else:
             game.io.show_message(f"I don't understand what you want to do with '{original_selection}'.")
             self.phase = "main_menu"
 
     def _process_command(self, cmd):
         cmd = cmd.lower().strip()
+        words = {word.strip(".,!?;:") for word in cmd.split()}
 
         # Mapping of text commands to numbers
         if any(word in cmd for word in ["talk", "converse", "converse"]):
@@ -270,8 +277,74 @@ class TavernState(BaseGameState):
             return "12"
         elif any(word in cmd for word in ["exit", "quit", "exit"]):
             return "13"
+        elif words & {"rest", "sleep", "recover", "nap"}:
+            return "14"
         else:
             return cmd  # return the original command if it matches no action
+
+    def _rest(self, game):
+        """Restore the party at the inn for gold and clear temporary effects."""
+        player = game.player
+        mana = int(getattr(player, "mana", 0) or 0)
+        mana_max = int(getattr(player, "mana_max", 0) or 0)
+        conditions = getattr(player, "conditions", None)
+        if not isinstance(conditions, dict):
+            conditions = {}
+
+        if player.hp >= player.hp_max and mana >= mana_max and not conditions:
+            game.io.show_message("\nYou are already rested.")
+            press_enter(game)
+            self.phase = "main_menu"
+            return
+
+        if player.gold < self.REST_COST:
+            game.io.show_message(
+                f"\nThe innkeeper shakes her head. A long rest costs "
+                f"{self.REST_COST} gold, and you only have {player.gold}."
+            )
+            press_enter(game)
+            self.phase = "main_menu"
+            return
+
+        player.gold -= self.REST_COST
+        player.hp = player.hp_max
+        player.mana = mana_max
+        cleared = sorted(conditions)
+        conditions.clear()
+
+        game.io.show_message(
+            f"\nYou pay {self.REST_COST} gold for a room and take a long rest. "
+            "Your wounds close and your strength returns."
+        )
+        if cleared:
+            game.io.show_message(
+                "The rest clears: " + self._condition_labels(cleared) + "."
+            )
+        press_enter(game)
+        self.phase = "main_menu"
+
+    @staticmethod
+    def _condition_labels(condition_ids):
+        """Return player-facing names for cleared condition ids."""
+        catalogue = condition_catalogue()
+        fallback = {
+            "poison": "Poisoned",
+            "guidance": "Guidance",
+            "advantage": "Advantage",
+            "disadvantage": "Disadvantage",
+        }
+        labels = []
+        for condition_id in condition_ids:
+            definition = catalogue.get(condition_id)
+            if isinstance(definition, dict):
+                labels.append(definition.get("name", condition_id))
+            else:
+                labels.append(
+                    fallback.get(
+                        condition_id, condition_id.replace("_", " ").title()
+                    )
+                )
+        return ", ".join(labels)
 
     def _talk_with_npc(self, game):
         # Check whether we have already shown the NPC list
