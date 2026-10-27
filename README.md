@@ -65,6 +65,7 @@ Each game phase (map exploration, combat, dialogues, inventory management) is ha
 - Save/load integrity preserves equipped weapon, armor and accessory bonuses, level-up defense, initiative, conditions and recruited allies across round trips
 - Achievements: movement, combat wins (including clean streaks), item collection, map exploration, gold, legendary equipment and quests completed without fighting unlock the eight achievements in `data/achievements/achievements.json`; progress and unlock times survive save/load
 - Ask the Dungeon Master for a hint: deterministic hints point at the active quest, a locked door and matching key, low HP, a nearby NPC/object or the current combat target; `POST /hint` and the web client's Hint button optionally have the configured AI narrator rephrase them, with no state changes and an engine fallback
+- Session recap: the web client's Recap button and `POST /recap` summarize the player, location, HP/mana, gold, active and completed quests, conditions, defeats and recent events. The engine text is always available; the configured narrator may rephrase it, with the same fallback and no state changes
 - Direct approach with pathfinding: “go to Durnan” or “walk to barrel” moves next to the target in one command; “go to exit” or “leave” walks to the nearest map exit and steps through it (works from the tavern and the market)
 - Fully testable backend (no Pygame dependencies in this repo)
 - Centralized data loading system via data_manager.py using JSON format
@@ -93,7 +94,7 @@ Each game phase (map exploration, combat, dialogues, inventory management) is ha
    - Alternative positioning system when main positions are occupied  
 ✅ Add modular I/O interfaces (text, GUI, AI)  
 🟡 Web client (dependency-free SPA in `frontend/`; React/Vite optional later)  
-🟡 Implement Dungeon Master AI (narration and hint rephrasing slices; decisions remain deterministic)
+🟡 Implement Dungeon Master AI (narration, hint and recap rephrasing slices; decisions remain deterministic)
 🟡 D&D rules improvement (saving throws, advantage/disadvantage, attack rolls and AC); cover, flanking and broader conditions remain future work
 🟡 Class abilities, mana and level-based unlocks; utility spells (Knock, Mage Hand, Guidance) added, broader non-combat spell utility remains future work\
 🟡 Multiple enemies, target selection, allies and curated encounters; broader encounter tuning and balancing remain future work\
@@ -157,8 +158,8 @@ The engine can append one short, atmospheric Dungeon Master paragraph per turn. 
 deterministic engine text is always shown unchanged; the model only adds prose. If the
 feature is off, credentials are missing, the request times out, or the model refuses,
 the game simply continues without the extra paragraph. The DM also keeps a small bounded
-memory of recent engine events (default 8) so narration and hints can refer back to what
-just happened.
+memory of recent engine events (default 8) so narration, hints and recaps can refer back to
+what just happened.
 
 For a step-by-step **free/local setup** (Ollama, LM Studio, free cloud tiers), see
 [`docs/AI_SETUP.md`](docs/AI_SETUP.md).

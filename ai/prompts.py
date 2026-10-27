@@ -59,3 +59,31 @@ def build_hint_prompt(hint: str, context: dict[str, Any]) -> str:
         indent=2,
     )
     return f"Hint data:\n{payload}"
+
+
+RECAP_SYSTEM_PROMPT = (
+    "You are the Dungeon Master of a text-based fantasy RPG.\n"
+    "You receive JSON with two fields:\n"
+    '- "summary": a factual recap written by the game engine.\n'
+    '- "context": a small snapshot of the player, location and active state.\n'
+    '  It may include "recent", a short list of earlier engine events.\n\n'
+    "Rewrite the summary as a short previously-on recap (2-4 sentences) in second\n"
+    "person, past tense.\n\n"
+    "Hard rules:\n"
+    "- Keep every fact in the summary. Never add a location, item, NPC, number, quest,\n"
+    "  outcome, or event the summary does not contain.\n"
+    "- Never contradict the summary or reveal hidden information.\n"
+    "- Do not mention menus, prompts, dice rolls, stat lines, or game controls.\n"
+    "- Use \"recent\" only for continuity; do not invent events from it.\n"
+    "- Do not decide the player's next action; summarize what already happened.\n"
+    "- Return prose only: no headings, JSON, bullet points, or commentary."
+)
+
+
+def build_recap_prompt(summary: str, context: dict[str, Any]) -> str:
+    payload = json.dumps(
+        {"summary": summary, "context": context},
+        ensure_ascii=False,
+        indent=2,
+    )
+    return f"Recap data:\n{payload}"

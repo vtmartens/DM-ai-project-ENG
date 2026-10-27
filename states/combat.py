@@ -834,6 +834,8 @@ class CombatState(BaseState):
         if lost:
             player.gold -= lost
 
+        player.defeats = int(getattr(player, "defeats", 0) or 0) + 1
+
         hp_max = int(getattr(player, "hp_max", 1) or 1)
         mana_max = int(getattr(player, "mana_max", 0) or 0)
         player.hp = max(1, hp_max // 2)

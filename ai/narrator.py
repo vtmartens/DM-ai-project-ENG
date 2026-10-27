@@ -16,6 +16,10 @@ class Narrator(Protocol):
         """Rewrites an engine hint, or returns None to use it unchanged."""
         ...
 
+    def recap(self, summary: str, context: dict[str, Any]) -> str | None:
+        """Rewrites a deterministic recap, or returns None to use it unchanged."""
+        ...
+
 
 class NullNarrator:
     """A narrator that never adds text. Useful as an explicit no-op."""
@@ -26,4 +30,7 @@ class NullNarrator:
         return None
 
     def hint(self, hint: str, context: dict[str, Any]) -> str | None:
+        return None
+
+    def recap(self, summary: str, context: dict[str, Any]) -> str | None:
         return None

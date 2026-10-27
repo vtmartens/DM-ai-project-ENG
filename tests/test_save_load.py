@@ -76,6 +76,7 @@ def test_save_load_preserves_equipment_level_and_condition_stats(
     boots.equip(player, game)
     player.conditions["poison"] = {"damage": 2, "turns": 2}
     player.allies.append("Violet")
+    player.defeats = 2
 
     expected = {
         "strength": player.strength,
@@ -115,6 +116,7 @@ def test_save_load_preserves_equipment_level_and_condition_stats(
     assert [item.name for item in loaded.accessories] == expected["accessories"]
     assert loaded.conditions == {"poison": {"damage": 2, "turns": 2}}
     assert loaded.allies == ["Violet"]
+    assert loaded.defeats == 2
 
     # A second round trip must not stack the equipment bonuses again.
     second_path = tmp_path / f"{char_class}-stats-round2.json"

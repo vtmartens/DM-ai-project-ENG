@@ -42,15 +42,16 @@ emitted **before** the engine `narrative` messages it was generated from, so cli
 render in order show the DM paragraph first. `narrative` is the engine's own text and is
 authoritative; `narration` is optional prose and must never be treated as game state. `map`
 is preformatted ASCII; render it in a monospace, whitespace-preserving block. `hint` entries
-come from `POST /hint` and are also kept in the event log.
+come from `POST /hint` and `recap` entries from `POST /recap`; both are also kept in the
+event log.
 
 ## Session flow
 
 1. `POST /start` (new game) or `POST /load` (existing save) returns a `session_id`.
 2. Keep the `session_id` and send it with every session-scoped request.
 3. `POST /command` advances the game and returns `output` plus the updated `state`.
-4. Side panels use `GET /state`, `/abilities`, `/inventory`, `/available_actions` and
-   `POST /hint`.
+4. Side panels use `GET /state`, `/abilities`, `/inventory`, `/available_actions`,
+   `POST /hint` and `POST /recap`.
 5. `POST /save` / `POST /load` manage files under `saves/`.
 
 Sessions are cached in memory and persisted as `sessions/session_<id>.pickle`; they survive
@@ -245,6 +246,29 @@ narrator rephrased it. AI phrasing uses the same opt-in narrator as narration
 (`DM_AI_NARRATION`); without it, or on any model failure/refusal, the engine hint is returned
 unchanged. Hints never change game state. The hint is also appended to the `/log` stream with
 `type: "hint"`.
+
+#### `POST /recap`
+
+```json
+{"session_id": "uuid"}
+```
+
+Returns a short summary of the story so far:
+
+```json
+{
+  "session_id": "uuid",
+  "recap": "Aria the Wizard is level 1, in the Market, with 6/6 HP and 20/20 mana, carrying 20 gold. Active quest: Shadows in the Market — ... (in progress). Recently: ...",
+  "source": "engine"
+}
+```
+
+The deterministic recap covers the player, location, HP/mana, gold, active and completed
+quests, conditions, defeat count and the freshest recent events. It is available even when
+AI narration is off. With a narrator configured, `source` is `"ai"` and the model rephrases
+the same facts; any failure or refusal returns the engine recap with `source: "engine"`.
+Recaps never change game state. The result is appended to `/log` with `type: "recap"`, and
+previous recaps are excluded from the next recap's recent events.
 
 #### `POST /save`
 

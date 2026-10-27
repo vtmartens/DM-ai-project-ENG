@@ -1,0 +1,225 @@
+"""Deterministic session recap with optional AI rephrasing."""
+
+from __future__ import annotations
+
+import logging
+import re
+from typing import Any
+
+from ai.context import build_context
+from core.conditions import condition_catalogue
+
+logger = logging.getLogger("game_rpg.ai")
+
+ENGINE_FALLBACK = "Your story has only just begun."
+
+_MENU_LINE = re.compile(r"^\d+[\.\)]\s")
+_RECENT_SKIP_TYPES = {
+    "prompt",
+    "map",
+    "hint",
+    "recap",
+    "narration",
+}
+_RECENT_SKIP_PREFIXES = (
+    "===",
+    "COMBAT:",
+    "Turn:",
+    "HP ",
+    "Choice:",
+    "Choose",
+    "What do you want to do",
+    "Welcome ",
+    "The tavern remains waiting",
+    "You resume the dialogue",
+)
+
+
+def _compact_line(text: Any) -> str | None:
+    line = " ".join(str(text or "").split()).strip()
+    if not line or line.startswith("Player:"):
+        return None
+    if _MENU_LINE.match(line) or line.startswith(_RECENT_SKIP_PREFIXES):
+        return None
+    if "What do you want to do" in line:
+        return None
+    if any(
+        marker in line
+        for marker in (
+            " - Weapon:",
+            " - Armor:",
+            " - Accessories:",
+            " - Weapons:",
+            " - Strength:",
+        )
+    ):
+        return None
+    return line if len(line) <= 200 else line[:197] + "..."
+
+
+def _recent_lines(memory=None, events=None) -> list[str]:
+    lines = []
+    for entry in memory or []:
+        line = _compact_line(entry)
+        if line:
+            lines.append(line)
+
+    if not lines:
+        for event in events or []:
+            if not isinstance(event, dict):
+                continue
+            if event.get("type") in _RECENT_SKIP_TYPES:
+                continue
+            line = _compact_line(event.get("text"))
+            if line:
+                lines.append(line)
+
+    # Drop adjacent duplicates and keep the freshest few lines.
+    unique = []
+    for line in lines:
+        if not unique or unique[-1] != line:
+            unique.append(line)
+    return unique[-4:]
+
+
+def _condition_labels(conditions) -> list[str]:
+    if not isinstance(conditions, dict) or not conditions:
+        return []
+    catalogue = condition_catalogue()
+    fallback = {
+        "poison": "Poisoned",
+        "guidance": "Guidance",
+        "advantage": "Advantage",
+        "disadvantage": "Disadvantage",
+    }
+    labels = []
+    for condition_id in conditions:
+        definition = catalogue.get(condition_id)
+        if isinstance(definition, dict):
+            labels.append(definition.get("name", condition_id))
+        else:
+            labels.append(
+                fallback.get(
+                    condition_id,
+                    str(condition_id).replace("_", " ").title(),
+                )
+            )
+    return labels
+
+
+def _active_quest_summary(player) -> str | None:
+    active = [
+        quest
+        for quest in (getattr(player, "active_quests", []) or [])
+        if isinstance(quest, dict)
+    ]
+    if not active:
+        return None
+
+    if len(active) == 1:
+        quest = active[0]
+        title = quest.get("title") or quest.get("id") or "Unknown quest"
+        objective = quest.get("objective") or ""
+        status = (
+            "ready to turn in"
+            if quest.get("status") == "ready"
+            else "in progress"
+        )
+        summary = f"Active quest: {title}"
+        if objective:
+            summary += f" — {objective}"
+        return summary + f" ({status})."
+
+    titles = [
+        str(quest.get("title") or quest.get("id") or "Unknown quest")
+        for quest in active[:2]
+    ]
+    summary = "Active quests: " + ", ".join(titles)
+    remaining = len(active) - len(titles)
+    if remaining:
+        summary += f", and {remaining} more"
+    return summary + "."
+
+
+def build_recap(game, memory=None, events=None) -> str:
+    """Builds a short factual recap from the player's current state."""
+    player = getattr(game, "player", None)
+    if player is None:
+        return ENGINE_FALLBACK
+
+    name = str(getattr(player, "name", "") or "You")
+    char_class = str(getattr(player, "char_class", "") or "adventurer")
+    char_class = char_class.replace("_", " ").title()
+    level = int(getattr(player, "level", 1) or 1)
+    location = str(getattr(player, "current_map", "") or "").replace("_", " ").title()
+    hp = int(getattr(player, "hp", 0) or 0)
+    hp_max = int(getattr(player, "hp_max", 0) or 0)
+    mana = int(getattr(player, "mana", 0) or 0)
+    mana_max = int(getattr(player, "mana_max", 0) or 0)
+    gold = int(getattr(player, "gold", 0) or 0)
+
+    place = f"in the {location}" if location else "between places"
+    state = f"{name} the {char_class} is level {level}, {place}, with {hp}/{hp_max} HP"
+    if mana_max:
+        state += f" and {mana}/{mana_max} mana"
+    state += f", carrying {gold} gold."
+    parts = [state]
+
+    quest_summary = _active_quest_summary(player)
+    if quest_summary:
+        parts.append(quest_summary)
+
+    completed = len(getattr(player, "completed_quests", []) or [])
+    if completed:
+        parts.append(
+            f"Completed quests: {completed}."
+        )
+
+    conditions = _condition_labels(getattr(player, "conditions", {}))
+    if conditions:
+        parts.append("Affected by: " + ", ".join(conditions) + ".")
+
+    defeats = int(getattr(player, "defeats", 0) or 0)
+    if defeats:
+        parts.append(
+            f"You have been defeated {defeats} "
+            f"{'time' if defeats == 1 else 'times'}."
+        )
+
+    recent = _recent_lines(memory=memory, events=events)
+    if recent:
+        parts.append("Recently: " + " ".join(recent))
+    else:
+        parts.append("Nothing notable has happened yet.")
+
+    return " ".join(parts)
+
+
+def generate_recap(game, narrator=None, memory=None, events=None) -> dict:
+    """Returns ``{"recap": str, "source": "engine"|"ai"}``.
+
+    The deterministic recap is always available. When a narrator is configured,
+    it is asked to rephrase it; any failure or refusal keeps the engine text.
+    Recaps never change game state.
+    """
+    try:
+        engine_recap = build_recap(game, memory=memory, events=events)
+    except Exception as exc:  # a recap must never break the session
+        logger.warning("Recap generation failed: %s", exc)
+        engine_recap = ENGINE_FALLBACK
+
+    if narrator is None or not hasattr(narrator, "recap"):
+        return {"recap": engine_recap, "source": "engine"}
+
+    try:
+        context = build_context(game, memory=memory)
+        prose = narrator.recap(engine_recap, context)
+    except Exception as exc:
+        logger.warning("AI recap failed: %s", exc)
+        prose = None
+
+    prose = prose.strip() if isinstance(prose, str) else ""
+    if prose:
+        return {"recap": prose, "source": "ai"}
+
+    return {"recap": engine_recap, "source": "engine"}

@@ -50,6 +50,7 @@ class Player(Entity):
         self.initiative = self.initiative_base
         self.conditions = {}
         self.allies = []
+        self.defeats = 0
 
         # Achievement tracking (persisted with the player)
         from core.achievements import DEFAULT_ACHIEVEMENT_STATS
@@ -489,6 +490,7 @@ class Player(Entity):
             ),
             "conditions": dict(getattr(self, "conditions", {})),
             "allies": list(getattr(self, "allies", [])),
+            "defeats": int(getattr(self, "defeats", 0) or 0),
             "achievements": list(getattr(self, "achievements", [])),
             "achievement_timestamps": dict(
                 getattr(self, "achievement_timestamps", {})
@@ -562,6 +564,7 @@ class Player(Entity):
         player.mana_max = data.get("mana_max", getattr(player, "mana_max", 0))
         player.conditions = dict(data.get("conditions", {}))
         player.allies = list(data.get("allies", []))
+        player.defeats = int(data.get("defeats", 0) or 0)
 
         # Achievement progress (absent in saves written before the feature).
         from core.achievements import coerce_stats

@@ -695,7 +695,24 @@ entirely. The doors that existed were also misaligned with the map exits.
   combat. `GET /combat` and `/state` expose `effects.defending` and `effects.aiming`; the web
   combat card renders the active status tags. Asset version bumped to `v=25`.
 - Tests: defend AC bonus and expiry, aimed advantage and consumption, API action exposure,
-  and the browser status tags. 413 tests pass.
+  and the browser status tags.
+
+## Session recap (2026-10-27)
+
+- `ai/recap.py` builds a deterministic recap from the player's name/class/level, map,
+  HP/mana, gold, active and completed quests, conditions, defeat count and the freshest
+  recent events. It filters menus, prompts, stat lines and prior recap/hint entries.
+- `POST /recap` returns `{"recap", "source"}`. With narration enabled, the configured
+  narrator is asked to rewrite the same facts; failures, refusals and missing narrators
+  return the engine text with `source: "engine"`. Recaps never change game state and are
+  appended to `/log` with `type: "recap"`.
+- Added `Narrator.recap` to the protocol, `NullNarrator`, both providers, and a dedicated
+  recap prompt. Added a `defeats` counter to `Player` (persisted and shown in the recap).
+- The web client has a **Recap** button next to Hint and renders the result as a “Previously”
+  log entry. Asset version bumped to `v=26`.
+- Tests: deterministic state/quest/condition/defeat/recent summaries, AI rephrasing and
+  failure fallback, empty recent history, endpoint behavior/logging, and provider request
+  shapes. 421 tests pass.
 
 ## Deliberate translation choices worth knowing
 
@@ -725,7 +742,7 @@ entirely. The doors that existed were also misaligned with the map exits.
 | Residual Italian (glossary-derived denylist + accented characters) | 0 hits |
 | **Original Italian vs translated, identical input** | **46/46 placements, identical sequence** |
 | Flask API in-process (test client, no socket) | 31 × 200, 0 raised |
-| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, AI memory, hints, achievements, utility spells, locks, vault, quests, enemy abilities, encounters, saving throws, conditions, combat status, attack rolls/AC, Defend/Aim, defeat recovery, rest, accessibility, web client routes, browser smoke/mobile) | 413 passed |
+| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, AI memory, hints, achievements, utility spells, locks, vault, quests, enemy abilities, encounters, saving throws, conditions, combat status, attack rolls/AC, Defend/Aim, defeat recovery, session recap, rest, accessibility, web client routes, browser smoke/mobile) | 421 passed |
 | Live smoke test (Flask server, `/app`, start/state/abilities/inventory/actions/command/save/load) | passed |
 
 The last comparison is the strongest evidence: the pristine Italian code and the finished

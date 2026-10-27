@@ -1,10 +1,11 @@
 # AI Dungeon Master setup
 
 The AI Dungeon Master is optional. It appends one short atmospheric paragraph to a turn and
-can rephrase the engine's hints; the deterministic engine text is always shown unchanged. It
-also keeps a small bounded memory of recent engine events so narration and hints can refer
-back to what just happened. If the model is unavailable, slow, misconfigured, or refuses, the
-game continues without the paragraph and hints fall back to the engine wording.
+can rephrase the engine's hints and session recaps; the deterministic engine text is always
+shown unchanged. It also keeps a small bounded memory of recent engine events so narration,
+hints and recaps can refer back to what just happened. If the model is unavailable, slow,
+misconfigured, or refuses, the game continues without the paragraph and hints/recaps fall
+back to the engine wording.
 
 This guide focuses on setups that do **not** require a paid API: local inference (Ollama,
 LM Studio) and free cloud tiers. For the default Claude provider, see the README.
@@ -161,6 +162,15 @@ with `source: "engine"`.
 AI hints use the same configuration as narration: set `DM_AI_NARRATION=1` (and the provider
 variables below). Without it, the Hint button still works with engine wording.
 
+## Recaps
+
+The web client's **Recap** button calls `POST /recap`. The engine builds a deterministic
+summary of the player, location, resources, quests, conditions, defeats and recent events.
+When a narrator is configured, it is asked to rewrite that summary in two to four sentences;
+the model cannot add facts or change state. On failure, refusal or disabled narration, the
+engine recap is returned with `source: "engine"`. Recaps use the same configuration as hints
+and narration.
+
 ## Memory
 
 The narrator receives a bounded list of recent engine events (`context.recent`) for
@@ -173,7 +183,7 @@ process memory only.
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `DM_AI_NARRATION` | off | Must be `1`, `true`, `yes`, or `on` to enable narration and AI-phrased hints |
+| `DM_AI_NARRATION` | off | Must be `1`, `true`, `yes`, or `on` to enable narration and AI-phrased hints/recaps |
 | `DM_AI_PROVIDER` | `claude` | `claude`, or `openai` / `openai-compatible` |
 | `DM_AI_MODEL` | `claude-opus-5-5` (Claude), `gpt-4o-mini` (OpenAI-compatible) | Model name |
 | `DM_AI_BASE_URL` | — | OpenAI-compatible base URL; falls back to `OPENAI_BASE_URL` |

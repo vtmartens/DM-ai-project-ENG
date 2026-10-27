@@ -63,6 +63,20 @@ def test_narration_uses_the_expected_request_shape():
     assert "temperature" not in call
 
 
+def test_recap_uses_the_recap_prompt():
+    narrator, client = _narrator(FakeResponse("Previously, the hearth crackled."))
+
+    assert (
+        narrator.recap("Aria rests in the tavern.", CONTEXT)
+        == "Previously, the hearth crackled."
+    )
+
+    call = client.chat.completions.calls[0]
+    assert "previously" in call["messages"][0]["content"].lower()
+    assert "Aria rests in the tavern." in call["messages"][1]["content"]
+    assert call["max_tokens"] == 256
+
+
 def test_model_can_be_overridden_for_local_servers():
     client = FakeClient(FakeResponse("Prose."))
     narrator = OpenAINarrator(client=client, model="Qwen2.5-Coder:32B")

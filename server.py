@@ -125,6 +125,7 @@ def home():
             "GET /tutorial": "Get information about the tutorials",
             "GET /achievements": "Get the player's achievements",
             "POST /hint": "Ask the Dungeon Master for a hint",
+            "POST /recap": "Get a recap of the story so far",
             "GET /item_details": "Get details about a specific item",
             "GET /abilities": "Get the player's abilities",
             "POST /use_ability": "Use a player ability",
@@ -726,6 +727,47 @@ def dungeon_master_hint():
     if isinstance(getattr(session, "event_log", None), list):
         session.event_log.append(
             {"type": "hint", "text": result["hint"], "time": time.time()}
+        )
+        if len(session.event_log) > 500:
+            del session.event_log[:-500]
+
+    return jsonify({"session_id": session_id, **result})
+
+
+@app.route("/recap", methods=["POST"])
+def session_recap():
+    """Return a recap, optionally rephrased by the configured AI narrator."""
+    data = request.json or {}
+    session_id = data.get("session_id")
+
+    if not session_id:
+        return jsonify({"error": "Session ID not provided"}), 400
+
+    session = active_sessions.get(session_id)
+    if not session:
+        session = load_session(session_id)
+        if session:
+            active_sessions[session_id] = session
+
+    if not session:
+        return jsonify({"error": "Session not found"}), 404
+
+    from ai.recap import generate_recap
+
+    narrator = getattr(getattr(session, "io_buffer", None), "narrator", None)
+    memory = getattr(getattr(session, "io_buffer", None), "memory", None)
+    result = generate_recap(
+        session.game,
+        narrator=narrator,
+        memory=memory,
+        events=session.event_log,
+    )
+
+    # Keep the recap in the session log so a reload shows it too. Recaps are
+    # excluded from the recent-event input on the next request.
+    if isinstance(getattr(session, "event_log", None), list):
+        session.event_log.append(
+            {"type": "recap", "text": result["recap"], "time": time.time()}
         )
         if len(session.event_log) > 500:
             del session.event_log[:-500]

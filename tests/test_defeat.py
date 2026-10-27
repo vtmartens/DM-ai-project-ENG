@@ -48,6 +48,7 @@ def test_defeat_returns_to_the_tavern_and_restores_partial_resources(
     assert player.hp == max(1, player.hp_max // 2)
     assert player.mana == player.mana_max // 2
     assert player.gold == 80
+    assert player.defeats == 1
     assert player.conditions == {}
     assert player.active_quests == ["shadows_of_the_market"]
     assert player.current_map == "tavern"

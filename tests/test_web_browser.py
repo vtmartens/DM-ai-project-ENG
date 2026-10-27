@@ -130,6 +130,18 @@ def test_web_client_smoke(live_server):
         assert hint_text.strip()
         assert "hint" in hint_text.lower()
 
+        # Session recap is rendered as a "Previously" log entry.
+        driver.find_element(By.ID, "show-recap").click()
+        wait.until(
+            lambda d: len(d.find_elements(By.CSS_SELECTOR, "#log .log-entry.recap"))
+            > 0
+        )
+        recap_text = driver.find_element(
+            By.CSS_SELECTOR, "#log .log-entry.recap"
+        ).text
+        assert "previously" in recap_text.lower()
+        assert "Browser Smoke" in recap_text
+
         # Locked travel reports a message and leaves the player in the tavern.
         driver.find_element(By.ID, "command-input").send_keys("go to warehouse")
         driver.find_element(By.ID, "send-button").click()

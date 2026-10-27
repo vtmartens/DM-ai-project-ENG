@@ -60,6 +60,20 @@ def test_narration_uses_the_expected_request_shape():
     assert "You enter the tavern." in call["messages"][0]["content"]
 
 
+def test_recap_uses_the_recap_prompt():
+    narrator, client = _narrator(FakeResponse("Previously, the fire crackled."))
+
+    assert (
+        narrator.recap("Aria rests in the tavern.", CONTEXT)
+        == "Previously, the fire crackled."
+    )
+
+    call = client.messages.calls[0]
+    assert "previously" in call["system"].lower()
+    assert "Aria rests in the tavern." in call["messages"][0]["content"]
+    assert call["max_tokens"] == 256
+
+
 def test_refusal_adds_no_narration():
     narrator, _ = _narrator(FakeResponse("Should not be used", stop_reason="refusal"))
 
