@@ -58,7 +58,9 @@ You can also set `localStorage["dm_api_base"]`.
   `interact with Rune Pillar` nearby to attempt its Arcana challenge. On the map screen,
   **Search** quick actions make a Perception check for hidden traps and caches; hidden
   objects stay out of the map and legend until found, and detected traps can be disarmed
-  with `disarm <trap>` or by interacting with them.
+  with `disarm <trap>` or by interacting with them. **Sneak** makes a Stealth check against
+  nearby NPCs; a hidden character appears as a **Hidden** tag, and attacking from stealth
+  starts a surprise round shown as **Surprised** tags on the enemies.
 - **Bounties** button in the tavern opens a focus-trapped Bounty Board modal (`GET /bounties`)
   with each contract's objective, status, progress and reward. **Accept** and **Claim**
   buttons call `/bounties/accept` and `/bounties/claim`; accepted contracts also appear in

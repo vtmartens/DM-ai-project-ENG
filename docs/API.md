@@ -104,6 +104,7 @@ a server restart. A stale `session_id` returns `404`.
   "achievements": [],
   "timestamp_achievements": {},
   "conditions": {},
+  "stealthed": false,
   "preferences": {},
   "combat": {"in_combat": false},
   "dialogue": {"active": false}
@@ -203,9 +204,10 @@ in one command, respecting walls and occupied cells. `go to exit` (or `leave`) w
 nearest map exit, steps through it and enters the destination state; `go to exit to cellar`
 picks a named exit when a map has more than one. On the map screen, `south`, `move east`,
 etc. also move directly. On the map screen, `search` (or map menu option 6) searches the
-nearby area for hidden traps and caches, and `disarm <trap>` attempts to disable a detected
-trap from an adjacent cell. Unknown targets show a message and fall back to the corresponding
-menu. In the tavern, `rest`, `sleep`, `recover` and `nap` take a long rest (10 gold), restore
+nearby area for hidden traps and caches, `sneak` / `hide` attempts to avoid nearby observers,
+and `disarm <trap>` attempts to disable a detected trap from an adjacent cell. Unknown
+targets show a message and fall back to the corresponding menu. In the tavern, `rest`,
+`sleep`, `recover` and `nap` take a long rest (10 gold), restore
 HP and mana to their maximum and clear all conditions; the command is refused with a message
 if you are already at full health and mana with no conditions, or if you cannot pay. Map
 layout and exits are refreshed from `data/maps/` when an older save or session is loaded, so
@@ -659,6 +661,19 @@ trap may spring (`trigger_on_failure`), calling for its `saving_throw_ability` s
 or disarmed its state is persisted with the map. Trap definitions live in
 `data/items/interactive_objects.json`; Cellar, Vault and Underroad place the shipped examples.
 
+#### Stealth and surprise
+
+Map menu option 7, `sneak` or `hide` rolls Stealth against the highest passive Perception
+of NPCs within four cells. Success sets `state.stealthed` to `true` and shows a **Hidden**
+tag in the web client. Moving while hidden (including `/move`, map-menu movement and
+pathfinding) re-rolls the check; failure clears the flag.
+
+Attacking an NPC while hidden breaks stealth and starts `CombatState` with a surprise
+round. The opening weapon attack has advantage, the fastest enemy cannot seize initiative,
+and the enemies lose their first turn. `/combat` exposes `surprised` at the top level and on
+each living enemy, and the web client renders **Surprise round** / **Surprised** tags. The
+pending surprise state is serialized with the combat state.
+
 #### `POST /move`
 
 ```json
@@ -729,7 +744,7 @@ tavern, the map, the Broken Waystation, the Underroad, the bounty board and the 
 each advertise their own commands. In the tavern, `rest` is the long-rest action (10 gold;
 restores HP and mana and clears conditions) and `bounties` opens the bounty board. In the
 market it includes `shop`, `buy` and `sell`, which drive the shop modal and the numbered
-terminal shop. The map advertises `search` and its four movement directions. The waystation
+terminal shop. The map advertises `search`, `sneak` and its four movement directions. The waystation
 advertises `confront`, `strongbox`, `rest`, `underroad` and `leave`; the Underroad advertises
 `confront`, `cache` and `leave`; the bounty board advertises `accept`, `claim` and `leave`;
 the Rune Pillar advertises `study` and `leave`.
@@ -777,15 +792,16 @@ Runs `look` and returns `output`, `state`, plus nearby `items`, `exits`, and `np
   "in_combat": true,
   "round": 1,
   "turn_of": "player",
+  "surprised": false,
   "target": "Goblin A",
   "conditions": {"poison": {"damage": 2, "turns": 3}},
   "effects": {"defending": false, "aiming": true},
   "enemies": [
     {"name": "Goblin A", "hp": 10, "max_hp": 10, "ac": 13, "guard": 0,
-     "conditions": {"prone": {"turns": 2}},
+     "conditions": {"prone": {"turns": 2}}, "surprised": false,
      "cooldowns": [{"id": "poison_arrow", "name": "Poison Arrow", "remaining": 2}]},
     {"name": "Goblin B", "hp": 10, "max_hp": 10, "ac": 13, "guard": 0,
-     "conditions": {}, "cooldowns": []}
+     "conditions": {}, "surprised": false, "cooldowns": []}
   ],
   "allies": [],
   "available_actions": [
@@ -814,7 +830,9 @@ its own `conditions` map. `guard` is the enemy's remaining physical guard, and `
 lists ability names and rounds until reuse. Timed conditions (burning, frightened, weakened,
 prone, staggered) include a `turns` counter and tick at the end of each combat round.
 `effects.defending` is true while Defend adds +4 AC through the enemy phase;
-`effects.aiming` is true until the next weapon attack consumes the advantage.
+`effects.aiming` is true until the next weapon attack consumes the advantage. `surprised`
+is true during the opening round after a stealth attack; it is also repeated on each living
+enemy for status rendering.
 
 `trip` and `shove` are data-driven maneuvers from `data/combat/maneuvers.json`. Each makes a
 contested Athletics check against the target's Acrobatics or Athletics. Trip applies

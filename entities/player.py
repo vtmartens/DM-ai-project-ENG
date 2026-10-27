@@ -49,6 +49,7 @@ class Player(Entity):
         self.initiative_base = self.modifier_dexterity
         self.initiative = self.initiative_base
         self.conditions = {}
+        self.stealthed = False
         self.allies = []
         self.defeats = 0
         self.cleared_areas = []
@@ -518,6 +519,7 @@ class Player(Entity):
                 self, "initiative_base", self.modifier_dexterity
             ),
             "conditions": dict(getattr(self, "conditions", {})),
+            "stealthed": bool(getattr(self, "stealthed", False)),
             "allies": list(getattr(self, "allies", [])),
             "defeats": int(getattr(self, "defeats", 0) or 0),
             "cleared_areas": list(getattr(self, "cleared_areas", [])),
@@ -594,6 +596,7 @@ class Player(Entity):
         player.mana = data.get("mana", getattr(player, "mana", 0))
         player.mana_max = data.get("mana_max", getattr(player, "mana_max", 0))
         player.conditions = dict(data.get("conditions", {}))
+        player.stealthed = bool(data.get("stealthed", False))
         player.allies = list(data.get("allies", []))
         player.defeats = int(data.get("defeats", 0) or 0)
         player.cleared_areas = list(data.get("cleared_areas", []) or [])

@@ -298,8 +298,14 @@ class TavernState(BaseGameState):
         conditions = getattr(player, "conditions", None)
         if not isinstance(conditions, dict):
             conditions = {}
+        stealthed = bool(getattr(player, "stealthed", False))
 
-        if player.hp >= player.hp_max and mana >= mana_max and not conditions:
+        if (
+            player.hp >= player.hp_max
+            and mana >= mana_max
+            and not conditions
+            and not stealthed
+        ):
             game.io.show_message("\nYou are already rested.")
             press_enter(game)
             self.phase = "main_menu"
@@ -317,6 +323,7 @@ class TavernState(BaseGameState):
         player.gold -= self.REST_COST
         player.hp = player.hp_max
         player.mana = mana_max
+        player.stealthed = False
         cleared = sorted(conditions)
         conditions.clear()
 

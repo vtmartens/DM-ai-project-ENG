@@ -409,6 +409,10 @@ class GameState:
                             if alive
                             else {}
                         ),
+                        "surprised": bool(
+                            getattr(current, "surprised", False)
+                        )
+                        and alive,
                         "guard": (
                             int(current.enemy_guard.get(str(index), 0) or 0)
                             if alive
@@ -436,6 +440,9 @@ class GameState:
                 "in_combat": True,
                 "round": getattr(current, "turn", 1),
                 "turn_of": "player",
+                "surprised": bool(
+                    getattr(current, "surprised", False)
+                ),
                 "target": getattr(target, "name", None),
                 "conditions": dict(
                     getattr(self.game.player, "conditions", {}) or {}
@@ -512,6 +519,7 @@ class GameState:
             "mana_max": getattr(player, "mana_max", 0),
             "ac": getattr(player, "armor_class", 10),
             "attack_bonus": getattr(player, "attack_bonus", 0),
+            "stealthed": bool(getattr(player, "stealthed", False)),
         }
 
     def get_abilities(self):
@@ -666,6 +674,9 @@ class GameState:
             ),
             "conditions": dict(
                 getattr(self.game.player, "conditions", {}) or {}
+            ),
+            "stealthed": bool(
+                getattr(self.game.player, "stealthed", False)
             ),
             "preferences": dict(self.preferences),
             "combat": self.get_combat_state(),

@@ -352,10 +352,26 @@ class Game:
             
         dx, dy = directions[direction]
         movement = self.player.move(dx, dy, self.map_manager)
-        
-        if not movement:
-            self.io.show_message("You cannot move in that direction!")
-            
+        moved = (
+            bool(movement.get("success", False))
+            if isinstance(movement, dict)
+            else bool(movement)
+        )
+
+        if not moved:
+            message = (
+                movement.get("message")
+                if isinstance(movement, dict)
+                else None
+            )
+            self.io.show_message(
+                message or "You cannot move in that direction!"
+            )
+        elif getattr(self.player, "stealthed", False):
+            from core.stealth import maintain_stealth
+
+            maintain_stealth(self.player, self)
+
         return movement
 
     def save(self, file_path="save.json"):

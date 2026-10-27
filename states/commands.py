@@ -201,6 +201,10 @@ def walk_to_target(game, target_position, label) -> bool:
     game.player.set_position(path[-1][0], path[-1][1])
     suffix = "step" if steps == 1 else "steps"
     game.io.show_message(f"You move to {label} ({steps} {suffix}).")
+    if getattr(game.player, "stealthed", False):
+        from core.stealth import maintain_stealth
+
+        maintain_stealth(game.player, game)
     return True
 
 
@@ -332,6 +336,7 @@ def handle_targeted_command(game, action, target, extra_npcs=()) -> bool:
             game.io.show_message(f"You don't see {target} here.")
             return False
         from core.quests import build_ally_party
+        from core.stealth import clear_stealth
         from states.combat import CombatState
 
         current_map = game.map_manager.get_map(game.player.current_map)
@@ -346,10 +351,16 @@ def handle_targeted_command(game, action, target, extra_npcs=()) -> bool:
             if grouped:
                 enemies = grouped
 
+        surprised = clear_stealth(
+            game.player,
+            game,
+            "You break cover as you strike.",
+        )
         game.push_state(
             CombatState(
                 enemies=enemies,
                 allies=build_ally_party(game.player),
+                surprised=surprised,
             )
         )
         return True

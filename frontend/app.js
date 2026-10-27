@@ -399,7 +399,7 @@ function renderState(state) {
       : "—";
 
   renderStats(state.stats || {});
-  renderConditions(state.conditions || {});
+  renderConditions(state.conditions || {}, Boolean(state.stealthed));
 
   if (state.preferences?.theme && !localStorage.getItem(THEME_KEY)) {
     applyTheme(state.preferences.theme, true);
@@ -469,6 +469,9 @@ function renderCombat(combat) {
   if (combat.effects?.aiming) {
     addStatusTag(playerStatus, "Aiming · advantage", "cooldown");
   }
+  if (combat.surprised) {
+    addStatusTag(playerStatus, "Surprise round", "condition");
+  }
   if (playerStatus.children.length) el.combatCard.appendChild(playerStatus);
 
   const livingEnemies = (combat.enemies || []).filter((enemy) => enemy.hp > 0);
@@ -505,6 +508,9 @@ function renderCombat(combat) {
 
     const statuses = document.createElement("div");
     statuses.className = "enemy-status";
+    if (enemy.surprised) {
+      addStatusTag(statuses, "Surprised", "condition");
+    }
     if (Number(enemy.guard || 0) > 0) {
       addStatusTag(statuses, `Guard ${enemy.guard}`, "guard");
     }
@@ -543,14 +549,23 @@ function addStatusTag(container, text, kind) {
   container.appendChild(tag);
 }
 
-function renderConditions(conditions) {
+function renderConditions(conditions, stealthed = false) {
   el.conditionsList.innerHTML = "";
   const entries =
     conditions && typeof conditions === "object"
       ? Object.entries(conditions)
       : [];
 
+  if (stealthed) {
+    const hidden = document.createElement("span");
+    hidden.className = "tag condition condition-hidden";
+    hidden.textContent = "Hidden";
+    hidden.title = "Nearby observers have not noticed you.";
+    el.conditionsList.appendChild(hidden);
+  }
+
   if (!entries.length) {
+    if (stealthed) return;
     const note = document.createElement("span");
     note.className = "empty-note";
     note.textContent = "None";

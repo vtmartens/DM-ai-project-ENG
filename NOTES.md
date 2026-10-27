@@ -951,6 +951,23 @@ entirely. The doors that existed were also misaligned with the map exits.
   disarm and hidden-object contract. Tests cover visibility, successful/failed searches,
   disarm success/failure, saves, one-use triggers and persistence. 530 tests pass.
 
+## Stealth and surprise (2026-10-27)
+
+- Added `core/stealth.py` and `Player.stealthed`. Sneak/hide (map option 7, `sneak`/`hide`
+  or the map quick action) rolls Stealth against the highest passive Perception of NPCs
+  within four cells; observer Perception prefers the NPC's data `wisdom`/`wisdom_base`.
+- Moving while hidden re-checks Stealth through map-menu movement, `/move` and pathfinding.
+  Failure names the observer and clears the hidden state. A long rest also clears stealth.
+- Attacking from stealth clears it, shows a break-cover message and starts combat with
+  `surprised=True`. The opening weapon attack uses the existing aim advantage, the fastest
+  enemy cannot seize initiative, and enemies lose their first turn.
+- Exposed `stealthed` in `/state` and `/start` summaries, and `surprised` at the top level and
+  per living enemy in `/combat`. The client renders Hidden, Surprise round and Surprised
+  tags; assets are at `v=32`.
+- Tests cover successful/failed hiding, movement re-checks, the map command, stealth
+  attacks, skipped initiative/actions, surprise advantage, round trips and API exposure.
+  541 tests pass.
+
 ## Deliberate translation choices worth knowing
 
 - **`hp_base` / `mana_base` were left as-is.** They are consistent between code and JSON

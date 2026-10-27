@@ -60,6 +60,7 @@ class MapState(BaseState):
         game.io.show_message("4. Show/hide legend")
         game.io.show_message("5. Go back")
         game.io.show_message("6. Search the area")
+        game.io.show_message("7. Sneak / hide")
 
         selection = str(game.io.request_input("\nChoice: ") or "").strip()
         low = selection.casefold()
@@ -90,6 +91,12 @@ class MapState(BaseState):
                 "look for traps",
             }:
                 self._search_area(game)
+                self.phase = "main_menu"
+                press_enter(game)
+                return
+
+            if low in {"sneak", "hide", "stealth", "sneak around"}:
+                self._attempt_stealth(game)
                 self.phase = "main_menu"
                 press_enter(game)
                 return
@@ -130,6 +137,11 @@ class MapState(BaseState):
             return
         if selection == "6":
             self._search_area(game)
+            self.phase = "main_menu"
+            press_enter(game)
+            return
+        if selection == "7":
+            self._attempt_stealth(game)
             self.phase = "main_menu"
             press_enter(game)
             return
@@ -354,6 +366,12 @@ class MapState(BaseState):
                 "You can try to disarm a trap from an adjacent square."
             )
 
+    def _attempt_stealth(self, game):
+        """Attempts to hide from nearby observers."""
+        from core.stealth import attempt_stealth
+
+        attempt_stealth(game.player, game)
+
     def _nearby_show_elements(self, game):
         """Show nearby objects and NPCs"""
         nearby_items = game.player.get_nearby_items(game.map_manager)
@@ -396,9 +414,20 @@ class MapState(BaseState):
         previous_map = game.player.current_map
         
         # Try to move the player
-        if game.player.move(dx, dy, game.map_manager):
+        movement = game.player.move(dx, dy, game.map_manager)
+        moved = (
+            bool(movement.get("success", False))
+            if isinstance(movement, dict)
+            else bool(movement)
+        )
+        if moved:
             game.io.show_message(f"You moved toward {direction}")
-            
+
+            if getattr(game.player, "stealthed", False):
+                from core.stealth import maintain_stealth
+
+                maintain_stealth(game.player, game)
+
             # Check whether there is a door to change maps
             map = game.map_manager.get_map(game.player.current_map)
             
@@ -421,7 +450,14 @@ class MapState(BaseState):
             elif game.player.current_map == "road":
                 self._maybe_road_encounter(game)
         else:
-            game.io.error_message("You cannot move in that direction!")
+            message = (
+                movement.get("message")
+                if isinstance(movement, dict)
+                else None
+            )
+            game.io.error_message(
+                message or "You cannot move in that direction!"
+            )
 
     def _maybe_road_encounter(self, game):
         """Rolls for a wandering encounter after a road step."""

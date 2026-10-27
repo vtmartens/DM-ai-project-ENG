@@ -208,4 +208,4 @@ def test_map_quick_actions_include_search(client):
     ).get_json()
 
     assert data["context"] == "MapState"
-    assert "search" in data["actions"]
+    assert {"search", "sneak"} <= set(data["actions"])

@@ -18,7 +18,15 @@ from util.dice import Dice
 class CombatState(BaseState):
     DEFEAT_GOLD_LOSS = 20
 
-    def __init__(self, enemy=None, hostile_npc=None, enemies=None, allies=None, encounter=None):
+    def __init__(
+        self,
+        enemy=None,
+        hostile_npc=None,
+        enemies=None,
+        allies=None,
+        encounter=None,
+        surprised=False,
+    ):
         """
         Initialize the combat state.
 
@@ -28,6 +36,8 @@ class CombatState(BaseState):
             enemies (list, optional): Several hostile enemies
             allies (list, optional): Friendly combatants
             encounter (dict, optional): Curated encounter metadata and reward
+            surprised (bool): Enemies lose their first turn and the opening
+                weapon attack has advantage
         """
         if enemies is not None:
             self.enemies = list(enemies)
@@ -54,6 +64,11 @@ class CombatState(BaseState):
         self.temporary_data = {}
         # Ability effects that persist across turns (guard, shield, evade, bless)
         self.effects = {}
+        # A stealth opening skips the enemies' first turn; the opening weapon
+        # attack also has advantage.
+        self.surprised = bool(surprised)
+        if self.surprised:
+            self.effects["surprise_attack"] = True
         # Result of the most recent ability attempt (used by POST /use_ability)
         self.last_ability_used = None
         # Whether initiative has already decided who acts first
@@ -379,6 +394,16 @@ class CombatState(BaseState):
     
     def _phase_attack_enemy(self, player, game):
         """Each living opponent attacks once."""
+        if getattr(self, "surprised", False):
+            self.surprised = False
+            game.io.show_message(
+                "\nThe enemies are caught off guard and lose their first turn."
+            )
+            if player.hp > 0:
+                self._allies_attack(player, game)
+            self.phase = "end_turn"
+            return
+
         self._tick_enemy_ability_cooldowns()
         for index, enemy in enumerate(list(self.enemies)):
             if getattr(enemy, "hp", 0) <= 0:
@@ -993,6 +1018,9 @@ class CombatState(BaseState):
             return False
         self._initiative_checked = True
 
+        if getattr(self, "surprised", False):
+            return False
+
         living = self._alive_enemies()
         if not living:
             return False
@@ -1223,7 +1251,10 @@ class CombatState(BaseState):
         if not isinstance(getattr(self, "effects", None), dict):
             self.effects = {}
 
-        aiming = bool(self.effects.pop("aim", False))
+        aiming = bool(
+            self.effects.pop("aim", False)
+            or self.effects.pop("surprise_attack", False)
+        )
         hit, critical = self._roll_attack(
             player,
             self.opponent,
@@ -1715,6 +1746,8 @@ class CombatState(BaseState):
             self.poison_target_index = None
         if not hasattr(self, "effects") or not isinstance(self.effects, dict):
             self.effects = {}
+        if not hasattr(self, "surprised"):
+            self.surprised = False
         if not hasattr(self, "_initiative_checked"):
             self._initiative_checked = True
         if not hasattr(self, "last_ability_used"):
@@ -1785,6 +1818,7 @@ class CombatState(BaseState):
         state.phase = data.get("phase", "selection")
         state.temporary_data = data.get("temporary_data", {})
         state.effects = data.get("effects", {})
+        state.surprised = bool(data.get("surprised", False))
         state._initiative_checked = data.get("initiative_checked", True)
         state.damage_taken = int(data.get("damage_taken", 0) or 0)
         state.ability_cooldowns = {
@@ -1819,6 +1853,7 @@ class CombatState(BaseState):
             "phase": self.phase,
             "temporary_data": self.temporary_data,
             "effects": dict(getattr(self, "effects", {}) or {}),
+            "surprised": bool(getattr(self, "surprised", False)),
             "initiative_checked": bool(
                 getattr(self, "_initiative_checked", False)
             ),

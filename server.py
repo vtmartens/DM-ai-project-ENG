@@ -789,6 +789,7 @@ def get_available_actions():
         "base": ["examine", "pick_up", "talk", "use", "look"],
         "map": [
             "search",
+            "sneak",
             "move north",
             "move south",
             "move east",
