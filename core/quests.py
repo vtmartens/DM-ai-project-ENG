@@ -44,10 +44,23 @@ def start_quest(player, quest_id, game=None):
             game.io.show_message(f"Unknown quest: {quest_id}.")
         return False
 
-    if quest_id in _active_ids(player) or quest_id in _completed_ids(player):
+    if quest_id in _active_ids(player) or (
+        quest_id in _completed_ids(player)
+        and not definition.get("repeatable")
+    ):
         if game:
             game.io.show_message(f"You already know about {definition['title']}.")
         return False
+
+    if definition.get("repeatable"):
+        # Keep only the latest completion record for a repeatable contract.
+        player.completed_quests = [
+            quest
+            for quest in getattr(player, "completed_quests", [])
+            if not (
+                isinstance(quest, dict) and quest.get("id") == quest_id
+            )
+        ]
 
     if not isinstance(getattr(player, "progress_quests", None), dict):
         player.progress_quests = {}
@@ -59,6 +72,9 @@ def start_quest(player, quest_id, game=None):
         "objective": definition.get("objective", ""),
         "target": definition.get("target", ""),
         "target_item": definition.get("target_item", ""),
+        "target_type": definition.get("target_type", ""),
+        "target_count": int(definition.get("target_count", 1) or 1),
+        "bounty": bool(definition.get("bounty", False)),
         "turn_in": definition.get("turn_in", ""),
         "status": "active",
     }
@@ -66,6 +82,7 @@ def start_quest(player, quest_id, game=None):
     player.progress_quests[quest_id] = {
         "status": "active",
         "combat_encounters": 0,
+        "progress": 0,
     }
     if game:
         game.io.show_message(f"\nQuest started: {quest['title']}")
@@ -236,12 +253,48 @@ def complete_quest(player, quest_id, game=None):
     return True
 
 
-def record_enemy_defeat(player, enemy_name, game=None):
-    """Marks target quests ready (or completes quests without a turn-in NPC)."""
+def record_enemy_defeat(player, enemy_name, game=None, monster_type=None):
+    """Marks target quests ready (or completes quests without a turn-in NPC).
+
+    Bounty quests may track a monster type and a required count. Plain quests
+    continue to match the exact target name.
+    """
     changed = []
     for quest in list(getattr(player, "active_quests", [])):
         if not isinstance(quest, dict):
             continue
+
+        if quest.get("bounty"):
+            if quest.get("status") == "ready":
+                continue
+            target_type = quest.get("target_type")
+            target_name = quest.get("target")
+            matches = False
+            if target_type and monster_type:
+                matches = _normalize(target_type) == _normalize(monster_type)
+            if not matches and target_name:
+                wanted = _normalize(target_name)
+                actual = _normalize(enemy_name)
+                matches = bool(wanted) and wanted in actual
+            if not matches:
+                continue
+
+            quest_id = quest.get("id")
+            progress = player.progress_quests.setdefault(quest_id, {})
+            current = int(progress.get("progress", 0) or 0) + 1
+            required = max(1, int(quest.get("target_count", 1) or 1))
+            progress["progress"] = min(current, required)
+            quest["progress"] = progress["progress"]
+            quest["target_count"] = required
+            if game:
+                game.io.show_message(
+                    f"Bounty progress: {progress['progress']}/{required}."
+                )
+            if progress["progress"] >= required:
+                if mark_quest_ready(player, quest_id, game):
+                    changed.append(quest_id)
+            continue
+
         if _normalize(quest.get("target")) != _normalize(enemy_name):
             continue
 

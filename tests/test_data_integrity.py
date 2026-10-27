@@ -379,13 +379,21 @@ def test_quest_targets_are_known_combatants():
 
     for quest_id, quest in quests.items():
         target = quest.get("target")
-        if quest.get("completion") != "dialogue" and not quest.get("target_item"):
+        target_type = quest.get("target_type")
+        if target_type:
+            assert target_type in monsters, (
+                f"{quest_id}: unknown target type {target_type!r}"
+            )
+        elif quest.get("completion") != "dialogue" and not quest.get("target_item"):
             assert target in npcs or target in monster_names, (
                 f"{quest_id}: unknown target {target!r}"
             )
-        assert quest.get("turn_in") in npcs, (
-            f"{quest_id}: unknown turn-in NPC {quest.get('turn_in')!r}"
-        )
+        if quest.get("bounty"):
+            assert quest.get("turn_in") == "Bounty Board", quest_id
+        else:
+            assert quest.get("turn_in") in npcs, (
+                f"{quest_id}: unknown turn-in NPC {quest.get('turn_in')!r}"
+            )
         assert quest.get("title")
         assert quest.get("objective")
 

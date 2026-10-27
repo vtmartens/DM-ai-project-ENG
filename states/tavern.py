@@ -167,6 +167,7 @@ class TavernState(BaseGameState):
             game.io.show_message("12. Save game")
             game.io.show_message("13. Exit the game")
             game.io.show_message(f"14. Rest at the inn ({self.REST_COST} gold)")
+            game.io.show_message("15. Bounty board")
             self.contextual_data["main_menu_rendered"] = True
 
         # Gets the command from input and stores it
@@ -242,6 +243,11 @@ class TavernState(BaseGameState):
             game.active = False
         elif selection == "14":
             self._rest(game)
+        elif selection == "15":
+            from states.bounty_board import BountyBoardState
+
+            game.push_state(BountyBoardState(game))
+            self.phase = "main_menu"
         else:
             game.io.show_message(f"I don't understand what you want to do with '{original_selection}'.")
             self.phase = "main_menu"
@@ -279,6 +285,8 @@ class TavernState(BaseGameState):
             return "13"
         elif words & {"rest", "sleep", "recover", "nap"}:
             return "14"
+        elif words & {"bounty", "bounties", "contract", "contracts"}:
+            return "15"
         else:
             return cmd  # return the original command if it matches no action
 

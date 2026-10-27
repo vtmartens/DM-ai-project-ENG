@@ -789,7 +789,12 @@ class CombatState(BaseState):
 
             from core.quests import record_enemy_defeat
 
-            record_enemy_defeat(player, getattr(enemy, "name", ""), game)
+            record_enemy_defeat(
+                player,
+                getattr(enemy, "name", ""),
+                game,
+                monster_type=getattr(enemy, "monster_type", None),
+            )
 
         alive = self._alive_enemies()
         if alive and (

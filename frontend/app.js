@@ -800,12 +800,23 @@ function renderQuests(data) {
     title.textContent =
       typeof quest === "string" ? quest : quest.title || quest.id || "Quest";
     const objective = document.createElement("span");
-    objective.textContent =
-      typeof quest === "string"
-        ? ""
-        : ready
-          ? `Ready to turn in — speak to ${quest.turn_in || "the quest giver"}.`
-          : quest.objective || quest.description || "";
+    let objectiveText = "";
+    if (typeof quest !== "string") {
+      if (ready) {
+        objectiveText =
+          quest.turn_in === "Bounty Board"
+            ? "Ready to claim at the Bounty Board."
+            : `Ready to turn in — speak to ${quest.turn_in || "the quest giver"}.`;
+      } else {
+        objectiveText = quest.objective || quest.description || "";
+        if (quest.bounty && Number(quest.target_count || 0) > 0) {
+          objectiveText += ` (${Number(quest.progress || 0)}/${Number(
+            quest.target_count
+          )})`;
+        }
+      }
+    }
+    objective.textContent = objectiveText;
     item.append(title, objective);
     el.questList.appendChild(item);
   }

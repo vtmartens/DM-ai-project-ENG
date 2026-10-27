@@ -774,7 +774,28 @@ entirely. The doors that existed were also misaligned with the map exits.
   `not_started`, and defeating the chief marks the quest ready for turn-in.
 - Added 9 tests covering map/encounter data, boss victory and quest readiness, unique loot,
   campfire recovery, uncleared refusals, Mirt's dialogue options, leaving for the road,
-  persistence, and the API fight flow. 455 tests pass.
+  persistence, and the API fight flow.
+
+## Bounty board (2026-10-27)
+
+- Added three repeatable data-driven bounty quests to `data/quests/quests.json`: Goblin
+  Toll (2 goblins), Wolf Cull (2 wolves) and The Waystation Contract (the Waystation Chief).
+  They use `bounty: true`, `repeatable: true`, `target_type`, `target_count` and
+  `turn_in: "Bounty Board"`; claiming one makes it available again and replaces the previous
+  completion record.
+- `core/bounties.py` lists contracts, enforces a two-active-bounty limit, accepts
+  contracts through the quest system and claims ready ones through `complete_quest`.
+- `core.quests.record_enemy_defeat` now receives the defeated enemy's monster type, tracks
+  bounty progress safely (capped at the required count), prints progress, and marks the
+  contract ready when complete. Existing named-target quests keep their old behavior.
+- Tavern menu option 15 / `bounties` opens `BountyBoardState`, which lists available, active,
+  ready and completed contracts with progress and rewards. Quick actions `accept`, `claim`
+  and `leave` work; `claim N` handles a specific ready contract. Bounty quests appear in the
+  normal quest log with their kill progress; ready contracts say “Ready to claim at the
+  Bounty Board.” Asset version bumped to `v=28`.
+- Added 7 tests covering contract data, progress counting/capping, combat integration, the
+  active limit, readiness and one-time claim rewards, the board API flow, and the tavern
+  command. 464 tests pass.
 
 ## Deliberate translation choices worth knowing
 
@@ -804,7 +825,7 @@ entirely. The doors that existed were also misaligned with the map exits.
 | Residual Italian (glossary-derived denylist + accented characters) | 0 hits |
 | **Original Italian vs translated, identical input** | **46/46 placements, identical sequence** |
 | Flask API in-process (test client, no socket) | 31 × 200, 0 raised |
-| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, AI memory, hints, achievements, utility spells, locks, vault, quests, enemy abilities, encounters, saving throws, conditions, combat status, attack rolls/AC, Defend/Aim, defeat recovery, session recap, equipment economy, road/wilderness/loot, Broken Waystation, rest, accessibility, web client routes, browser smoke/mobile) | 455 passed |
+| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, AI memory, hints, achievements, utility spells, locks, vault, quests, enemy abilities, encounters, saving throws, conditions, combat status, attack rolls/AC, Defend/Aim, defeat recovery, session recap, equipment economy, road/wilderness/loot, Broken Waystation, bounty board, rest, accessibility, web client routes, browser smoke/mobile) | 464 passed |
 | Live smoke test (Flask server, `/app`, start/state/abilities/inventory/actions/command/save/load) | passed |
 
 The last comparison is the strongest evidence: the pristine Italian code and the finished

@@ -317,6 +317,7 @@ class BaseState:
                     "TavernState": "tavern",
                     "MarketState": "market",
                     "WaystationState": "waystation",
+                    "BountyBoardState": "bounty_board",
                     "CombatState": "combat",
                     "DialogueState": "dialogue",
                     "InventoryManagementState": "inventory_management",

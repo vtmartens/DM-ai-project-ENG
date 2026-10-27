@@ -629,7 +629,7 @@ Returns a list of NPC names placed on the current map.
 
 ```json
 {
-  "actions": ["rest", "talk", "fight", "travel", "inventory", "map", "save"],
+  "actions": ["rest", "bounties", "talk", "fight", "travel", "inventory", "map", "save"],
   "targets": {
     "items": ["table"],
     "npc": ["Durnan"],
@@ -641,9 +641,13 @@ Returns a list of NPC names placed on the current map.
 
 The action list depends on the current state: combat, dialogue, market, inventory, the
 tavern and the Broken Waystation each advertise their own commands. In the tavern, `rest`
-is the long-rest action (10 gold; restores HP and mana and clears conditions). In the market
-it includes `shop`, `buy` and `sell`, which drive the shop modal and the numbered terminal
-shop. The waystation advertises `confront`, `strongbox`, `rest` and `leave`.
+is the long-rest action (10 gold; restores HP and mana and clears conditions) and `bounties`
+opens the bounty board. In the market it includes `shop`, `buy` and `sell`, which drive the
+shop modal and the numbered terminal shop. The waystation advertises `confront`,
+`strongbox`, `rest` and `leave`; the bounty board advertises `accept`, `claim` and `leave`.
+Bounty contracts are ordinary quests with `bounty: true` and `repeatable: true`, so their
+progress and ready state appear in `GET /missions` and the web quest panel. Claimed bounties
+return to the available list, while only the latest completion record is kept.
 
 #### `POST /dialogue`
 

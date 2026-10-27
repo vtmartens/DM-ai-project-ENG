@@ -57,5 +57,50 @@
       "gold": 75,
       "experience": 150
     }
+  },
+  "bounty_goblin_road": {
+    "title": "Goblin Toll",
+    "description": "Goblin scouts have been shaking down travellers on the trade road.",
+    "objective": "Defeat 2 goblins.",
+    "bounty": true,
+    "repeatable": true,
+    "target": "Goblin Scout",
+    "target_type": "goblin",
+    "target_count": 2,
+    "turn_in": "Bounty Board",
+    "reward": {
+      "gold": 40,
+      "experience": 50
+    }
+  },
+  "bounty_wolf_cull": {
+    "title": "Wolf Cull",
+    "description": "A pair of wolves has been stalking the road and the market outskirts.",
+    "objective": "Defeat 2 wolves.",
+    "bounty": true,
+    "repeatable": true,
+    "target": "Wolf",
+    "target_type": "wolf",
+    "target_count": 2,
+    "turn_in": "Bounty Board",
+    "reward": {
+      "gold": 35,
+      "experience": 45
+    }
+  },
+  "bounty_waystation_chief": {
+    "title": "The Waystation Contract",
+    "description": "The bounty board will pay well for the bandit chief holding the Broken Waystation.",
+    "objective": "Defeat the Waystation Chief.",
+    "bounty": true,
+    "repeatable": true,
+    "target": "Waystation Chief",
+    "target_type": "bandit_chief",
+    "target_count": 1,
+    "turn_in": "Bounty Board",
+    "reward": {
+      "gold": 60,
+      "experience": 80
+    }
   }
 }
