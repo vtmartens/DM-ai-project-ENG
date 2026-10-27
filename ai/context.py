@@ -7,11 +7,12 @@ def _names(objects) -> list[str]:
     return [getattr(obj, "name", str(obj)) for obj in objects.values()]
 
 
-def build_context(game) -> dict[str, Any]:
+def build_context(game, memory=None) -> dict[str, Any]:
     """Builds the small, serializable snapshot sent to the narrator.
 
     Deliberately excludes inventory, full stats and map contents to keep each
-    narration request small and cheap.
+    narration request small and cheap. ``memory`` is a short list of recent
+    engine events used for continuity.
     """
     if game is None:
         return {}
@@ -47,5 +48,9 @@ def build_context(game) -> dict[str, Any]:
             nearby["npcs"] = _names(position["nearby_npcs"])
         if nearby:
             context["nearby"] = nearby
+
+    recent = [entry for entry in (memory or []) if entry]
+    if recent:
+        context["recent"] = recent[-12:]
 
     return context

@@ -169,6 +169,29 @@ def test_ai_hint_uses_the_narrator_and_context(recording_io):
     assert context["player"]["name"] == "Hint Tester"
 
 
+def test_ai_hint_receives_recent_memory(recording_io):
+    _, game = _game(recording_io)
+
+    class FakeHintNarrator:
+        def __init__(self):
+            self.context = None
+
+        def hint(self, hint, context):
+            self.context = context
+            return "AI hint"
+
+    narrator = FakeHintNarrator()
+
+    result = generate_hint(
+        game,
+        narrator=narrator,
+        memory=["Earlier: the vault door opened."],
+    )
+
+    assert result["source"] == "ai"
+    assert narrator.context["recent"] == ["Earlier: the vault door opened."]
+
+
 def test_ai_hint_falls_back_when_the_narrator_fails(recording_io):
     _, game = _game(recording_io)
 

@@ -14,12 +14,13 @@ ENGINE_FALLBACK = (
 )
 
 
-def generate_hint(game, narrator=None) -> dict:
+def generate_hint(game, narrator=None, memory=None) -> dict:
     """Returns ``{"hint": str, "source": "engine"|"ai"}``.
 
     The deterministic hint is always available. When a narrator is configured,
     it is asked to rephrase that hint; any failure or refusal keeps the engine
-    text. Hints never change game state.
+    text. ``memory`` is a short list of recent engine events used for
+    continuity. Hints never change game state.
     """
     try:
         engine_hint = build_hint(game)
@@ -31,7 +32,7 @@ def generate_hint(game, narrator=None) -> dict:
         return {"hint": engine_hint, "source": "engine"}
 
     try:
-        context = build_context(game)
+        context = build_context(game, memory=memory)
         prose = narrator.hint(engine_hint, context)
     except Exception as exc:
         logger.warning("AI hint failed: %s", exc)

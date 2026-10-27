@@ -719,7 +719,8 @@ def dungeon_master_hint():
     from ai.hints import generate_hint
 
     narrator = getattr(getattr(session, "io_buffer", None), "narrator", None)
-    result = generate_hint(session.game, narrator=narrator)
+    memory = getattr(getattr(session, "io_buffer", None), "memory", None)
+    result = generate_hint(session.game, narrator=narrator, memory=memory)
 
     # Keep the hint in the session log so a reload shows it too.
     if isinstance(getattr(session, "event_log", None), list):

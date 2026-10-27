@@ -189,6 +189,77 @@ def test_context_comes_from_the_attached_game(recording_io):
     assert context["position"] == [5, 5]
 
 
+def test_memory_is_passed_to_the_next_narration(recording_io):
+    narrator = FakeNarrator()
+    io = NarratingIO(recording_io, narrator)
+    io.set_game(_game_stub())
+    io.set_input("look")
+    io.show_message("You enter the tavern.")
+    io.flush()
+
+    assert "recent" not in narrator.calls[0][1]
+    assert io.memory
+
+    io.set_input("talk to Durnan")
+    io.show_message("Durnan greets you.")
+    io.flush()
+
+    events, context = narrator.calls[1]
+    recent = context["recent"]
+    assert any("You enter the tavern." in entry for entry in recent)
+    assert any("Player: look" in entry for entry in recent)
+    assert [event["text"] for event in events] == ["Durnan greets you."]
+
+
+def test_memory_skips_menu_and_state_noise(recording_io):
+    io = NarratingIO(recording_io, NullNarrator())
+    io.show_message("1. Sit by the fire")
+    io.show_message("HP Goblin A: 10/10")
+    io.show_message("You enter the tavern.")
+
+    io.flush()
+
+    assert io.memory == ["You enter the tavern."]
+
+
+def test_memory_is_bounded(recording_io):
+    io = NarratingIO(recording_io, NullNarrator())
+    io.memory_limit = 3
+    for index in range(5):
+        io.show_message(f"Event {index}")
+        io.flush()
+
+    assert io.memory == ["Event 2", "Event 3", "Event 4"]
+
+
+def test_memory_can_be_disabled(recording_io):
+    io = NarratingIO(recording_io, NullNarrator())
+    io.memory_limit = 0
+    io.show_message("An event.")
+
+    io.flush()
+
+    assert io.memory == []
+
+
+def test_memory_survives_pickle(monkeypatch):
+    import ai.io as ai_io
+
+    class RebuiltNarrator:
+        def narrate(self, events, context):
+            return None
+
+    monkeypatch.setattr(ai_io, "create_narrator_from_env", lambda: RebuiltNarrator())
+    io = NarratingIO(RecordingIO(), FakeNarrator())
+    io.memory = ["Earlier event."]
+    io.memory_limit = 4
+
+    restored = pickle.loads(pickle.dumps(io))
+
+    assert restored.memory == ["Earlier event."]
+    assert restored.memory_limit == 4
+
+
 def test_title_menu_is_not_narrated_before_a_player_exists(recording_io):
     narrator = FakeNarrator()
     io = NarratingIO(recording_io, narrator)

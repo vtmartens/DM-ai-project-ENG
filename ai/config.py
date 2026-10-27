@@ -8,6 +8,7 @@ DEFAULT_MODEL = "claude-opus-5-5"
 DEFAULT_OPENAI_MODEL = "gpt-4o-mini"
 DEFAULT_MAX_TOKENS = 1024
 DEFAULT_TIMEOUT = 20.0
+DEFAULT_MEMORY_TURNS = 8
 
 
 def narration_enabled() -> bool:
@@ -48,3 +49,12 @@ def narration_timeout() -> float:
         return max(1.0, float(os.getenv("DM_AI_TIMEOUT", str(DEFAULT_TIMEOUT))))
     except ValueError:
         return DEFAULT_TIMEOUT
+
+
+def memory_turns() -> int:
+    """Number of recent events kept for AI continuity; 0 disables memory."""
+    try:
+        value = int(os.getenv("DM_AI_MEMORY_TURNS", str(DEFAULT_MEMORY_TURNS)))
+    except ValueError:
+        return DEFAULT_MEMORY_TURNS
+    return max(0, min(20, value))

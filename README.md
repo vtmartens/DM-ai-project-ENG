@@ -151,7 +151,9 @@ headless-browser smoke test of the web client (Chrome in CI, Edge locally).
 The engine can append one short, atmospheric Dungeon Master paragraph per turn. The
 deterministic engine text is always shown unchanged; the model only adds prose. If the
 feature is off, credentials are missing, the request times out, or the model refuses,
-the game simply continues without the extra paragraph.
+the game simply continues without the extra paragraph. The DM also keeps a small bounded
+memory of recent engine events (default 8) so narration and hints can refer back to what
+just happened.
 
 For a step-by-step **free/local setup** (Ollama, LM Studio, free cloud tiers), see
 [`docs/AI_SETUP.md`](docs/AI_SETUP.md).
@@ -202,6 +204,7 @@ Settings:
 - `DM_AI_API_KEY` — optional; falls back to `OPENAI_API_KEY` for the OpenAI-compatible provider
 - `DM_AI_MAX_TOKENS` — default `1024`
 - `DM_AI_TIMEOUT` — request timeout in seconds, default `20`
+- `DM_AI_MEMORY_TURNS` — recent events kept for AI continuity, default `8`; `0` disables memory
 
 The test suite uses fake narrators, so it never makes network calls.
 

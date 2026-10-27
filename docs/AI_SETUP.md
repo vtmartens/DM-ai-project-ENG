@@ -1,9 +1,10 @@
 # AI Dungeon Master setup
 
 The AI Dungeon Master is optional. It appends one short atmospheric paragraph to a turn and
-can rephrase the engine's hints; the deterministic engine text is always shown unchanged. If
-the model is unavailable, slow, misconfigured, or refuses, the game continues without the
-paragraph and hints fall back to the engine wording.
+can rephrase the engine's hints; the deterministic engine text is always shown unchanged. It
+also keeps a small bounded memory of recent engine events so narration and hints can refer
+back to what just happened. If the model is unavailable, slow, misconfigured, or refuses, the
+game continues without the paragraph and hints fall back to the engine wording.
 
 This guide focuses on setups that do **not** require a paid API: local inference (Ollama,
 LM Studio) and free cloud tiers. For the default Claude provider, see the README.
@@ -160,6 +161,14 @@ with `source: "engine"`.
 AI hints use the same configuration as narration: set `DM_AI_NARRATION=1` (and the provider
 variables below). Without it, the Hint button still works with engine wording.
 
+## Memory
+
+The narrator receives a bounded list of recent engine events (`context.recent`) for
+continuity. It contains narrative text and non-numeric player actions, skips menu/state noise,
+and defaults to 8 entries. Set `DM_AI_MEMORY_TURNS=0` to disable it; the value is clamped to
+0–20. Memory is kept per session and survives web-session pickling; terminal runs keep it in
+process memory only.
+
 ## Environment variables
 
 | Variable | Default | Purpose |
@@ -171,6 +180,7 @@ variables below). Without it, the Hint button still works with engine wording.
 | `DM_AI_API_KEY` | — | Optional; falls back to `OPENAI_API_KEY` |
 | `DM_AI_MAX_TOKENS` | `1024` | Output cap per narration |
 | `DM_AI_TIMEOUT` | `20` | Request timeout in seconds |
+| `DM_AI_MEMORY_TURNS` | `8` | Recent events kept for AI continuity; `0` disables memory (max 20) |
 
 ## Troubleshooting
 
@@ -182,6 +192,7 @@ variables below). Without it, the Hint button still works with engine wording.
 | Very slow turns | Use a smaller model, enable GPU offload, or raise `DM_AI_TIMEOUT`. The game waits for the narration before showing the prompt |
 | Empty narration from a reasoning model | Some models spend the token budget on hidden reasoning; use a non-reasoning instruct model or raise `DM_AI_MAX_TOKENS` |
 | Hints show engine wording | AI hints need `DM_AI_NARRATION=1`; a failure or refusal also falls back to the engine hint |
+| The DM forgets recent events | Memory defaults to 8 entries; raise `DM_AI_MEMORY_TURNS` (max 20) or check that `DM_AI_MEMORY_TURNS` is not `0` |
 | Engine menus or numbers changed | They cannot be changed by the narrator; it only appends text. If you see this, report it as a bug |
 
 ## Tests

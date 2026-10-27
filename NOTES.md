@@ -594,6 +594,21 @@ entirely. The doors that existed were also misaligned with the map exits.
   starts a goblin fight, waits for the Poison Arrow cooldown tag, formats conditions, and
   checks Guard/cooldown tags. 369 tests pass. Client assets are at `?v=22`.
 
+## AI conversation memory (2026-10-27)
+
+- `NarratingIO` keeps a bounded `memory` of recent engine events and non-numeric player
+  actions. Menu options, prompts and combat/state stat lines are filtered out, entries are
+  truncated to 240 chars, and the default limit is 8 (`DM_AI_MEMORY_TURNS`, clamped 0–20;
+  `0` disables).
+- `ai/context.py` adds `context.recent` for narration and hints. The narration and hint
+  system prompts tell the model to use it for continuity without repeating or contradicting
+  it. Hints receive the session IO's memory through `POST /hint`.
+- Memory is added after a turn is narrated, so it contains prior turns while the current
+  events are still sent separately. It survives web-session pickling; terminal runs keep it
+  in process memory only.
+- Tests: accumulation and prompt context, menu/state filtering, the cap, disabling memory,
+  pickle round trip, and hint-memory propagation. 375 tests pass.
+
 ## Deliberate translation choices worth knowing
 
 - **`hp_base` / `mana_base` were left as-is.** They are consistent between code and JSON
@@ -622,7 +637,7 @@ entirely. The doors that existed were also misaligned with the map exits.
 | Residual Italian (glossary-derived denylist + accented characters) | 0 hits |
 | **Original Italian vs translated, identical input** | **46/46 placements, identical sequence** |
 | Flask API in-process (test client, no socket) | 31 × 200, 0 raised |
-| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, hints, achievements, utility spells, locks, vault, quests, enemy abilities, encounters, saving throws, combat status, accessibility, web client routes, browser smoke/mobile) | 369 passed |
+| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, AI memory, hints, achievements, utility spells, locks, vault, quests, enemy abilities, encounters, saving throws, combat status, accessibility, web client routes, browser smoke/mobile) | 375 passed |
 | Live smoke test (Flask server, `/app`, start/state/abilities/inventory/actions/command/save/load) | passed |
 
 The last comparison is the strongest evidence: the pristine Italian code and the finished
