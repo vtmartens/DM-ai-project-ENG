@@ -511,20 +511,36 @@ Runs `look` and returns `output`, `state`, plus nearby `items`, `exits`, and `np
   "in_combat": true,
   "round": 1,
   "turn_of": "player",
-  "enemies": [{"name": "Goblin", "hp": 10, "max_hp": 10}],
-  "available_actions": ["attack", "use item", "use ability", "change equipment", "flee"]
+  "target": "Goblin A",
+  "enemies": [
+    {"name": "Goblin A", "hp": 10, "max_hp": 10},
+    {"name": "Goblin B", "hp": 10, "max_hp": 10}
+  ],
+  "allies": [],
+  "available_actions": [
+    "attack",
+    "use item",
+    "use ability",
+    "change equipment",
+    "flee",
+    "choose target"
+  ]
 }
 ```
+
+`target` is the enemy attacks and abilities currently affect. `choose target` appears when more
+than one enemy is alive; clients can also send `target <name>` as a command.
 
 Outside combat: `{"in_combat": false}`.
 
 #### `POST /combat_action`
 
 ```json
-{"session_id": "uuid", "action": "attack", "target": ""}
+{"session_id": "uuid", "action": "attack", "target": "Goblin B"}
 ```
 
-Returns `output`, `state`, and `combat`.
+Returns `output`, `state`, and `combat`. A non-empty `target` selects that enemy before
+the action, so `"attack"` with `"Goblin B"` attacks that enemy directly.
 
 ### Reference data
 

@@ -5,18 +5,32 @@ from entities.npc import NPC
 from util.dice import Dice
 
 class CombatState(BaseState):
-    def __init__(self, enemy=None, hostile_npc=None):
+    def __init__(self, enemy=None, hostile_npc=None, enemies=None, allies=None):
         """
         Initialize the combat state.
-        
+
         Args:
             enemy (Enemy, optional): A traditional enemy
             hostile_npc (NPC, optional): An NPC that has become hostile
+            enemies (list, optional): Several hostile enemies
+            allies (list, optional): Friendly combatants
         """
-        self.enemy = enemy
-        self.hostile_npc = hostile_npc
+        if enemies is not None:
+            self.enemies = list(enemies)
+        elif enemy is not None:
+            self.enemies = [enemy]
+        elif hostile_npc is not None:
+            self.enemies = [hostile_npc]
+        else:
+            self.enemies = []
+
+        self._target_index = 0
+        self.allies = list(allies or [])
+        self.rewarded_enemies = set()
+        self.enemy = self.enemies[0] if self.enemies else enemy
+        self.hostile_npc = self.enemies[0] if self.enemies else hostile_npc
         self.turn = 1
-        self.opponent = enemy if enemy else hostile_npc
+
         # Initialize the dice for the various rolls during combat
         self.dice_d20 = Dice(20)
         self.dice_d100 = Dice(100)
@@ -30,6 +44,34 @@ class CombatState(BaseState):
         self.last_ability_used = None
         # Whether initiative has already decided who acts first
         self._initiative_checked = False
+        # Which enemy currently carries poison, if any
+        self.poison_target_index = None
+
+    def _alive_enemies(self):
+        """Returns the enemies still standing."""
+        return [
+            enemy for enemy in self.enemies if getattr(enemy, "hp", 0) > 0
+        ]
+
+    @property
+    def opponent(self):
+        """The current target, falling back to the first living enemy."""
+        alive = self._alive_enemies()
+        if self.enemies and 0 <= self._target_index < len(self.enemies):
+            target = self.enemies[self._target_index]
+            if getattr(target, "hp", 0) > 0:
+                return target
+        if alive:
+            return alive[0]
+        return self.enemies[0] if self.enemies else None
+
+    @opponent.setter
+    def opponent(self, value):
+        """Compatibility setter for single-opponent saves and callers."""
+        self.enemies = [value] if value is not None else []
+        self._target_index = 0
+        self.enemy = value
+        self.hostile_npc = value
         
     def run(self, game):
         player = game.player
@@ -59,6 +101,88 @@ class CombatState(BaseState):
             self._phase_change_equipment(player, game)
         elif self.phase == "use_ability":
             self._phase_use_ability(player, game)
+        elif self.phase == "choose_target":
+            self._phase_choose_target(player, game)
+
+    def _parse_target_command(self, command):
+        """Returns (target name, should_attack) for target/attack commands."""
+        text = str(command or "").strip()
+        lower = text.casefold()
+        if lower.startswith("target "):
+            return text[len("target ") :].strip(), False
+        if lower.startswith("attack "):
+            return text[len("attack ") :].strip(), True
+        return None, False
+
+    def select_target(self, name):
+        """Selects a living enemy by name. Returns False if it is not found."""
+        wanted = str(name or "").strip().casefold()
+        if not wanted:
+            return False
+        for index, enemy in enumerate(self.enemies):
+            if getattr(enemy, "hp", 0) <= 0:
+                continue
+            enemy_name = str(getattr(enemy, "name", "")).casefold()
+            if (
+                enemy_name == wanted
+                or wanted in enemy_name
+                or enemy_name in wanted
+            ):
+                self._target_index = index
+                return True
+        return False
+
+    def _phase_choose_target(self, player, game):
+        """Lets the player choose which living enemy to attack."""
+        living = self._alive_enemies()
+        if not living:
+            self.phase = "selection"
+            return
+
+        options = self.temporary_data.get("target_options")
+        if options is None:
+            options = [self.enemies.index(enemy) for enemy in living]
+            self.temporary_data["target_options"] = options
+            game.io.show_message("\nChoose a target:")
+            for number, enemy in enumerate(living, 1):
+                game.io.show_message(
+                    f"{number}. {enemy.name} "
+                    f"({getattr(enemy, 'hp', 0)}/"
+                    f"{getattr(enemy, 'hp_max', getattr(enemy, 'hp', 0))})"
+                )
+            game.io.show_message(f"{len(living) + 1}. Cancel")
+            game.io.request_input("Choice: ")
+            return
+
+        selection = str(game.io.last_input or "").strip()
+        self.temporary_data.pop("target_options", None)
+        if selection == str(len(options) + 1) or selection.casefold() in {
+            "cancel",
+            "back",
+        }:
+            self.phase = "selection"
+            return
+
+        chosen_index = None
+        if selection.isdigit():
+            position = int(selection) - 1
+            if 0 <= position < len(options):
+                chosen_index = options[position]
+        else:
+            for index in options:
+                enemy_name = str(getattr(self.enemies[index], "name", "")).casefold()
+                if selection.casefold() in enemy_name:
+                    chosen_index = index
+                    break
+
+        if chosen_index is None:
+            game.io.show_message("Invalid target.")
+            self.phase = "selection"
+            return
+
+        self._target_index = chosen_index
+        game.io.show_message(f"Target: {self.opponent.name}.")
+        self.phase = "selection"
 
     def _phase_selection(self, player, game):
         """Action selection phase"""
@@ -69,6 +193,8 @@ class CombatState(BaseState):
         game.io.show_message("3. Change equipment")
         game.io.show_message("4. Flee")
         game.io.show_message("5. Use ability")
+        if len(self._alive_enemies()) > 1:
+            game.io.show_message("6. Choose target")
         
         # Get the command from the input (already set by the web system)
         game.io.request_input("Choice: ")
@@ -96,13 +222,29 @@ class CombatState(BaseState):
             else:
                 return None
         
+        target_name, attack_target = self._parse_target_command(selection_input)
+        if target_name is not None:
+            if self.select_target(target_name):
+                game.io.show_message(f"Target: {self.opponent.name}.")
+                if attack_target:
+                    self._manage_attack(player, game)
+                    self.phase = (
+                        "enemy_attack" if self._alive_enemies() else "end_turn"
+                    )
+                else:
+                    self.phase = "selection"
+            else:
+                game.io.show_message("Invalid target.")
+                self.phase = "selection"
+            return
+
         ability_name = self._parse_ability_command(player, selection_input)
         if ability_name:
             self._manage_ability(player, game, ability_name)
             return
 
         # Process the textual or numeric command
-        if selection_input.isdigit() and selection_input in ["1", "2", "3", "4", "5"]:
+        if selection_input.isdigit() and selection_input in ["1", "2", "3", "4", "5", "6"]:
             selection = selection_input
         else:
             selection = process_command_combat(selection_input)
@@ -110,7 +252,7 @@ class CombatState(BaseState):
         if selection == "1":
             self._manage_attack(player, game)
             # Move to the enemy attack phase if the opponent is still alive
-            if self.opponent.hp > 0:
+            if self._alive_enemies():
                 self.phase = "enemy_attack"
             else:
                 self.phase = "end_turn"
@@ -126,7 +268,7 @@ class CombatState(BaseState):
             self._attempt_escape(game)
             if game.current_state() == self:  # If we have not exited the state
                 # Move to the enemy attack phase if the opponent is still alive
-                if self.opponent.hp > 0:
+                if self._alive_enemies():
                     self.phase = "enemy_attack"
                 else:
                     self.phase = "end_turn"
@@ -134,14 +276,41 @@ class CombatState(BaseState):
             self.phase = "use_ability"
             self.temporary_data.clear()
             return
+        elif selection == "6":
+            self.phase = "choose_target"
+            self.temporary_data.clear()
+            return
         else:
             game.io.show_message(f"Invalid action: '{selection_input}'!")
             self.phase = "selection"  # Return to the selection phase
     
     def _phase_attack_enemy(self, player, game):
-        """Opponent attack phase"""
-        self._attack_enemy(player, game)
+        """Each living opponent attacks once."""
+        for enemy in list(self.enemies):
+            if getattr(enemy, "hp", 0) <= 0:
+                continue
+            self._attack_enemy(player, game, enemy)
+            if player.hp <= 0:
+                break
+        if player.hp > 0:
+            self._allies_attack(player, game)
         self.phase = "end_turn"
+
+    def _allies_attack(self, player, game):
+        """Each living ally strikes one living enemy."""
+        for ally in self.allies:
+            if getattr(ally, "hp", 0) <= 0:
+                continue
+            living = self._alive_enemies()
+            if not living:
+                break
+            target = self.opponent if self.opponent in living else living[0]
+            damage = max(1, int(getattr(ally, "strength", 1) or 1))
+            target.hp = max(0, target.hp - damage)
+            game.io.show_message(
+                f"{getattr(ally, 'name', 'Your ally')} attacks {target.name} "
+                f"for {damage} damage!"
+            )
     
     def _phase_end_turn(self, player, game):
         """End turn phase"""
@@ -202,7 +371,7 @@ class CombatState(BaseState):
         self.temporary_data.clear()
         
         # Move to the enemy attack phase if the opponent is still alive
-        if self.opponent.hp > 0:
+        if self._alive_enemies():
             self.phase = "enemy_attack"
         else:
             self.phase = "end_turn"
@@ -332,7 +501,7 @@ class CombatState(BaseState):
             self.temporary_data.clear()
             
             # Move to the enemy attack phase if the opponent is still alive
-            if self.opponent.hp > 0:
+            if self._alive_enemies():
                 self.phase = "enemy_attack"
             else:
                 self.phase = "end_turn"
@@ -366,7 +535,7 @@ class CombatState(BaseState):
         used = use_ability(game, name, definition)
         self.last_ability_used = used
         if used:
-            self.phase = "enemy_attack" if self.opponent.hp > 0 else "end_turn"
+            self.phase = "enemy_attack" if self._alive_enemies() else "end_turn"
         else:
             self.phase = "selection"
 
@@ -416,101 +585,175 @@ class CombatState(BaseState):
         self._manage_ability(player, game, chosen)
 
     def _show_state_combat(self, player, game):
-        """Show the current combat state"""
-        game.io.show_message("\n" + "="*60)
-        game.io.show_message(f"COMBAT: {player.name} vs {self.opponent.name}")
+        """Show the current combat state."""
+        living = self._alive_enemies()
+        shown_enemies = living or self.enemies
+        enemy_names = ", ".join(
+            getattr(enemy, "name", "Unknown") for enemy in shown_enemies
+        )
+        game.io.show_message("\n" + "=" * 60)
+        game.io.show_message(f"COMBAT: {player.name} vs {enemy_names or 'no enemies'}")
         game.io.show_message(f"Turn: {self.turn}")
-        game.io.show_message(f"HP {player.name}: {player.hp}/{player.hp_max} | HP {self.opponent.name}: {self.opponent.hp}/{self.opponent.hp_max}")
-        
+
         # Also show the player's current equipment
-        weapon = player.weapon if isinstance(player.weapon, str) else (player.weapon.name if player.weapon else "None")
-        armor = player.armor if isinstance(player.armor, str) else (player.armor.name if player.armor else "None")
-        
-        # Handle accessories
+        weapon = (
+            player.weapon
+            if isinstance(player.weapon, str)
+            else (player.weapon.name if player.weapon else "None")
+        )
+        armor = (
+            player.armor
+            if isinstance(player.armor, str)
+            else (player.armor.name if player.armor else "None")
+        )
+
         accessories_names = []
         for acc in player.accessories:
-            if isinstance(acc, str):
-                accessories_names.append(acc)
-            else:
-                accessories_names.append(acc.name)
+            accessories_names.append(acc if isinstance(acc, str) else acc.name)
         accessories = ", ".join(accessories_names) if accessories_names else "None"
-        
-        # Show the player's equipment
-        game.io.show_message(f"{player.name} - Weapon: {weapon} | Armor: {armor} | Accessories: {accessories}")
-        game.io.show_message(f"{player.name} - Strength: {player.strength} | Defense: {player.defense}")
-        
-        # Show information about the enemy if available
-        if hasattr(self.opponent, 'weapons') and self.opponent.weapons:
-            game.io.show_message(f"{self.opponent.name} - Weapons: {', '.join(self.opponent.weapons)}")
-        
-        if hasattr(self.opponent, 'armor') and self.opponent.armor:
-            game.io.show_message(f"{self.opponent.name} - Armor: {self.opponent.armor}")
-            
-        if hasattr(self.opponent, 'strength'):
-            game.io.show_message(f"{self.opponent.name} - Strength: {self.opponent.strength}")
-            
-        if hasattr(self.opponent, 'description') and self.turn == 1:
-            # Show the description only on the first turn
-            game.io.show_message(f"\n{self.opponent.description}")
-            
-        game.io.show_message("="*60)
-        
-    def _check_end_combat(self, game):
-        """Check whether the combat is over"""
-        player = game.player
-        
-        if player.hp <= 0:
-            game.io.show_message(f"\n{self.opponent.name} defeated you! You are gravely wounded...")
-            player.hp = 1  # Instead of dying, the player stays at 1 HP
-            if game.current_state():
-                game.pop_state()
-            return True
-            
-        if self.opponent.hp <= 0:
-            game.io.show_message(f"\nYou defeated {self.opponent.name}!")
-            self._remove_defeated_npc(game)
 
-            # Handle the reward
-            gained_gold = min(self.opponent.gold, 20)  # Max 20 coins
-            self.opponent.gold -= gained_gold
+        game.io.show_message(
+            f"{player.name} - Weapon: {weapon} | Armor: {armor} | "
+            f"Accessories: {accessories}"
+        )
+        game.io.show_message(
+            f"{player.name} - Strength: {player.strength} | "
+            f"Defense: {player.defense}"
+        )
+
+        for enemy in shown_enemies:
+            target_label = (
+                " (target)"
+                if len(living) > 1 and enemy is self.opponent
+                else ""
+            )
+            game.io.show_message(
+                f"HP {getattr(enemy, 'name', 'Unknown')}: "
+                f"{getattr(enemy, 'hp', 0)}/"
+                f"{getattr(enemy, 'hp_max', getattr(enemy, 'hp', 0))}"
+                f"{target_label}"
+            )
+
+        for ally in self.allies:
+            if getattr(ally, "hp", 0) > 0:
+                game.io.show_message(
+                    f"Ally HP {getattr(ally, 'name', 'Unknown')}: "
+                    f"{ally.hp}/{getattr(ally, 'hp_max', ally.hp)}"
+                )
+
+        for enemy in shown_enemies:
+            if hasattr(enemy, "weapons") and enemy.weapons:
+                game.io.show_message(
+                    f"{enemy.name} - Weapons: {', '.join(enemy.weapons)}"
+                )
+            if hasattr(enemy, "armor") and enemy.armor:
+                game.io.show_message(f"{enemy.name} - Armor: {enemy.armor}")
+            if hasattr(enemy, "strength"):
+                game.io.show_message(
+                    f"{enemy.name} - Strength: {enemy.strength}"
+                )
+
+        if self.turn == 1:
+            descriptions = [
+                getattr(enemy, "description", "")
+                for enemy in shown_enemies
+                if getattr(enemy, "description", "")
+            ]
+            for description in descriptions:
+                game.io.show_message(f"\n{description}")
+
+        game.io.show_message("=" * 60)
+
+    def _process_defeated_enemies(self, game):
+        """Removes and rewards each enemy that has just fallen."""
+        player = game.player
+        for index, enemy in enumerate(self.enemies):
+            if getattr(enemy, "hp", 0) > 0 or index in self.rewarded_enemies:
+                continue
+            self.rewarded_enemies.add(index)
+            game.io.show_message(f"\nYou defeated {enemy.name}!")
+            self._remove_defeated_npc(game, enemy)
+
+            gained_gold = min(getattr(enemy, "gold", 0), 20)
+            enemy.gold = getattr(enemy, "gold", 0) - gained_gold
             player.gold += gained_gold
-            
             game.io.show_message(f"You gained {gained_gold} gold coins!")
-            
-            # Check whether there is an item to loot
-            if hasattr(self.opponent, 'inventory') and self.opponent.inventory and len(self.opponent.inventory) > 0:
-                item = self.opponent.inventory[0]  # Take the first item
+
+            if (
+                hasattr(enemy, "inventory")
+                and enemy.inventory
+                and len(enemy.inventory) > 0
+            ):
+                item = enemy.inventory[0]
                 player.add_item(item)
                 game.io.show_message(f"You obtained: {item.name}")
-            
-            # Gain experience - Fixed to use experience_value
-            if hasattr(self.opponent, 'experience_value'):
-                gained_exp = self.opponent.experience_value * (1 + getattr(self.opponent, 'level', 0))
+
+            if hasattr(enemy, "experience_value"):
+                gained_exp = enemy.experience_value * (
+                    1 + getattr(enemy, "level", 0)
+                )
             else:
-                # Default value if the enemy does not have the experience_value attribute
-                gained_exp = 25 * (1 + getattr(self.opponent, 'level', 0))
-                
+                gained_exp = 25 * (1 + getattr(enemy, "level", 0))
+
             if player.gain_experience(gained_exp, game):
-                game.io.show_message(f"You gained {gained_exp} experience points and leveled up!")
+                game.io.show_message(
+                    f"You gained {gained_exp} experience points and leveled up!"
+                )
             else:
-                game.io.show_message(f"You gained {gained_exp} experience points!")
-            
+                game.io.show_message(
+                    f"You gained {gained_exp} experience points!"
+                )
+
+        alive = self._alive_enemies()
+        if alive and (
+            not (0 <= self._target_index < len(self.enemies))
+            or getattr(self.enemies[self._target_index], "hp", 0) <= 0
+        ):
+            self._target_index = self.enemies.index(alive[0])
+
+    def _check_end_combat(self, game):
+        """Check whether the combat is over."""
+        player = game.player
+
+        if player.hp <= 0:
+            last_enemy = self.opponent
+            enemy_name = getattr(last_enemy, "name", "Your enemy")
+            game.io.show_message(
+                f"\n{enemy_name} defeated you! You are gravely wounded..."
+            )
+            player.hp = 1
             if game.current_state():
                 game.pop_state()
             return True
-            
+
+        self._process_defeated_enemies(game)
+
+        if not self._alive_enemies():
+            if len(self.enemies) > 1:
+                game.io.show_message("\nYou have defeated all your enemies!")
+            if game.current_state():
+                game.pop_state()
+            return True
+
         return False
 
     def _check_initiative(self, player, game):
-        """Lets a faster opponent act before the player's first choice."""
+        """Lets the fastest enemy act before the player's first choice."""
         if getattr(self, "_initiative_checked", False):
             return False
         self._initiative_checked = True
 
+        living = self._alive_enemies()
+        if not living:
+            return False
+
+        fastest = max(
+            living,
+            key=lambda enemy: int(getattr(enemy, "dexterity", 0) or 0),
+        )
         player_initiative = int(getattr(player, "initiative", 0) or 0)
-        opponent_initiative = int(getattr(self.opponent, "dexterity", 0) or 0)
-        if opponent_initiative > player_initiative:
-            game.io.show_message(f"\n{self.opponent.name} seizes the initiative!")
+        if int(getattr(fastest, "dexterity", 0) or 0) > player_initiative:
+            game.io.show_message(f"\n{fastest.name} seizes the initiative!")
             self.phase = "enemy_attack"
             return True
         return False
@@ -530,6 +773,10 @@ class CombatState(BaseState):
             poison["turns"] = max(int(poison.get("turns", 0) or 0), turns)
         else:
             self.effects["poison"] = {"damage": damage, "turns": turns}
+        try:
+            self.poison_target_index = self.enemies.index(self.opponent)
+        except ValueError:
+            self.poison_target_index = None
 
         if game:
             game.io.show_message(
@@ -547,15 +794,23 @@ class CombatState(BaseState):
 
         damage = int(poison.get("damage", 0) or 0)
         turns = int(poison.get("turns", 0) or 0)
-        if damage <= 0 or turns <= 0:
+        index = getattr(self, "poison_target_index", None)
+        if not isinstance(index, int) or not (0 <= index < len(self.enemies)):
             effects.pop("poison", None)
+            self.poison_target_index = None
+            return
+        target = self.enemies[index]
+        if damage <= 0 or turns <= 0 or getattr(target, "hp", 0) <= 0:
+            effects.pop("poison", None)
+            self.poison_target_index = None
             return
 
-        self.opponent.hp = max(0, self.opponent.hp - damage)
-        game.io.show_message(f"Poison deals {damage} damage to {self.opponent.name}.")
+        target.hp = max(0, target.hp - damage)
+        game.io.show_message(f"Poison deals {damage} damage to {target.name}.")
         turns -= 1
         if turns <= 0:
             effects.pop("poison", None)
+            self.poison_target_index = None
         else:
             poison["turns"] = turns
 
@@ -582,9 +837,9 @@ class CombatState(BaseState):
         else:
             poison["turns"] = turns
 
-    def _remove_defeated_npc(self, game):
+    def _remove_defeated_npc(self, game, enemy=None):
         """Removes a defeated NPC from the map and from NPC menus."""
-        npc = self.hostile_npc
+        npc = enemy or self.hostile_npc
         if npc is None:
             return
 
@@ -638,29 +893,31 @@ class CombatState(BaseState):
             else:
                 game.io.show_message(f"\nYou attack {self.opponent.name} and deal {damage} damage!")
     
-    def _attack_enemy(self, player, game):
-        """Handle the opponent's attack."""
+    def _attack_enemy(self, player, game, enemy=None):
+        """Handle one opponent's attack."""
+        enemy = enemy or self.opponent
+        if enemy is None:
+            return
         if not isinstance(getattr(self, "effects", None), dict):
             self.effects = {}
         effects = self.effects
 
         if effects.pop("evade", False):
-            game.io.show_message(f"\nYou evade {self.opponent.name}'s attack!")
+            game.io.show_message(f"\nYou evade {enemy.name}'s attack!")
             return
 
-        # For NPCs we use their strength, otherwise we use the enemy's damage
-        if self.hostile_npc:
-            damage = max(1, self.hostile_npc.strength if hasattr(self.hostile_npc, 'strength') else 3)
-        else:
-            damage = self.enemy.strength if hasattr(self.enemy, 'strength') else self.enemy.damage
+        strength = getattr(enemy, "strength", None)
+        if strength is None:
+            strength = getattr(enemy, "damage", 1)
+        damage = max(1, int(strength))
 
         # Attack description
-        if hasattr(self.opponent, 'weapons') and self.opponent.weapons:
+        if hasattr(enemy, 'weapons') and enemy.weapons:
             import random
-            weapon = random.choice(self.opponent.weapons)
-            game.io.show_message(f"\n{self.opponent.name} attacks you with {weapon}!")
+            weapon = random.choice(enemy.weapons)
+            game.io.show_message(f"\n{enemy.name} attacks you with {weapon}!")
         else:
-            game.io.show_message(f"\n{self.opponent.name} attacks you!")
+            game.io.show_message(f"\n{enemy.name} attacks you!")
 
         # Apply defense once here (take_damage() would subtract it again).
         effective_damage = max(1, int(damage) - int(player.defense))
@@ -694,7 +951,7 @@ class CombatState(BaseState):
         else:
             game.io.show_message("You take no damage.")
 
-        attack_effect = getattr(self.opponent, "attack_effect", None)
+        attack_effect = getattr(enemy, "attack_effect", None)
         if (
             effective_damage > 0
             and isinstance(attack_effect, dict)
@@ -787,6 +1044,35 @@ class CombatState(BaseState):
         """Obsolete method kept for compatibility"""
         game.io.error_message("Obsolete method, use _phase_change_equipment instead")
         
+    def __setstate__(self, state):
+        """Restores older pickled combat states into the multi-enemy shape."""
+        old_opponent = state.pop("opponent", None)
+        self.__dict__.update(state)
+
+        if not hasattr(self, "enemies"):
+            if old_opponent is not None:
+                self.enemies = [old_opponent]
+            elif getattr(self, "enemy", None) is not None:
+                self.enemies = [self.enemy]
+            elif getattr(self, "hostile_npc", None) is not None:
+                self.enemies = [self.hostile_npc]
+            else:
+                self.enemies = []
+        if not hasattr(self, "_target_index"):
+            self._target_index = 0
+        if not hasattr(self, "allies"):
+            self.allies = []
+        if not hasattr(self, "rewarded_enemies"):
+            self.rewarded_enemies = set()
+        if not hasattr(self, "poison_target_index"):
+            self.poison_target_index = None
+        if not hasattr(self, "effects") or not isinstance(self.effects, dict):
+            self.effects = {}
+        if not hasattr(self, "_initiative_checked"):
+            self._initiative_checked = True
+        if not hasattr(self, "last_ability_used"):
+            self.last_ability_used = None
+
     @classmethod
     def from_dict(cls, data):
         """
@@ -800,22 +1086,45 @@ class CombatState(BaseState):
         """
         from entities.enemy import Enemy
         from entities.npc import NPC
-        
+
+        def restore_combatant(combatant_data):
+            if not isinstance(combatant_data, dict):
+                return None
+            if combatant_data.get("type") == "NPC":
+                return NPC.from_dict(combatant_data)
+            return Enemy.from_dict(combatant_data)
+
         state = cls()
-        
-        # Restore the opponent
-        if "opponent" in data and data["opponent"] is not None:
-            if isinstance(data["opponent"], dict):
-                # Determine whether the opponent is an enemy or an NPC
-                if data["opponent"].get("type") == "NPC":
-                    state.hostile_npc = NPC.from_dict(data["opponent"])
-                    state.opponent = state.hostile_npc
-                    state.enemy = None
-                else:
-                    state.enemy = Enemy.from_dict(data["opponent"])
-                    state.opponent = state.enemy
-                    state.hostile_npc = None
-        
+        state.enemies = []
+        for enemy_data in data.get("enemies", []) or []:
+            enemy = restore_combatant(enemy_data)
+            if enemy is not None:
+                state.enemies.append(enemy)
+
+        # Compatibility with saves made before multi-enemy combat.
+        if not state.enemies and isinstance(data.get("opponent"), dict):
+            enemy = restore_combatant(data["opponent"])
+            if enemy is not None:
+                state.enemies = [enemy]
+
+        state._target_index = int(data.get("target_index", 0) or 0)
+        state.allies = [
+            ally
+            for ally in (
+                restore_combatant(ally_data)
+                for ally_data in data.get("allies", []) or []
+            )
+            if ally is not None
+        ]
+        state.rewarded_enemies = set(data.get("rewarded_enemies", []) or [])
+        state.poison_target_index = data.get("poison_target_index")
+        state.enemy = state.enemies[0] if state.enemies else None
+        state.hostile_npc = (
+            state.enemies[0]
+            if state.enemies and isinstance(state.enemies[0], NPC)
+            else None
+        )
+
         # Restore the other attributes
         state.turn = data.get("turn", 1)
         state.phase = data.get("phase", "selection")
@@ -842,13 +1151,37 @@ class CombatState(BaseState):
             ),
         }
         
-        # Save the opponent
-        if self.opponent is not None:
-            if hasattr(self.opponent, 'to_dict'):
-                opponent_dict = self.opponent.to_dict()
-                # Add a type field to distinguish between NPC and Enemy
-                if self.hostile_npc is not None:
-                    opponent_dict["type"] = "NPC"
-                data["opponent"] = opponent_dict
-        
+        from entities.npc import NPC
+
+        def serialize_combatant(combatant):
+            if not hasattr(combatant, "to_dict"):
+                return None
+            combatant_data = combatant.to_dict()
+            combatant_data["type"] = (
+                "NPC" if isinstance(combatant, NPC) else "Enemy"
+            )
+            return combatant_data
+
+        data["enemies"] = [
+            combatant_data
+            for combatant_data in (
+                serialize_combatant(enemy) for enemy in self.enemies
+            )
+            if combatant_data is not None
+        ]
+        data["target_index"] = getattr(self, "_target_index", 0)
+        data["allies"] = [
+            combatant_data
+            for combatant_data in (
+                serialize_combatant(ally) for ally in self.allies
+            )
+            if combatant_data is not None
+        ]
+        data["rewarded_enemies"] = sorted(
+            getattr(self, "rewarded_enemies", set())
+        )
+        data["poison_target_index"] = getattr(
+            self, "poison_target_index", None
+        )
+
         return data

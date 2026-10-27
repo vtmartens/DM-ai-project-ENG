@@ -393,6 +393,8 @@ function renderCombat(combat) {
   head.append(title, turn);
   el.combatCard.appendChild(head);
 
+  const livingEnemies = (combat.enemies || []).filter((enemy) => enemy.hp > 0);
+
   for (const enemy of combat.enemies || []) {
     const row = document.createElement("div");
     row.className = "enemy-row";
@@ -403,6 +405,16 @@ function renderCombat(combat) {
     hp.textContent = `${enemy.hp} / ${enemy.max_hp} HP`;
     row.append(name, hp);
 
+    if (livingEnemies.length > 1) {
+      const target = document.createElement("button");
+      target.type = "button";
+      target.className = "ghost small";
+      target.textContent = enemy.name === combat.target ? "Targeted" : "Target";
+      target.disabled = enemy.hp <= 0 || enemy.name === combat.target;
+      target.addEventListener("click", () => sendCommand(`target ${enemy.name}`));
+      row.appendChild(target);
+    }
+
     const bar = document.createElement("div");
     bar.className = "enemy-hp-bar";
     const fill = document.createElement("div");
@@ -412,6 +424,18 @@ function renderCombat(combat) {
     bar.appendChild(fill);
 
     el.combatCard.append(row, bar);
+  }
+
+  for (const ally of combat.allies || []) {
+    const row = document.createElement("div");
+    row.className = "enemy-row";
+    const name = document.createElement("span");
+    name.textContent = `${ally.name} (ally)`;
+    const hp = document.createElement("span");
+    hp.className = "muted";
+    hp.textContent = `${ally.hp} / ${ally.max_hp} HP`;
+    row.append(name, hp);
+    el.combatCard.appendChild(row);
   }
 }
 

@@ -684,6 +684,7 @@ class TavernState(BaseGameState):
             game.io.show_message("4. Random hard enemy")
             game.io.show_message("5. Choose a specific type")
             game.io.show_message("6. Return to the main menu")
+            game.io.show_message("7. Fight a pair of goblins")
 
             self.contextual_data["phase_selection"] = "mode"
             game.io.request_input("Choice: ")
@@ -755,6 +756,21 @@ class TavernState(BaseGameState):
 
             elif selection == "6":
                 # Return to the main menu
+                self.phase = "main_menu"
+                self.contextual_data.clear()
+                return
+
+            elif selection == "7":
+                enemies = []
+                for suffix in ("A", "B"):
+                    enemy = Enemy(name="", monster_type="goblin")
+                    enemy.name = f"Goblin {suffix}"
+                    enemies.append(enemy)
+                game.io.show_message(
+                    "\nTwo goblins bar your way, blades drawn!"
+                )
+                press_enter(game)
+                game.push_state(CombatState(enemies=enemies))
                 self.phase = "main_menu"
                 self.contextual_data.clear()
                 return

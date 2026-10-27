@@ -47,6 +47,7 @@ Each game phase (map exploration, combat, dialogues, inventory management) is ha
 - Natural-language target commands in the tavern, market and map screen: “talk to Durnan”, “attack the goblin”, “use Healing Potion”, “go to the market”, “examine the chair”, “south”
 - Class abilities with mana costs in combat: Powerful Blow, Parry, Magic Missile, Mage Shield, Sneak Attack, Evade, Cure Wounds and Blessing. Use them from the combat menu, with `/use_ability`, or by typing “cast Magic Missile” / “use ability Cure Wounds”
 - Class-based level progression: HP/mana growth follows the class data, and level-3/5/7 abilities unlock automatically (Fierce Attack, Fireball, Backstab, Restoration, and more)
+- Group combat: the tavern's “Fight an enemy” menu offers a pair of goblins; every living enemy acts each round, allies can fight alongside you, and you can choose the current target from the combat menu or combat card
 - Specific keys and locks: use a matching key (or a skeleton key) to open chests and doors; poison works over several turns; antidotes clear poison; initiative accessories affect who acts first in combat
 - Direct approach with pathfinding: “go to Durnan” or “walk to barrel” moves next to the target in one command; “go to exit” or “leave” walks to the nearest map exit and steps through it (works from the tavern and the market)
 - Fully testable backend (no Pygame dependencies in this repo)
@@ -79,7 +80,7 @@ Each game phase (map exploration, combat, dialogues, inventory management) is ha
 🟡 Implement Dungeon Master AI (Claude narration slice; decisions remain deterministic)  
 ⬜ D&D rules improvement and adherence to official system  
 🟡 Class abilities, mana and level-based unlocks; broader non-combat spell utility remains future work\
-⬜ Multiple combatants implementation (more enemies/allies)  
+🟡 Multiple enemies, target selection and allies in combat; encounter design and balancing remain future work\
 ⬜ Online multiplayer implementation  
 ⬜ AI-generated game scenarios and realistic NPC faces  
 ⬜ AI-generated game scenes implementation  

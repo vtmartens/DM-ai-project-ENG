@@ -294,26 +294,44 @@ class GameState:
         from states.combat import CombatState
 
         current = self.game.current_state()
-        if isinstance(current, CombatState) and getattr(current, "opponent", None) is not None:
-            opponent = current.opponent
+        if isinstance(current, CombatState) and getattr(current, "enemies", None):
+            target = getattr(current, "opponent", None)
+            living = [
+                enemy
+                for enemy in current.enemies
+                if getattr(enemy, "hp", 0) > 0
+            ]
+            actions = [
+                "attack",
+                "use item",
+                "use ability",
+                "change equipment",
+                "flee",
+            ]
+            if len(living) > 1:
+                actions.append("choose target")
             return {
                 "in_combat": True,
                 "round": getattr(current, "turn", 1),
                 "turn_of": "player",
+                "target": getattr(target, "name", None),
                 "enemies": [
                     {
-                        "name": getattr(opponent, "name", "Unknown"),
-                        "hp": getattr(opponent, "hp", 0),
-                        "max_hp": getattr(opponent, "hp_max", 0),
+                        "name": getattr(enemy, "name", "Unknown"),
+                        "hp": getattr(enemy, "hp", 0),
+                        "max_hp": getattr(enemy, "hp_max", 0),
                     }
+                    for enemy in current.enemies
                 ],
-                "available_actions": [
-                    "attack",
-                    "use item",
-                    "use ability",
-                    "change equipment",
-                    "flee",
+                "allies": [
+                    {
+                        "name": getattr(ally, "name", "Unknown"),
+                        "hp": getattr(ally, "hp", 0),
+                        "max_hp": getattr(ally, "hp_max", 0),
+                    }
+                    for ally in getattr(current, "allies", [])
                 ],
+                "available_actions": actions,
             }
         return {"in_combat": False}
 
