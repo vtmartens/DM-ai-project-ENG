@@ -239,5 +239,17 @@
       "type": "cycle",
       "value": 2
     }
+  },
+  {
+    "id": "watch_whistleblower",
+    "name": "Watch Whistleblower",
+    "description": "Expose Watch Sergeant Vell's corruption",
+    "icon": "achievement_dialogue.png",
+    "difficulty": "medium",
+    "score": 30,
+    "condition": {
+      "type": "quest_completed",
+      "value": "watchman_ledger"
+    }
   }
 ] 

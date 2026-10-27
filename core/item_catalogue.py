@@ -9,6 +9,7 @@ CATALOGUE_FILES = (
     "armor.json",
     "accessories.json",
     "potions.json",
+    "documents.json",
 )
 
 

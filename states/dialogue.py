@@ -203,7 +203,12 @@ class DialogueState(BaseState):
                 quantity = effect.get("quantity", 10)
                 self.npc.transfer_gold(game.player, quantity, game)
                 game.io.show_message(f"\n*{self.npc.name} gave you {quantity} gold coins*")
-                
+
+            elif type == "add_gold":
+                amount = int(effect.get("amount", 0) or 0)
+                if amount:
+                    game.player.add_gold(amount, game)
+
             elif type == "add_item":
                 item_name = effect.get("item")
                 found = None

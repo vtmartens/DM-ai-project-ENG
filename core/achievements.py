@@ -34,6 +34,7 @@ SUPPORTED_CONDITIONS = frozenset(
         "rune_trials_runs",
         "level",
         "cycle",
+        "quest_completed",
     }
 )
 
@@ -214,6 +215,14 @@ def condition_met(player, condition, game=None) -> bool:
 
     if condition_type == "cycle":
         return int(getattr(player, "cycle", 1) or 1) >= _as_int(value, 1)
+
+    if condition_type == "quest_completed":
+        wanted = _normalize(value)
+        return any(
+            _normalize(quest.get("id")) == wanted
+            for quest in (getattr(player, "completed_quests", []) or [])
+            if isinstance(quest, dict)
+        )
 
     return False
 

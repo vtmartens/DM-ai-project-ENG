@@ -488,7 +488,11 @@
         ["What happens now?", "shadows_done", {"quest": "shadows_of_the_market", "status": "completed"}],
         ["Is there anything else I can do?", "warning_offer"],
         ["About that warning for Mirt...", "warning_reminder", {"quest": "violet_warning", "status": "active"}],
-        ["The Watch could use someone like you.", "violet_trusted", {"reputation": {"faction": "violet_watch", "min": 10}}]
+        ["The Watch could use someone like you.", "violet_trusted", {"reputation": {"faction": "violet_watch", "min": 10}}],
+        ["I heard the Watch has a corruption problem.", "watchman_offer", {"all": [{"quest": "shadows_of_the_market", "status": "completed"}, {"quest": "watchman_ledger", "status": "not_started"}, {"reputation": {"faction": "violet_watch", "min": 10}}]}],
+        ["About Watch Sergeant Vell...", "watchman_reminder", {"quest": "watchman_ledger", "status": "active"}],
+        ["I found proof against Vell.", "watchman_turn_in", {"quest": "watchman_ledger", "status": "ready"}],
+        ["What happened to Vell?", "watchman_done", {"quest": "watchman_ledger", "status": "completed"}]
       ]
     },
     "strange_info": {
@@ -522,6 +526,73 @@
       "text": "Violet smiles without looking up from her herbs. 'The Watch remembers who stood with us when the warehouse was full of knives. My door is open to you.'",
       "options": [
         ["Good to know.", null]
+      ]
+    },
+    "watchman_offer": {
+      "text": "Violet lowers her voice. 'Watch Sergeant Vell has been selling confiscated goods back to the smugglers. The proof is in a watch cache hidden in the old warehouse. Bring me the ledger and I can put him in front of the Watch.'",
+      "options": [
+        ["I will find the ledger.", "watchman_accept"],
+        ["Not now.", null]
+      ]
+    },
+    "watchman_accept": {
+      "text": "The cache is behind the old crates in the warehouse. Vell is careful, but he is not clever. Bring the ledger back to me.",
+      "effect": {"type": "start_quest", "quest": "watchman_ledger"},
+      "options": [
+        ["I will return with it.", null]
+      ]
+    },
+    "watchman_reminder": {
+      "text": "The watch cache is in the old warehouse, behind the crates. The ledger inside names every buyer Vell sold to.",
+      "options": [
+        ["I am on my way.", null]
+      ]
+    },
+    "watchman_turn_in": {
+      "text": "Violet weighs the ledger in one hand. 'This is enough to break him. What do you want to do with it?'",
+      "options": [
+        ["Give it to Violet.", "watchman_violet"],
+        ["Give it to Mirt.", "watchman_mirt"],
+        ["Keep the ledger.", "watchman_keep"]
+      ]
+    },
+    "watchman_violet": {
+      "text": "Violet takes the ledger and nods once. 'The Watch will answer for this. Thank you.' She presses a purse into your hand.",
+      "effect": [
+        {"type": "remove_item", "item": "Watch Ledger"},
+        {"type": "adjust_reputation", "faction": "violet_watch", "amount": 8},
+        {"type": "complete_quest", "quest": "watchman_ledger"}
+      ],
+      "options": [
+        ["Make him answer for it.", null]
+      ]
+    },
+    "watchman_mirt": {
+      "text": "Mirt turns the ledger over and smiles. 'Vell has been a problem for several of my people. I will make sure this reaches the right desk.' He adds a pouch of coin.",
+      "effect": [
+        {"type": "remove_item", "item": "Watch Ledger"},
+        {"type": "adjust_reputation", "faction": "mirt_network", "amount": 8},
+        {"type": "add_gold", "amount": 60},
+        {"type": "complete_quest", "quest": "watchman_ledger"}
+      ],
+      "options": [
+        ["A pleasure, Mirt.", null]
+      ]
+    },
+    "watchman_keep": {
+      "text": "You close your hand around the ledger. Violet studies you, then steps back. 'I hoped you would trust the Watch. Keep it, then, but do not mistake silence for safety.'",
+      "effect": [
+        {"type": "adjust_reputation", "faction": "violet_watch", "amount": -5},
+        {"type": "complete_quest", "quest": "watchman_ledger"}
+      ],
+      "options": [
+        ["I will.", null]
+      ]
+    },
+    "watchman_done": {
+      "text": "Violet has already begun rebuilding the Watch's evidence room. 'Vell is finished. The next corrupt badge will think twice before using the warehouse.'",
+      "options": [
+        ["Good.", null]
       ]
     },
     "warning_offer": {

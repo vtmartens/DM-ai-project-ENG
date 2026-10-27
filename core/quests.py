@@ -173,6 +173,7 @@ ITEM_FILES = (
     "accessories.json",
     "keys.json",
     "potions.json",
+    "documents.json",
 )
 
 

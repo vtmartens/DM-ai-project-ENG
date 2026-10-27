@@ -1,0 +1,9 @@
+[
+  {
+    "name": "Watch Ledger",
+    "type": "document",
+    "effect": {},
+    "value": 50,
+    "description": "A watch ledger recording confiscated goods that never reached the evidence room"
+  }
+]

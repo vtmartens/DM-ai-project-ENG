@@ -144,5 +144,16 @@
       "gold": 250,
       "experience": 600
     }
+  },
+  "watchman_ledger": {
+    "title": "The Watchman's Cut",
+    "description": "Violet has traced a corrupt Watch sergeant, Vell, skimming confiscated goods. The proof is hidden in an old warehouse cache.",
+    "objective": "Search the old warehouse for Watch Sergeant Vell's ledger.",
+    "target_item": "Watch Ledger",
+    "turn_in": "Violet",
+    "reward": {
+      "gold": 100,
+      "experience": 200
+    }
   }
 }

@@ -1167,6 +1167,21 @@ entirely. The doors that existed were also misaligned with the map exits.
   ledger/quest interaction, Rune Pillar text, mana spending and disguise persistence. 643
   tests pass.
 
+## Violet's Watch side quest (2026-10-27)
+
+- Added `watchman_ledger` ("The Watchman's Cut"), offered by Violet at Friendly Violet's
+  Watch standing after `shadows_of_the_market` is completed.
+- Added the warehouse **Watch Cache** and `Watch Ledger` document item. Acquiring the ledger
+  marks the quest ready; opening the cache before accepting also works through the existing
+  target-item flow.
+- Violet's turn-in offers three outcomes: give the evidence to Violet (+8 Violet's Watch),
+  give it to Mirt (+8 Mirt's Network and 60 gold), or keep it (−5 Violet's Watch). All grant
+  the base quest reward and unlock the Watch Whistleblower achievement.
+- Added document item support to the catalogue, item use path and `/item_details`, plus the
+  generic `add_gold` dialogue effect and `quest_completed` achievement condition.
+- Tests cover offer gating, cache/ledger readiness, all three outcomes, achievement
+  completion and repeat-offer suppression. 650 tests pass.
+
 ## Deliberate translation choices worth knowing
 
 - **`hp_base` / `mana_base` were left as-is.** They are consistent between code and JSON

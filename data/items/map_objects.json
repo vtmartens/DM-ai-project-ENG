@@ -89,6 +89,10 @@
     {
       "name": "Sealed Strongbox",
       "position": [16, 9]
+    },
+    {
+      "name": "Watch Cache",
+      "position": [8, 10]
     }
   ],
   "vault": [

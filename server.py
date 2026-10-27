@@ -1531,6 +1531,7 @@ def get_item_details():
         "poison",
         "bomb",
         "key",
+        "document",
     ):
         detailed_item["uses"].append({"action": "use", "description": "Use this item"})
         detailed_item["uses"].append({"action": "examine", "description": "Examine the item in detail"})

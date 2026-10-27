@@ -11,6 +11,7 @@ INVENTORY_FILES = (
     "armor.json",
     "accessories.json",
     "keys.json",
+    "documents.json",
 )
 
 # Every type that Item.use() / Item.equip() knows how to handle.
@@ -25,6 +26,7 @@ IMPLEMENTED_ITEM_TYPES = {
     "armor",
     "accessory",
     "key",
+    "document",
 }
 
 

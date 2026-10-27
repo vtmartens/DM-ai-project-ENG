@@ -98,6 +98,11 @@ class Item:
             if hasattr(combat, "_attempt_escape"):
                 combat._attempt_escape(game, bonus=5)
             player.remove_item(self.name)
+        elif self.type == "document":
+            if game:
+                game.io.show_message(
+                    f"You read {self.name}. {self.description}"
+                )
         elif self.type in ("weapon", "armor", "accessory"):
             self.equip(player, game)
         elif self.type == "key":

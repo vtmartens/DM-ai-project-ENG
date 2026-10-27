@@ -670,5 +670,22 @@
     "token": "R",
     "provides_cover": true,
     "magical": true
+  },
+  {
+    "name": "Watch Cache",
+    "type": "chest",
+    "description": "A watch-issue strongbox tucked behind a stack of old crates.",
+    "state": "closed",
+    "requires_key": false,
+    "token": "W",
+    "provides_cover": true,
+    "content": [
+      {
+        "name": "Watch Ledger",
+        "type": "document",
+        "value": 50,
+        "description": "A watch ledger recording confiscated goods that never reached the evidence room"
+      }
+    ]
   }
 ]
