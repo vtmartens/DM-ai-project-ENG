@@ -794,8 +794,32 @@ entirely. The doors that existed were also misaligned with the map exits.
   normal quest log with their kill progress; ready contracts say “Ready to claim at the
   Bounty Board.” Asset version bumped to `v=28`.
 - Added 7 tests covering contract data, progress counting/capping, combat integration, the
-  active limit, readiness and one-time claim rewards, the board API flow, and the tavern
-  command. 464 tests pass.
+  active limit, readiness and repeatable claim rewards, the board API flow, and the tavern
+  command.
+
+## Progression achievements (2026-10-27)
+
+- Extended the achievement stats with bounty claims, road victories, item/equipment purchases
+  and defeated-enemy names. `area_cleared` reads the persistent `cleared_areas` list and
+  `defeats` reads the player's defeat counter.
+- Added six achievements: **Contractor** (3 bounty claims), **Roadwarden** (5 road encounter
+  wins), **Waystation Liberator**, **Well Equipped** (3 equipment purchases), **Back on Your
+  Feet** (first defeat recovery) and **Vaultbreaker** (defeat the Iron Sentinel).
+- Added event hooks in bounty claims, shop purchases, road/area victory resolution and enemy
+  defeats. Bounty repeats continue to count; road victories count only actual road
+  encounters, not the Waystation boss. All new conditions are in `SUPPORTED_CONDITIONS`.
+- Added four integration/condition tests; existing clean-streak, quest and save/load
+  achievement behavior is unchanged. 468 tests pass.
+
+## Stable map ordering (CI fix, 2026-10-27)
+
+- `Path.glob()` order is filesystem-dependent. After the Road and Waystation maps were
+  added, destination option 1 was no longer reliably Cellar, so
+  `test_travel_moves_the_player_to_another_map` failed on the Python 3.13 CI runner.
+- `MapLoader.list_available_maps` and `MapSelectionState` now sort map names, giving the
+  destination menu a stable alphabetical order. The travel test resolves the Cellar option
+  from that sorted list instead of assuming it is option 1.
+- Full suite remains green: 468 tests pass.
 
 ## Deliberate translation choices worth knowing
 
@@ -825,7 +849,7 @@ entirely. The doors that existed were also misaligned with the map exits.
 | Residual Italian (glossary-derived denylist + accented characters) | 0 hits |
 | **Original Italian vs translated, identical input** | **46/46 placements, identical sequence** |
 | Flask API in-process (test client, no socket) | 31 × 200, 0 raised |
-| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, AI memory, hints, achievements, utility spells, locks, vault, quests, enemy abilities, encounters, saving throws, conditions, combat status, attack rolls/AC, Defend/Aim, defeat recovery, session recap, equipment economy, road/wilderness/loot, Broken Waystation, bounty board, rest, accessibility, web client routes, browser smoke/mobile) | 464 passed |
+| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, AI memory, hints, achievements, utility spells, locks, vault, quests, enemy abilities, encounters, saving throws, conditions, combat status, attack rolls/AC, Defend/Aim, defeat recovery, session recap, equipment economy, road/wilderness/loot, Broken Waystation, bounty board, progression achievements, rest, accessibility, web client routes, browser smoke/mobile) | 468 passed |
 | Live smoke test (Flask server, `/app`, start/state/abilities/inventory/actions/command/save/load) | passed |
 
 The last comparison is the strongest evidence: the pristine Italian code and the finished

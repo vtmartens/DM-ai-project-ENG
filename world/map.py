@@ -460,5 +460,7 @@ class MapLoader:
         """
         if not self.base_path.exists():
             return []
-            
-        return [f.name for f in self.base_path.glob("*.json")]
+
+        # Directory iteration order is filesystem-dependent. Keep map loading
+        # and the destination menu stable across platforms.
+        return sorted(f.name for f in self.base_path.glob("*.json"))

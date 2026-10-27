@@ -46,8 +46,8 @@ class MapSelectionState(BaseGameState):
         # Show the map selection menu
         game.io.show_message("\n=== DESTINATION SELECTION ===")
         
-        # Get the list of available maps from the map manager
-        available_maps = list(game.map_manager.maps.keys())
+        # Get the list of available maps from the map manager in a stable order.
+        available_maps = sorted(game.map_manager.maps.keys())
         
         # Show the options
         game.io.show_message("Where do you want to go?")

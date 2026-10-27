@@ -472,11 +472,17 @@ def test_talk_targeting_works_from_the_map_screen(client):
 
 
 def test_travel_moves_the_player_to_another_map(client):
+    import server
+
     session_id = _start(client)
+    session = server.active_sessions[session_id]
+    maps = sorted(session.game.map_manager.maps)
+    cellar_choice = maps.index("cellar") + 1
 
     client.post("/command", json={"session_id": session_id, "command": "2"})
     result = client.post(
-        "/command", json={"session_id": session_id, "command": "1"}
+        "/command",
+        json={"session_id": session_id, "command": str(cellar_choice)},
     ).get_json()
 
     assert result["state"]["state"] == "MapState"
