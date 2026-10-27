@@ -626,6 +626,15 @@ The road's far end leads to the **Broken Waystation** (`WaystationState`). Its a
 grants the unique Wayfarer's Cloak and 50 gold; the cleared campfire fully restores HP, mana
 and clears conditions.
 
+#### The Rune Pillar
+
+The vault's Rune Pillar is a `RunePillar` interactive object. Interacting with it opens
+`RunePillarState` with actions `study` and `leave`. Studying makes a DC 15 Arcana check using
+the player's Intelligence and Arcana proficiency, including condition advantage/disadvantage
+and Guidance. Success grants the unique Rune-Ward Amulet once and records it in
+`player.claimed_rewards`; failure deals 2 HP of damage, and the check can be retried. The
+solved state and item survive save/load.
+
 #### `GET /npcs?session_id=...`
 
 Returns a list of NPC names placed on the current map.
@@ -645,11 +654,12 @@ Returns a list of NPC names placed on the current map.
 ```
 
 The action list depends on the current state: combat, dialogue, market, inventory, the
-tavern and the Broken Waystation each advertise their own commands. In the tavern, `rest`
-is the long-rest action (10 gold; restores HP and mana and clears conditions) and `bounties`
-opens the bounty board. In the market it includes `shop`, `buy` and `sell`, which drive the
-shop modal and the numbered terminal shop. The waystation advertises `confront`,
-`strongbox`, `rest` and `leave`; the bounty board advertises `accept`, `claim` and `leave`.
+tavern, the Broken Waystation, the bounty board and the Rune Pillar each advertise their own
+commands. In the tavern, `rest` is the long-rest action (10 gold; restores HP and mana and
+clears conditions) and `bounties` opens the bounty board. In the market it includes `shop`,
+`buy` and `sell`, which drive the shop modal and the numbered terminal shop. The waystation
+advertises `confront`, `strongbox`, `rest` and `leave`; the bounty board advertises `accept`,
+`claim` and `leave`; the Rune Pillar advertises `study` and `leave`.
 Bounty contracts are ordinary quests with `bounty: true` and `repeatable: true`, so their
 progress and ready state appear in `GET /missions` and the web quest panel. Claimed bounties
 return to the available list, while only the latest completion record is kept.

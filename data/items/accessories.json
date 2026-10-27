@@ -62,5 +62,13 @@
     "value": 120,
     "rarity": "rare",
     "description": "A travel-worn cloak lined with road dust and old protective runes"
+  },
+  {
+    "name": "Rune-Ward Amulet",
+    "type": "accessory",
+    "effect": {"defense": 1, "intelligence": 1},
+    "value": 140,
+    "rarity": "rare",
+    "description": "A black-stone amulet whose ward-runes warm when danger is near"
   }
 ]

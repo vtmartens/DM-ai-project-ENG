@@ -4,6 +4,7 @@ from items.interactive_object import (
     Door,
     InteractiveObject,
     Lever,
+    RunePillar,
     Trap,
 )
 from entities.npc import NPC     
@@ -310,6 +311,7 @@ class Map:
             "lever": Lever,
             "trap": Trap,
             "breakable_object": BreakableObject,
+            "rune_pillar": RunePillar,
         }
         for pos_str, obj_data in data.get("items", {}).items():
             try:

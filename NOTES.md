@@ -829,6 +829,20 @@ entirely. The doors that existed were also misaligned with the map exits.
   damage; item/player round trips; shop property exposure; weapon data integrity. 475 tests
   pass.
 
+## Rune Pillar vault challenge (2026-10-27)
+
+- Changed the vault Rune Pillar data type to `rune_pillar` and added a `RunePillar`
+  interactive-object subclass. Object loading and `Map.from_dict` preserve the subclass, and
+  adjacent-item interaction now receives the game context so objects can push states.
+- `RunePillarState` offers `study` / `leave`. Studying makes a DC 15 Arcana check with
+  Intelligence + Arcana proficiency, condition advantage/disadvantage and Guidance.
+- Success grants the unique **Rune-Ward Amulet** and records
+  `vault_rune_pillar` in `player.claimed_rewards`; repeated study is refused. Failure deals
+  2 HP of damage and can be retried. The solved state and reward persist through save/load.
+- Added `study`/`leave` available actions and state restore mappings. Tests cover object
+  loading/map round trips, interaction, success/reward-once, failure/retry and Guidance
+  consumption. 481 tests pass.
+
 ## Stable map ordering (CI fix, 2026-10-27)
 
 - `Path.glob()` order is filesystem-dependent. After the Road and Waystation maps were
@@ -867,7 +881,7 @@ entirely. The doors that existed were also misaligned with the map exits.
 | Residual Italian (glossary-derived denylist + accented characters) | 0 hits |
 | **Original Italian vs translated, identical input** | **46/46 placements, identical sequence** |
 | Flask API in-process (test client, no socket) | 31 × 200, 0 raised |
-| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, AI memory, hints, achievements, utility spells, locks, vault, quests, enemy abilities, encounters, saving throws, conditions, combat status, attack rolls/AC, Defend/Aim, defeat recovery, session recap, equipment economy, road/wilderness/loot, Broken Waystation, bounty board, progression achievements, weapon properties, rest, accessibility, web client routes, browser smoke/mobile) | 475 passed |
+| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, AI memory, hints, achievements, utility spells, locks, vault, quests, enemy abilities, encounters, saving throws, conditions, combat status, attack rolls/AC, Defend/Aim, defeat recovery, session recap, equipment economy, road/wilderness/loot, Broken Waystation, bounty board, progression achievements, weapon properties, Rune Pillar, rest, accessibility, web client routes, browser smoke/mobile) | 481 passed |
 | Live smoke test (Flask server, `/app`, start/state/abilities/inventory/actions/command/save/load) | passed |
 
 The last comparison is the strongest evidence: the pristine Italian code and the finished

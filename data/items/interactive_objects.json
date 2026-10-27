@@ -624,7 +624,7 @@
   },
   {
     "name": "Rune Pillar",
-    "type": "interactive_object",
+    "type": "rune_pillar",
     "description": "A pillar of black stone covered in warding runes. One line reads: 'Only the sentinel's sigil opens the reliquary.'",
     "state": "inactive",
     "token": "R"

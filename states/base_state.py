@@ -318,6 +318,7 @@ class BaseState:
                     "MarketState": "market",
                     "WaystationState": "waystation",
                     "BountyBoardState": "bounty_board",
+                    "RunePillarState": "rune_pillar",
                     "CombatState": "combat",
                     "DialogueState": "dialogue",
                     "InventoryManagementState": "inventory_management",

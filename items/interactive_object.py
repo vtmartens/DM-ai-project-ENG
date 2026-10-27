@@ -287,6 +287,8 @@ class InteractiveObject:
             return Trap.from_dict(item_data)
         elif object_type == "breakable_object":
             return BreakableObject.from_dict(item_data)
+        elif object_type == "rune_pillar":
+            return RunePillar.from_dict(item_data)
         else:
             return InteractiveObject.from_dict(item_data)
 
@@ -317,6 +319,27 @@ class InteractiveObject:
             
         # Save the updated objects
         return data_manager.save_interactive_objects(items)
+
+
+class RunePillar(InteractiveObject):
+    """An interactive vault object that opens its Arcana challenge."""
+
+    def __init__(self, name, description="", state="inactive", position=None, token="R"):
+        super().__init__(
+            name,
+            description=description,
+            state=state,
+            position=position,
+            token=token,
+        )
+        self.type = "rune_pillar"
+
+    def interact(self, player, game=None):
+        if game is None:
+            return super().interact(player, game)
+        from states.rune_pillar import RunePillarState
+
+        game.push_state(RunePillarState(self, game))
 
 
 class Chest(InteractiveObject):

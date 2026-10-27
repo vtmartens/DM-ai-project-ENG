@@ -404,7 +404,7 @@ class Player(Entity):
             if item:
                 if game and game.io:
                     game.io.show_message(f"You interact with {item.name}")
-                item.interact(self)
+                item.interact(self, game)
                 return True
             
         if game and game.io:

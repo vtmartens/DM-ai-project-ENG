@@ -877,7 +877,8 @@ def get_available_actions():
             "save",
         ],
         "waystation": ["confront", "strongbox", "rest", "leave"],
-        "bounty_board": ["accept", "claim", "leave"]
+        "bounty_board": ["accept", "claim", "leave"],
+        "rune_pillar": ["study", "leave"]
     }
 
     if session.get_combat_state().get("in_combat"):
@@ -894,6 +895,8 @@ def get_available_actions():
         actions = actions_context["waystation"]
     elif state_name == "BountyBoardState":
         actions = actions_context["bounty_board"]
+    elif state_name == "RunePillarState":
+        actions = actions_context["rune_pillar"]
     else:
         actions = actions_context["base"]
 

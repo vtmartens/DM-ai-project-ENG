@@ -575,6 +575,7 @@ class Game:
                 "MarketState": "states.market",
                 "WaystationState": "states.waystation",
                 "BountyBoardState": "states.bounty_board",
+                "RunePillarState": "states.rune_pillar",
                 "InventoryManagementState": "states.inventory_management",
                 "AbilityCheckState": "states.ability_check",
                 "MapState": "states.map_state",
