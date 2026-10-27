@@ -5,5 +5,12 @@
     "effect": {},
     "value": 50,
     "description": "A watch ledger recording confiscated goods that never reached the evidence room"
+  },
+  {
+    "name": "Merchant Ledger",
+    "type": "document",
+    "effect": {},
+    "value": 60,
+    "description": "A merchant's private ledger listing cursed relics sold under the table"
   }
 ]

@@ -53,6 +53,10 @@
     {
       "name": "Warehouse Door",
       "position": [20, 7]
+    },
+    {
+      "name": "Merchant's Lockbox",
+      "position": [5, 9]
     }
   ],
   "cellar": [

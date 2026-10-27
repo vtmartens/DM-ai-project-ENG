@@ -1198,6 +1198,18 @@ entirely. The doors that existed were also misaligned with the map exits.
 - Tests cover ability data, support selection, explicit orders, cooldowns, loyalty refusal,
   party/API exposure and persistence. 656 tests pass.
 
+## Mirt's Network side quest (2026-10-27)
+
+- Added `silent_partner` ("The Silent Partner"), offered by Mirt at Friendly Mirt's Network
+  standing after `underroad_chapter` is completed.
+- Added the market **Merchant's Lockbox** and `Merchant Ledger` document. Recovering the
+  ledger readies the quest through the existing target-item flow.
+- Mirt's turn-in choices give the ledger to Mirt (+8 Mirt's Network), protect the trade
+  (+8 Underroad Smugglers and an extra 80 gold), or keep it (−5 Mirt's Network). All grant the
+  base reward and unlock The Silent Partner achievement.
+- Tests cover offer gating, lockbox/ledger readiness, all three outcomes, achievement
+  completion and repeat-offer suppression. 663 tests pass.
+
 ## Deliberate translation choices worth knowing
 
 - **`hp_base` / `mana_base` were left as-is.** They are consistent between code and JSON

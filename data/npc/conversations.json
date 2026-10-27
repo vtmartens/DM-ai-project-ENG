@@ -209,7 +209,11 @@
         ["The Rune Warden is destroyed.", "sanctum_turn_in", {"quest": "sanctum_chapter", "status": "ready"}],
         ["What lies beyond the sanctum?", "sanctum_done", {"quest": "sanctum_chapter", "status": "completed"}],
         ["Any work for a trusted friend?", "mirt_trusted", {"reputation": {"faction": "mirt_network", "min": 10}}],
-        ["You do not recognize me, merchant.", "disguise_bluff", {"disguised": true}]
+        ["You do not recognize me, merchant.", "disguise_bluff", {"disguised": true}],
+        ["One of your merchants is selling cursed relics.", "silent_partner_offer", {"all": [{"quest": "underroad_chapter", "status": "completed"}, {"quest": "silent_partner", "status": "not_started"}, {"reputation": {"faction": "mirt_network", "min": 10}}]}],
+        ["About Gundren's relics...", "silent_partner_reminder", {"quest": "silent_partner", "status": "active"}],
+        ["I have Gundren's ledger.", "silent_partner_turn_in", {"quest": "silent_partner", "status": "ready"}],
+        ["What happened with Gundren?", "silent_partner_done", {"quest": "silent_partner", "status": "completed"}]
       ]
     },
     "business_info": {
@@ -356,6 +360,73 @@
       "effect": {"type": "clear_disguise"},
       "options": [
         ["A pleasure doing business.", null]
+      ]
+    },
+    "silent_partner_offer": {
+      "text": "Mirt's smile disappears. 'Gundren has been moving cursed relics through my market and undercutting every honest trader in it. His private ledger is in a lockbox beneath his stall. Bring it to me and we will settle this quietly.'",
+      "options": [
+        ["I will get the ledger.", "silent_partner_accept"],
+        ["Not now.", null]
+      ]
+    },
+    "silent_partner_accept": {
+      "text": "Gundren keeps his stall near the fountain. The lockbox is beneath it. Be discreet; a public accusation would cost me more than the relics are worth.",
+      "effect": {"type": "start_quest", "quest": "silent_partner"},
+      "options": [
+        ["I will be discreet.", null]
+      ]
+    },
+    "silent_partner_reminder": {
+      "text": "The lockbox is beneath Gundren's stall in the market. Bring me the ledger and I will decide how much of this becomes public.",
+      "options": [
+        ["I am on my way.", null]
+      ]
+    },
+    "silent_partner_turn_in": {
+      "text": "Mirt reads the ledger in silence. 'This is enough to ruin him. Or enough to own him. What shall we do with it?'",
+      "options": [
+        ["Give it to Mirt.", "silent_partner_mirt"],
+        ["Protect Gundren's trade.", "silent_partner_underroad"],
+        ["Keep the ledger.", "silent_partner_keep"]
+      ]
+    },
+    "silent_partner_mirt": {
+      "text": "Mirt closes the ledger and pours two cups. 'The market will be cleaner by morning. You have my thanks, and my coin.'",
+      "effect": [
+        {"type": "remove_item", "item": "Merchant Ledger"},
+        {"type": "adjust_reputation", "faction": "mirt_network", "amount": 8},
+        {"type": "complete_quest", "quest": "silent_partner"}
+      ],
+      "options": [
+        ["A cleaner market, then.", null]
+      ]
+    },
+    "silent_partner_underroad": {
+      "text": "Mirt studies you, then laughs without warmth. 'So the smugglers keep their merchant. I will remember this.' The ledger vanishes into the Underroad's network, and a heavy purse finds your hand.",
+      "effect": [
+        {"type": "remove_item", "item": "Merchant Ledger"},
+        {"type": "adjust_reputation", "faction": "underroad_smugglers", "amount": 8},
+        {"type": "add_gold", "amount": 80},
+        {"type": "complete_quest", "quest": "silent_partner"}
+      ],
+      "options": [
+        ["Business is business.", null]
+      ]
+    },
+    "silent_partner_keep": {
+      "text": "You close the ledger and put it away. Mirt's expression hardens. 'A dangerous thing to carry. Do not expect me to forget where it went.'",
+      "effect": [
+        {"type": "adjust_reputation", "faction": "mirt_network", "amount": -5},
+        {"type": "complete_quest", "quest": "silent_partner"}
+      ],
+      "options": [
+        ["I will take my chances.", null]
+      ]
+    },
+    "silent_partner_done": {
+      "text": "Gundren's stall stands quiet, and Mirt's ledgers balance again. 'The market remembers who settled that account,' he says. 'So do I.'",
+      "options": [
+        ["Good.", null]
       ]
     },
     "show_items": {

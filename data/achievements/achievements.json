@@ -251,5 +251,17 @@
       "type": "quest_completed",
       "value": "watchman_ledger"
     }
+  },
+  {
+    "id": "silent_partner",
+    "name": "The Silent Partner",
+    "description": "Resolve Mirt's investigation into Gundren's cursed relics",
+    "icon": "achievement_gold.png",
+    "difficulty": "medium",
+    "score": 30,
+    "condition": {
+      "type": "quest_completed",
+      "value": "silent_partner"
+    }
   }
 ] 

@@ -155,5 +155,16 @@
       "gold": 100,
       "experience": 200
     }
+  },
+  "silent_partner": {
+    "title": "The Silent Partner",
+    "description": "Mirt suspects Gundren has been selling cursed relics under the table. The jeweller keeps a private ledger beneath his stall.",
+    "objective": "Recover Gundren's merchant ledger from the market lockbox.",
+    "target_item": "Merchant Ledger",
+    "turn_in": "Mirt",
+    "reward": {
+      "gold": 120,
+      "experience": 220
+    }
   }
 }

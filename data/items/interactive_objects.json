@@ -687,5 +687,22 @@
         "description": "A watch ledger recording confiscated goods that never reached the evidence room"
       }
     ]
+  },
+  {
+    "name": "Merchant's Lockbox",
+    "type": "chest",
+    "description": "A discreet lockbox hidden beneath Gundren's stall.",
+    "state": "closed",
+    "requires_key": false,
+    "token": "M",
+    "provides_cover": true,
+    "content": [
+      {
+        "name": "Merchant Ledger",
+        "type": "document",
+        "value": 60,
+        "description": "A merchant's private ledger listing cursed relics sold under the table"
+      }
+    ]
   }
 ]
