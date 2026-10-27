@@ -857,6 +857,17 @@ entirely. The doors that existed were also misaligned with the map exits.
   Tests cover map/encounter data, access gating, boss victory, quest readiness, cache
   once-only rewards, return travel, dialogue and the waystation ledger hook. 493 tests pass.
 
+## Bounty Board web panel (2026-10-27)
+
+- Added `GET /bounties`, `POST /bounties/accept` and `POST /bounties/claim`, available from
+  `TavernState`/`BountyBoardState` and backed by the existing bounty service.
+- Added a **Bounties** button in the tavern and a focus-trapped modal showing each contract's
+  objective, description, status, progress and reward, with Accept/Claim actions.
+- The modal refreshes the quest log, character gold and bounty list after each action.
+  Asset version bumped to `v=30`.
+- Added API and browser coverage for listing, accepting and claiming contracts. 494 tests
+  pass.
+
 ## Hardening pass (2026-10-27)
 
 - Removed the unused legacy `world/map_controller.py`; all live map/state navigation goes
@@ -907,7 +918,7 @@ entirely. The doors that existed were also misaligned with the map exits.
 | Residual Italian (glossary-derived denylist + accented characters) | 0 hits |
 | **Original Italian vs translated, identical input** | **46/46 placements, identical sequence** |
 | Flask API in-process (test client, no socket) | 31 × 200, 0 raised |
-| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, AI memory, hints, achievements, utility spells, locks, vault, quests, enemy abilities, encounters, saving throws, conditions, combat status, attack rolls/AC, Defend/Aim, defeat recovery, session recap, equipment economy, road/wilderness/loot, Broken Waystation, Underroad, bounty board, progression achievements, weapon properties, Rune Pillar, hardening, rest, accessibility, web client routes, browser smoke/mobile) | 493 passed |
+| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, AI memory, hints, achievements, utility spells, locks, vault, quests, enemy abilities, encounters, saving throws, conditions, combat status, attack rolls/AC, Defend/Aim, defeat recovery, session recap, equipment economy, road/wilderness/loot, Broken Waystation, Underroad, bounty board, bounty web panel, progression achievements, weapon properties, Rune Pillar, hardening, rest, accessibility, web client routes, browser smoke/mobile) | 494 passed |
 | Live smoke test (Flask server, `/app`, start/state/abilities/inventory/actions/command/save/load) | passed |
 
 The last comparison is the strongest evidence: the pristine Italian code and the finished

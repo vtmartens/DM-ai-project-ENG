@@ -133,6 +133,9 @@ def home():
             "GET /shop": "Get the market stock and sellable inventory",
             "POST /shop/buy": "Buy a market item",
             "POST /shop/sell": "Sell an inventory item",
+            "GET /bounties": "Get the tavern bounty board",
+            "POST /bounties/accept": "Accept a bounty contract",
+            "POST /bounties/claim": "Claim a ready bounty contract",
             "POST /dialogue": "Manage dialogue with an NPC",
             "POST /explore": "Explore the surrounding environment",
             "POST /preferences": "Save the user's preferences",
@@ -918,6 +921,84 @@ def shop_sell():
         "sold": bool(result.get("success")),
         "message": result.get("message", ""),
         "shop": session.get_shop_state(),
+    })
+
+@app.route("/bounties", methods=["GET"])
+def get_bounties():
+    """Get the tavern bounty board."""
+    session_id = request.args.get("session_id")
+    session, error = get_session_or_error(session_id)
+    if error:
+        return error
+
+    current = session.game.current_state()
+    if type(current).__name__ not in {"TavernState", "BountyBoardState"}:
+        return jsonify(
+            {"error": "The bounty board is only available in the tavern."}
+        ), 409
+
+    return jsonify(session.get_bounty_state())
+
+@app.route("/bounties/accept", methods=["POST"])
+def accept_bounty_contract():
+    """Accept one bounty contract."""
+    data = request.json or {}
+    session_id = data.get("session_id")
+    bounty_id = data.get("bounty_id")
+    if not bounty_id:
+        return jsonify({"error": "Bounty ID not provided"}), 400
+
+    session, error = get_session_or_error(session_id)
+    if error:
+        return error
+
+    current = session.game.current_state()
+    if type(current).__name__ not in {"TavernState", "BountyBoardState"}:
+        return jsonify(
+            {"error": "The bounty board is only available in the tavern."}
+        ), 409
+
+    accepted = session.bounty_accept(str(bounty_id))
+    save_session(session_id, session)
+    structured_output = session.io_buffer.get_structured_output()
+    session.io_buffer.clear()
+
+    return jsonify({
+        "output": structured_output,
+        "state": session.get_current_state(),
+        "accepted": bool(accepted),
+        "bounties": session.get_bounty_state(),
+    })
+
+@app.route("/bounties/claim", methods=["POST"])
+def claim_bounty_contract():
+    """Claim one ready bounty contract."""
+    data = request.json or {}
+    session_id = data.get("session_id")
+    bounty_id = data.get("bounty_id")
+    if not bounty_id:
+        return jsonify({"error": "Bounty ID not provided"}), 400
+
+    session, error = get_session_or_error(session_id)
+    if error:
+        return error
+
+    current = session.game.current_state()
+    if type(current).__name__ not in {"TavernState", "BountyBoardState"}:
+        return jsonify(
+            {"error": "The bounty board is only available in the tavern."}
+        ), 409
+
+    claimed = session.bounty_claim(str(bounty_id))
+    save_session(session_id, session)
+    structured_output = session.io_buffer.get_structured_output()
+    session.io_buffer.clear()
+
+    return jsonify({
+        "output": structured_output,
+        "state": session.get_current_state(),
+        "claimed": bool(claimed),
+        "bounties": session.get_bounty_state(),
     })
 
 @app.route("/dialogue", methods=["POST"])

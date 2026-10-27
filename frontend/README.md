@@ -56,9 +56,10 @@ You can also set `localStorage["dm_api_base"]`.
   chapter, fight the Smuggler Lord and claim the unique cache reward. The vault's Rune
   Pillar is also interactive: use `interact with Rune Pillar` nearby to attempt its Arcana
   challenge.
-- **Bounties** quick action in the tavern opens the bounty board. Accepted contracts appear
-  in the Quests panel with their progress; ready contracts are claimed at the board for gold
-  and XP.
+- **Bounties** button in the tavern opens a focus-trapped Bounty Board modal (`GET /bounties`)
+  with each contract's objective, status, progress and reward. **Accept** and **Claim**
+  buttons call `/bounties/accept` and `/bounties/claim`; accepted contracts also appear in
+  the Quests panel with their progress.
 - Combat card with every enemy's name/HP, armor class and the current round (from `state.combat`).
   With multiple enemies, each row has a Target button; the current target is marked.
   Defending and Aiming effects appear as status tags, and if the player is defeated the log

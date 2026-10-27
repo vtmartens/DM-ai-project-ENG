@@ -51,7 +51,7 @@ event log.
 2. Keep the `session_id` and send it with every session-scoped request.
 3. `POST /command` advances the game and returns `output` plus the updated `state`.
 4. Side panels use `GET /state`, `/abilities`, `/inventory`, `/available_actions`,
-   `POST /hint` and `POST /recap`.
+   `GET /bounties`, `POST /hint` and `POST /recap`.
 5. `POST /save` / `POST /load` manage files under `saves/`.
 
 Sessions are cached in memory and persisted as `sessions/session_<id>.pickle`; they survive
@@ -553,6 +553,42 @@ Sells a non-equipped inventory item for half its value. Returns `output`, `state
 
 Both shop actions are also available as normal commands, for example `buy Chainmail` or
 `shop` to browse the numbered stock list.
+
+#### `GET /bounties?session_id=...`
+
+Returns the tavern bounty board. Only available in `TavernState` or `BountyBoardState`;
+other states return `409`.
+
+```json
+{
+  "gold": 100,
+  "active_count": 1,
+  "max_active": 2,
+  "bounties": [
+    {
+      "id": "bounty_goblin_road",
+      "title": "Goblin Toll",
+      "description": "Goblin scouts have been shaking down travellers...",
+      "objective": "Defeat 2 goblins.",
+      "reward": {"gold": 40, "experience": 50},
+      "status": "active",
+      "progress": 1,
+      "target_count": 2
+    }
+  ]
+}
+```
+
+#### `POST /bounties/accept` / `POST /bounties/claim`
+
+```json
+{"session_id": "uuid", "bounty_id": "bounty_goblin_road"}
+```
+
+Accept adds the contract to the quest log, subject to the two-active limit. Claim requires a
+ready contract and grants its rewards. Responses include `output`, `state`, `accepted` or
+`claimed`, and the refreshed `bounties` object. Both actions are also available through the
+tavern's numbered Bounty Board state.
 
 ### World and narrative
 

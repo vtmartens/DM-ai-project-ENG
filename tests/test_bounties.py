@@ -162,6 +162,72 @@ def test_bounty_board_state_accepts_and_claims(client):
     )
 
 
+def test_bounty_web_api_lists_accepts_and_claims(client):
+    import server
+
+    session_id = client.post(
+        "/start", json={"name": "Bounty API", "char_class": "fighter"}
+    ).get_json()["session_id"]
+
+    listing = client.get(
+        "/bounties", query_string={"session_id": session_id}
+    ).get_json()
+    assert listing["gold"] == 100
+    assert listing["max_active"] == MAX_ACTIVE_BOUNTIES
+    assert any(
+        entry["id"] == "bounty_goblin_road"
+        and entry["status"] == "available"
+        for entry in listing["bounties"]
+    )
+
+    accepted = client.post(
+        "/bounties/accept",
+        json={
+            "session_id": session_id,
+            "bounty_id": "bounty_goblin_road",
+        },
+    ).get_json()
+    assert accepted["accepted"] is True
+    assert accepted["state"]["state"] == "TavernState"
+    assert any(
+        entry["id"] == "bounty_goblin_road"
+        and entry["status"] == "active"
+        for entry in accepted["bounties"]["bounties"]
+    )
+
+    session = server.active_sessions[session_id]
+    record_enemy_defeat(
+        session.game.player, "Goblin A", session.game, monster_type="goblin"
+    )
+    record_enemy_defeat(
+        session.game.player, "Goblin B", session.game, monster_type="goblin"
+    )
+    before_gold = session.game.player.gold
+
+    claimed = client.post(
+        "/bounties/claim",
+        json={
+            "session_id": session_id,
+            "bounty_id": "bounty_goblin_road",
+        },
+    ).get_json()
+    assert claimed["claimed"] is True
+    assert session.game.player.gold == before_gold + 40
+    assert any(
+        entry["id"] == "bounty_goblin_road"
+        and entry["status"] == "available"
+        for entry in claimed["bounties"]["bounties"]
+    )
+
+    client.post(
+        "/command", json={"session_id": session_id, "command": "go to market"}
+    )
+    outside = client.get(
+        "/bounties", query_string={"session_id": session_id}
+    )
+    assert outside.status_code == 409
+
+
 def test_tavern_bounty_command_opens_the_board(client):
     session_id = client.post(
         "/start", json={"name": "Tavern Board", "char_class": "fighter"}

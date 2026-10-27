@@ -303,6 +303,42 @@ class GameState:
         self._record_output()
         return result
 
+    def get_bounty_state(self):
+        """Returns the bounty board's contracts and active limit."""
+        from core.bounties import (
+            MAX_ACTIVE_BOUNTIES,
+            active_bounty_count,
+            bounty_entries,
+        )
+
+        player = self.game.player
+        return {
+            "gold": int(getattr(player, "gold", 0) or 0),
+            "bounties": bounty_entries(player),
+            "active_count": active_bounty_count(player),
+            "max_active": MAX_ACTIVE_BOUNTIES,
+        }
+
+    def bounty_accept(self, bounty_id):
+        """Accepts a bounty and records its engine output."""
+        from core.bounties import accept_bounty
+
+        self.io_buffer.clear()
+        accepted = accept_bounty(self.game.player, bounty_id, self.game)
+        self.io_buffer.flush()
+        self._record_output()
+        return accepted
+
+    def bounty_claim(self, bounty_id):
+        """Claims a ready bounty and records its engine output."""
+        from core.bounties import claim_bounty
+
+        self.io_buffer.clear()
+        claimed = claim_bounty(self.game.player, bounty_id, self.game)
+        self.io_buffer.flush()
+        self._record_output()
+        return claimed
+
     def get_log(self, max_events=50):
         """Returns the most recent structured events, oldest first."""
         if max_events <= 0:

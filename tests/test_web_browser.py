@@ -142,6 +142,27 @@ def test_web_client_smoke(live_server):
         assert "previously" in recap_text.lower()
         assert "Browser Smoke" in recap_text
 
+        # Bounty board modal: accept the first available contract.
+        driver.find_element(By.ID, "show-bounties").click()
+        wait.until(
+            lambda d: d.find_element(By.ID, "bounty-modal").is_displayed()
+        )
+        wait.until(
+            lambda d: len(
+                d.find_elements(By.CSS_SELECTOR, "#bounty-list .shop-entry")
+            )
+            > 0
+        )
+        accept_buttons = driver.find_elements(
+            By.CSS_SELECTOR, "#bounty-list .shop-entry button"
+        )
+        assert accept_buttons
+        accept_buttons[0].click()
+        wait.until(
+            lambda d: "Contract accepted" in d.find_element(By.ID, "toast").text
+        )
+        driver.find_element(By.ID, "close-bounty-modal").click()
+
         # Market shop: buy equipment through the modal and return to the tavern.
         driver.find_element(By.ID, "command-input").send_keys("go to market")
         driver.find_element(By.ID, "send-button").click()

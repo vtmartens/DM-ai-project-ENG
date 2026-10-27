@@ -77,6 +77,11 @@ const el = {
   shopGold: document.getElementById("shop-gold"),
   shopStock: document.getElementById("shop-stock"),
   shopSellList: document.getElementById("shop-sell-list"),
+  showBounties: document.getElementById("show-bounties"),
+  bountyModal: document.getElementById("bounty-modal"),
+  closeBountyModal: document.getElementById("close-bounty-modal"),
+  bountyMeta: document.getElementById("bounty-meta"),
+  bountyList: document.getElementById("bounty-list"),
   askHint: document.getElementById("ask-hint"),
   showRecap: document.getElementById("show-recap"),
   mapModal: document.getElementById("map-modal"),
@@ -409,6 +414,11 @@ function renderState(state) {
   const inMarket = state.state === "MarketState";
   el.showShop.classList.toggle("hidden", !inMarket);
   if (!inMarket && activeModal === el.shopModal) closeShopModal();
+
+  const inTavern =
+    state.state === "TavernState" || state.state === "BountyBoardState";
+  el.showBounties.classList.toggle("hidden", !inTavern);
+  if (!inTavern && activeModal === el.bountyModal) closeBountyModal();
 }
 
 function applyState(state) {
@@ -1125,6 +1135,7 @@ function setBusy(busy, status = "") {
   if (el.askHint) el.askHint.disabled = busy;
   if (el.showRecap) el.showRecap.disabled = busy;
   if (el.showShop) el.showShop.disabled = busy;
+  if (el.showBounties) el.showBounties.disabled = busy;
   el.commandStatus.textContent = status;
 }
 
@@ -1474,6 +1485,154 @@ async function showRecap() {
   }
 }
 
+async function showBountyBoard() {
+  if (!store.sessionId || store.busy) return;
+  try {
+    const data = await api(
+      `/bounties?session_id=${encodeURIComponent(store.sessionId)}`
+    );
+    renderBounties(data);
+    openModal(el.bountyModal);
+  } catch (error) {
+    showToast(error.message, "error");
+  }
+}
+
+function closeBountyModal() {
+  closeModal(el.bountyModal);
+}
+
+function renderBounties(data) {
+  const gold = Number(data?.gold || 0);
+  const active = Number(data?.active_count || 0);
+  const maxActive = Number(data?.max_active || 0);
+  el.bountyMeta.textContent = `Gold: ${gold} · Active contracts: ${active}/${maxActive}`;
+  el.bountyList.innerHTML = "";
+
+  const entries = data?.bounties || [];
+  if (!entries.length) {
+    const note = document.createElement("p");
+    note.className = "empty-note";
+    note.textContent = "No contracts are posted.";
+    el.bountyList.appendChild(note);
+    return;
+  }
+
+  for (const entry of entries) {
+    const row = document.createElement("div");
+    row.className = "shop-entry";
+
+    const info = document.createElement("div");
+    info.className = "shop-item";
+    const title = document.createElement("span");
+    title.className = "shop-name";
+    title.textContent = entry.title;
+    const objective = document.createElement("span");
+    objective.className = "shop-meta";
+    objective.textContent = entry.objective || "";
+    info.append(title, objective);
+    if (entry.description) {
+      const description = document.createElement("p");
+      description.className = "shop-description";
+      description.textContent = entry.description;
+      info.appendChild(description);
+    }
+
+    const reward = entry.reward || {};
+    const rewardParts = [];
+    if (reward.gold) rewardParts.push(`${reward.gold} gold`);
+    if (reward.experience) rewardParts.push(`${reward.experience} XP`);
+    if (reward.items?.length) rewardParts.push(reward.items.join(", "));
+    const rewardText = rewardParts.length
+      ? `Reward: ${rewardParts.join(", ")}`
+      : "Reward: none";
+
+    let statusText = entry.status;
+    if (entry.status === "active") {
+      statusText = `In progress (${entry.progress}/${entry.target_count})`;
+    } else if (entry.status === "ready") {
+      statusText = "Ready to claim";
+    } else if (entry.status === "available") {
+      statusText = "Available";
+    } else if (entry.status === "completed") {
+      statusText = "Completed";
+    }
+
+    const actionBox = document.createElement("div");
+    actionBox.className = "shop-action bounty-action";
+    const status = document.createElement("span");
+    status.className = "shop-price";
+    status.textContent = statusText;
+    const rewardLine = document.createElement("span");
+    rewardLine.className = "shop-meta";
+    rewardLine.textContent = rewardText;
+    actionBox.append(status, rewardLine);
+
+    if (entry.status === "available" || entry.status === "ready") {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className =
+        entry.status === "ready" ? "primary small" : "ghost small";
+      button.textContent =
+        entry.status === "ready" ? "Claim" : "Accept";
+      if (entry.status === "available" && maxActive > 0 && active >= maxActive) {
+        button.disabled = true;
+        button.title = "Finish an active bounty first";
+      }
+      button.addEventListener("click", () =>
+        bountyAction(
+          entry.status === "ready" ? "claim" : "accept",
+          entry.id
+        )
+      );
+      actionBox.appendChild(button);
+    }
+
+    row.append(info, actionBox);
+    el.bountyList.appendChild(row);
+  }
+}
+
+async function bountyAction(action, bountyId) {
+  if (!store.sessionId || store.busy) return;
+
+  store.busy = true;
+  setBusy(
+    true,
+    action === "accept" ? "Accepting contract…" : "Claiming bounty…"
+  );
+  try {
+    const data = await api(`/bounties/${action}`, {
+      method: "POST",
+      body: { session_id: store.sessionId, bounty_id: bountyId },
+    });
+    appendOutput(data.output);
+    if (data.state) applyState(data.state);
+    if (data.bounties) renderBounties(data.bounties);
+    const succeeded = action === "accept" ? data.accepted : data.claimed;
+    showToast(
+      succeeded
+        ? action === "accept"
+          ? "Contract accepted."
+          : "Bounty claimed."
+        : "That contract could not be used.",
+      succeeded ? "success" : "error"
+    );
+    refreshSidePanels(data.state);
+  } catch (error) {
+    showToast(error.message, "error");
+    if (error.status === 404) {
+      clearSession();
+      showToast("Session expired. Start a new game.", "error");
+    } else if (error.status === 409) {
+      closeBountyModal();
+    }
+  } finally {
+    store.busy = false;
+    setBusy(false, "");
+  }
+}
+
 async function showShop() {
   if (!store.sessionId || store.busy) return;
   try {
@@ -1680,11 +1839,13 @@ function bindEvents() {
   el.refreshInventory.addEventListener("click", () => refreshSidePanels(store.state));
   el.showMap.addEventListener("click", showMapView);
   el.showShop.addEventListener("click", showShop);
+  el.showBounties.addEventListener("click", showBountyBoard);
   el.askHint.addEventListener("click", askHint);
   el.showRecap.addEventListener("click", showRecap);
   el.closeLoadModal.addEventListener("click", closeLoadModal);
   el.closeMapModal.addEventListener("click", closeMapModal);
   el.closeShopModal.addEventListener("click", closeShopModal);
+  el.closeBountyModal.addEventListener("click", closeBountyModal);
   el.loadModal.addEventListener("click", (event) => {
     if (event.target === el.loadModal) closeLoadModal();
   });
@@ -1693,6 +1854,9 @@ function bindEvents() {
   });
   el.shopModal.addEventListener("click", (event) => {
     if (event.target === el.shopModal) closeShopModal();
+  });
+  el.bountyModal.addEventListener("click", (event) => {
+    if (event.target === el.bountyModal) closeBountyModal();
   });
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
