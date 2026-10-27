@@ -221,7 +221,9 @@ class CombatState(BaseState):
         game.io.show_message("5. Use ability")
         if len(self._alive_enemies()) > 1:
             game.io.show_message("6. Choose target")
-        
+        game.io.show_message("7. Defend")
+        game.io.show_message("8. Aim")
+
         # Get the command from the input (already set by the web system)
         game.io.request_input("Choice: ")
         
@@ -239,12 +241,18 @@ class CombatState(BaseState):
             # Mapping of text commands to actions
             if any(x in cmd for x in ["attack", "hit", "1"]):
                 return "1"
+            elif any(x in cmd for x in ["ability", "spell", "cast", "5"]):
+                return "5"
             elif any(x in cmd for x in ["use", "item", "potion", "2"]):
                 return "2"
             elif any(x in cmd for x in ["change", "equipment", "weapon", "3"]):
                 return "3"
             elif any(x in cmd for x in ["flee", "escape", "run", "4"]):
                 return "4"
+            elif any(x in cmd for x in ["defend", "dodge", "block", "7"]):
+                return "7"
+            elif any(x in cmd for x in ["aim", "focus", "8"]):
+                return "8"
             else:
                 return None
         
@@ -270,7 +278,16 @@ class CombatState(BaseState):
             return
 
         # Process the textual or numeric command
-        if selection_input.isdigit() and selection_input in ["1", "2", "3", "4", "5", "6"]:
+        if selection_input.isdigit() and selection_input in [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+        ]:
             selection = selection_input
         else:
             selection = process_command_combat(selection_input)
@@ -306,6 +323,10 @@ class CombatState(BaseState):
             self.phase = "choose_target"
             self.temporary_data.clear()
             return
+        elif selection == "7":
+            self._manage_defend(player, game)
+        elif selection == "8":
+            self._manage_aim(player, game)
         else:
             game.io.show_message(f"Invalid action: '{selection_input}'!")
             self.phase = "selection"  # Return to the selection phase
@@ -353,6 +374,11 @@ class CombatState(BaseState):
         from core.conditions import tick_conditions
 
         tick_conditions(player, game)
+
+        # Defending lasts through the enemy phase of this round. Aim persists
+        # until the next weapon attack consumes it.
+        if isinstance(getattr(self, "effects", None), dict):
+            self.effects.pop("defend", None)
 
         # Increment the turn
         self.turn += 1
@@ -1031,13 +1057,17 @@ class CombatState(BaseState):
         player_attacker=False,
         target_is_player=False,
         critical_allowed=True,
+        advantage=False,
+        disadvantage=False,
     ):
         """Rolls d20 + attack bonus against AC and logs the result."""
-        advantage_flag = False
-        disadvantage_flag = False
+        advantage_flag = bool(advantage)
+        disadvantage_flag = bool(disadvantage)
         roll_flags = getattr(attacker, "roll_flags", None)
         if callable(roll_flags):
-            advantage_flag, disadvantage_flag = roll_flags("attack")
+            condition_advantage, condition_disadvantage = roll_flags("attack")
+            advantage_flag = advantage_flag or condition_advantage
+            disadvantage_flag = disadvantage_flag or condition_disadvantage
         if advantage_flag and disadvantage_flag:
             advantage_flag = disadvantage_flag = False
 
@@ -1058,6 +1088,11 @@ class CombatState(BaseState):
         bonus = self._attack_bonus_for(attacker)
         total = roll + bonus
         target_ac = self._armor_class_for(target)
+        defense_note = ""
+        effects = getattr(self, "effects", {}) or {}
+        if target_is_player and effects.get("defend"):
+            target_ac += 4
+            defense_note = " (defending)"
         critical = critical_allowed and roll == 20
         hit = roll == 20 or (roll != 1 and total >= target_ac)
 
@@ -1078,7 +1113,7 @@ class CombatState(BaseState):
             result = "hit" if hit else "miss"
         game.io.show_message(
             f"{subject} {verb} {roll_text} + {bonus} = {total} "
-            f"vs {target_label} {target_ac}: {result}."
+            f"vs {target_label} {target_ac}{defense_note}: {result}."
         )
         return hit, critical
 
@@ -1089,8 +1124,13 @@ class CombatState(BaseState):
         if not isinstance(getattr(self, "effects", None), dict):
             self.effects = {}
 
+        aiming = bool(self.effects.pop("aim", False))
         hit, critical = self._roll_attack(
-            player, self.opponent, game, player_attacker=True
+            player,
+            self.opponent,
+            game,
+            player_attacker=True,
+            advantage=aiming,
         )
         if not hit:
             game.io.show_message("Your attack misses.")
@@ -1141,6 +1181,26 @@ class CombatState(BaseState):
                 game.io.show_message(f"\nCRITICAL HIT! You attack {self.opponent.name} and deal {damage} damage!")
             else:
                 game.io.show_message(f"\nYou attack {self.opponent.name} and deal {damage} damage!")
+
+    def _manage_defend(self, player, game):
+        """Spends the turn defending: +4 AC until the end of the round."""
+        if not isinstance(getattr(self, "effects", None), dict):
+            self.effects = {}
+        self.effects["defend"] = True
+        game.io.show_message(
+            "\nYou raise your guard. Your AC increases by 4 until your next turn."
+        )
+        self.phase = "enemy_attack" if self._alive_enemies() else "end_turn"
+
+    def _manage_aim(self, player, game):
+        """Spends the turn aiming: the next weapon attack has advantage."""
+        if not isinstance(getattr(self, "effects", None), dict):
+            self.effects = {}
+        self.effects["aim"] = True
+        game.io.show_message(
+            "\nYou steady your aim. Your next attack has advantage."
+        )
+        self.phase = "enemy_attack" if self._alive_enemies() else "end_turn"
 
     def _enemy_index(self, enemy):
         try:

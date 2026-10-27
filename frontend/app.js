@@ -440,6 +440,16 @@ function renderCombat(combat) {
   head.append(title, turn);
   el.combatCard.appendChild(head);
 
+  const playerStatus = document.createElement("div");
+  playerStatus.className = "enemy-status";
+  if (combat.effects?.defending) {
+    addStatusTag(playerStatus, "Defending · +4 AC", "guard");
+  }
+  if (combat.effects?.aiming) {
+    addStatusTag(playerStatus, "Aiming · advantage", "cooldown");
+  }
+  if (playerStatus.children.length) el.combatCard.appendChild(playerStatus);
+
   const livingEnemies = (combat.enemies || []).filter((enemy) => enemy.hp > 0);
 
   for (const enemy of combat.enemies || []) {

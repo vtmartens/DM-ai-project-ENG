@@ -587,6 +587,7 @@ Runs `look` and returns `output`, `state`, plus nearby `items`, `exits`, and `np
   "turn_of": "player",
   "target": "Goblin A",
   "conditions": {"poison": {"damage": 2, "turns": 3}},
+  "effects": {"defending": false, "aiming": true},
   "enemies": [
     {"name": "Goblin A", "hp": 10, "max_hp": 10, "ac": 13, "guard": 0,
      "cooldowns": [{"id": "poison_arrow", "name": "Poison Arrow", "remaining": 2}]},
@@ -595,6 +596,8 @@ Runs `look` and returns `output`, `state`, plus nearby `items`, `exits`, and `np
   "allies": [],
   "available_actions": [
     "attack",
+    "defend",
+    "aim",
     "use item",
     "use ability",
     "change equipment",
@@ -609,7 +612,8 @@ than one enemy is alive; clients can also send `target <name>` as a command. `co
 the player's active condition map (same shape as `state.conditions`); `guard` is the enemy's
 remaining physical guard, and `cooldowns` lists ability names and rounds until reuse. Timed
 conditions (burning, frightened, weakened) include a `turns` counter and tick at the end of
-each combat round.
+each combat round. `effects.defending` is true while Defend adds +4 AC through the enemy
+phase; `effects.aiming` is true until the next weapon attack consumes the advantage.
 
 Outside combat: `{"in_combat": false}`.
 
@@ -620,7 +624,9 @@ Outside combat: `{"in_combat": false}`.
 ```
 
 Returns `output`, `state`, and `combat`. A non-empty `target` selects that enemy before
-the action, so `"attack"` with `"Goblin B"` attacks that enemy directly.
+the action, so `"attack"` with `"Goblin B"` attacks that enemy directly. `"defend"` spends
+the turn for +4 AC until the next round, and `"aim"` spends it to give the next weapon attack
+advantage; both also work as normal commands via `POST /command`.
 
 Enemies also act on data-driven abilities with cooldowns. Their telegraphs and effects appear
 in `output`; `combat.enemies` reflects the resulting HP. Abilities may deal damage, poison,

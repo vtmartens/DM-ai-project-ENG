@@ -678,7 +678,24 @@ entirely. The doors that existed were also misaligned with the map exits.
   tavern) and enters the replacement state. The API response reports `TavernState` and the
   new position immediately.
 - Tests: unit recovery, gold capping, condition clearing, quest preservation, tavern
-  position, and the API transition. 410 tests pass.
+  position, and the API transition.
+
+## Defend and Aim combat actions (2026-10-27)
+
+- Added combat menu options **7. Defend** and **8. Aim**, plus natural-language
+  `defend`/`dodge`/`block` and `aim`/`focus`. Option 6 remains target selection, so existing
+  controls and tests keep their numbering.
+- Defend sets a `defend` effect: incoming enemy attacks roll against +4 AC, and the attack
+  log shows `(defending)`. The effect lasts through the enemy phase and is cleared at the end
+  of the round.
+- Aim sets an `aim` effect; the next player weapon attack is rolled with advantage (using
+  two dice and the better result), then the effect is consumed. It does not affect class
+  abilities.
+- `/available_actions` now advertises `defend`, `aim`, abilities and equipment changes for
+  combat. `GET /combat` and `/state` expose `effects.defending` and `effects.aiming`; the web
+  combat card renders the active status tags. Asset version bumped to `v=25`.
+- Tests: defend AC bonus and expiry, aimed advantage and consumption, API action exposure,
+  and the browser status tags. 413 tests pass.
 
 ## Deliberate translation choices worth knowing
 
@@ -708,7 +725,7 @@ entirely. The doors that existed were also misaligned with the map exits.
 | Residual Italian (glossary-derived denylist + accented characters) | 0 hits |
 | **Original Italian vs translated, identical input** | **46/46 placements, identical sequence** |
 | Flask API in-process (test client, no socket) | 31 × 200, 0 raised |
-| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, AI memory, hints, achievements, utility spells, locks, vault, quests, enemy abilities, encounters, saving throws, conditions, combat status, attack rolls/AC, defeat recovery, rest, accessibility, web client routes, browser smoke/mobile) | 410 passed |
+| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, AI memory, hints, achievements, utility spells, locks, vault, quests, enemy abilities, encounters, saving throws, conditions, combat status, attack rolls/AC, Defend/Aim, defeat recovery, rest, accessibility, web client routes, browser smoke/mobile) | 413 passed |
 | Live smoke test (Flask server, `/app`, start/state/abilities/inventory/actions/command/save/load) | passed |
 
 The last comparison is the strongest evidence: the pristine Italian code and the finished

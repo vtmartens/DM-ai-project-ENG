@@ -364,6 +364,14 @@ class GameState:
                 "conditions": dict(
                     getattr(self.game.player, "conditions", {}) or {}
                 ),
+                "effects": {
+                    "defending": bool(
+                        (getattr(current, "effects", {}) or {}).get("defend")
+                    ),
+                    "aiming": bool(
+                        (getattr(current, "effects", {}) or {}).get("aim")
+                    ),
+                },
                 "enemies": enemies,
                 "allies": [
                     {

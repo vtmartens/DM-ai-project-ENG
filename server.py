@@ -809,7 +809,15 @@ def get_available_actions():
     # Define different actions depending on the context
     actions_context = {
         "base": ["examine", "pick_up", "talk", "use", "look"],
-        "combat": ["attack", "defend", "run", "use item"],
+        "combat": [
+            "attack",
+            "defend",
+            "aim",
+            "run",
+            "use item",
+            "use ability",
+            "change equipment",
+        ],
         "dialogue": ["talk", "ask", "offer", "goodbye"],
         "market": ["buy", "sell", "examine", "exit"],
         "inventory": ["use", "equip", "drop", "examine"],
