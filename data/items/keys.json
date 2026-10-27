@@ -33,5 +33,12 @@
     "effect": {"opens": ["*"]},
     "value": 150,
     "description": "A special key that can open any simple lock"
+  },
+  {
+    "name": "Warehouse Key",
+    "type": "key",
+    "effect": {"opens": ["Warehouse Door"]},
+    "value": 25,
+    "description": "An iron key taken from one of the hooded figures"
   }
-] 
+]

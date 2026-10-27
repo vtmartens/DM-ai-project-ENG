@@ -171,6 +171,59 @@ def test_quest_targets_are_known_npcs():
         assert quest.get("objective")
 
 
+def test_cellar_npcs_are_defined():
+    npcs = _load(ROOT / "data" / "npc" / "npcs.json")
+    placements = _load(ROOT / "data" / "npc" / "map_npcs.json")
+
+    for npc_name in placements.get("cellar", []):
+        assert npc_name["name"] in npcs, (
+            f"cellar NPC {npc_name['name']!r} has no definition in npcs.json"
+        )
+
+
+def test_keyed_map_doors_have_a_matching_key():
+    objects = {
+        obj["name"]: obj
+        for obj in _load(ITEMS_DIR / "interactive_objects.json")
+    }
+    map_objects = _load(ITEMS_DIR / "map_objects.json")
+    keys = _load(ITEMS_DIR / "keys.json")
+
+    def normalize(value):
+        return str(value).replace("_", " ").casefold()
+
+    targets = {
+        normalize(target)
+        for key in keys
+        for target in (key.get("effect", {}).get("opens") or [])
+    }
+
+    for map_path in MAPS_DIR.glob("*.json"):
+        map_data = _load(map_path)
+        placed = {
+            tuple(config["position"]): config["name"]
+            for config in map_objects.get(map_path.stem, [])
+        }
+        for cell_string in map_data.get("doors", {}):
+            cell = eval(cell_string)
+            object_name = placed.get(cell)
+            if object_name is None:
+                continue
+            definition = objects.get(object_name, {})
+            if definition.get("type") != "door":
+                continue
+            if not definition.get("requires_key"):
+                continue
+            wanted = normalize(object_name)
+            assert "*" in targets or any(
+                target == wanted or target in wanted or wanted in target
+                for target in targets
+            ), (
+                f"{map_path.stem}{cell}: keyed door {object_name!r} "
+                "has no matching key"
+            )
+
+
 def test_map_refresh_adds_maps_missing_from_an_older_session():
     from world.map_manager import MapManager
 

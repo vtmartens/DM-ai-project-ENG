@@ -356,9 +356,10 @@
       ]
     },
     "accept_quest": {
-      "text": "Take this antidote - and I am coming with you. I can fight, and my herbs may keep us both alive. The warehouse is at the eastern edge of the market; look for the old loading door.",
+      "text": "Take this antidote - and the warehouse key I lifted from one of the hooded figures. I am coming with you. I can fight, and my herbs may keep us both alive. The warehouse is at the eastern edge of the market; look for the old loading door.",
       "effect": [
         {"type": "add_item", "item": "Antidote"},
+        {"type": "add_item", "item": "Warehouse Key"},
         {"type": "start_quest", "quest": "shadows_of_the_market"},
         {"type": "recruit_ally", "npc": "Violet"}
       ],

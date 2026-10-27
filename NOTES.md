@@ -312,14 +312,16 @@ again.
 Verified against the pristine Italian snapshot; each is identical in the original, so none
 of these were introduced by the translation.
 
-1. **Ad-hoc item names that were never defined as items.** `starting_equipment` in
+1. **Some ad-hoc item names were never defined as items.** `starting_equipment` in
    `classes.json` (`Wooden Shield`, `Spellbook`, `Lockpicks`, `Holy Symbol`, `mace`,
    `shield`, `staff`), several NPC inventories (`Blacksmith's Hammer`, `Staff of Power`,
-   `Ruby Gem`, `Golden Ring`, `Map of Undermountain`, `Basic Arcane Manual`), two keys'
+   `Ruby Gem`, `Gold Ring`, `Map of Undermountain`, `Basic Arcane Manual`), two keys'
    `opens` targets (`Royal Strongbox`, `Tower Door`) and two dialogue hand-overs
-   (`Basic Arcane Manual`, `Dark Beer`) reference items that exist in no `data/items` file.
-2. **The cellar's NPCs (`Specter`, `Cultist`) are not defined in `npcs.json`** at all. They
-   are placed from `map_npcs.json` and fall back to defaults.
+   (`Basic Arcane Manual`, `Dark Beer`) reference items that exist in no `data/items`
+   file. The lock pass resolved the lock-related chain — Warehouse Door/Warehouse Key,
+   Cellar Key/Cellar Door, Rusty Key/Treasure Chest — but the non-lock names above remain.
+2. ~~**The cellar's NPCs (`Specter`, `Cultist`) are not defined in `npcs.json`** at all.~~
+   Fixed in the locks pass: both now have real definitions and stats.
 3. ~~**`MapSelectionState` is missing from the state-restore map** in `core/game.py`.~~
    Fixed in the foundation pass above.
 4. ~~**Stub endpoints** reading keys the engine never emits: `/missions`, `/combat`, `/log`,
@@ -404,6 +406,44 @@ wizards had no out-of-combat class abilities.
   `usable_in_combat`, `POST /use_ability` with Guidance and Knock opening a chest through
   the API. 272 tests pass.
 
+## Locked doors and routes (2026-10-26)
+
+Keyed doors previously never blocked map travel: `MapManager.move_player` only read
+`map.doors`, and direct travel (`go to <map>`, the map-selection menu) bypassed doors
+entirely. The doors that existed were also misaligned with the map exits.
+
+- `MapManager.move_player` now refuses to step onto a transition whose cell holds a
+  `Door` with `requires_key` and a state other than `open`.
+- `MapManager.prepare_map_entry` checks every physical route into a destination. If all
+  routes are locked, a matching key in the player's inventory opens one and travel
+  proceeds; otherwise the command is refused with a message. `change_player_map` and
+  `MapSelectionState._change_map` both use it, so walking and fast travel share one rule.
+- Content:
+  - **Warehouse Door** at market `(20, 7)` (requires a key) and a **Warehouse Key**
+    (`opens: ["Warehouse Door"]`). Violet hands over the key when her quest is accepted;
+    the key is also added to old saves that already have the quest. Wizards can Knock the
+    door open instead.
+  - **Tavern cellar door** at `(22, 9)` now has a real transition to cellar `(18, 8)`;
+    cellar `(18, 7)` leads back to tavern `(22, 8)`. The market↔cellar route `(14, 5)` /
+    `(1, 7)` stays open, so the Cellar Key found in the cellar's hidden chest is the
+    optional shortcut back into the tavern.
+  - **Treasure Chest** at tavern `(2, 2)` with the Rusty Key (`opens: ["Treasure Chest"]`),
+    giving the existing key a real target.
+  - **Specter** and **Cultist** now have definitions in `npcs.json` (NOTES defect 2).
+- Save/load fix: `Map.from_dict` used `InteractiveObject.from_dict` for every saved
+  object, so doors, chests, levers and traps came back as plain objects without
+  `requires_key`/`force_open`. It now dispatches to the correct subclass.
+- `transfer_items_from_state` now points the state's `interactive_objects` entries at the
+  map instances when a matching object is already placed, so menu interactions and map
+  movement share one door/chest.
+- Dialogue hand-overs (`add_item`) now give the NPC's actual item object. Passing the name
+  meant non-potion items such as the Warehouse Key became raw strings in the inventory.
+- Tavern/market/ability-check interactions now pass `game` to `interact`/`describe`, so
+  lock, loot and state messages are shown.
+- Tests: `tests/test_locks.py` covers blocked movement, Cellar Key, Knock, warehouse
+  fast-travel gating, Violet's key hand-over, door save/load and the Rusty Key.
+  `tests/test_quests.py` covers the end-to-end warehouse route. 285 tests pass.
+
 ## Deliberate translation choices worth knowing
 
 - **`hp_base` / `mana_base` were left as-is.** They are consistent between code and JSON
@@ -432,7 +472,7 @@ wizards had no out-of-combat class abilities.
 | Residual Italian (glossary-derived denylist + accented characters) | 0 hits |
 | **Original Italian vs translated, identical input** | **46/46 placements, identical sequence** |
 | Flask API in-process (test client, no socket) | 31 × 200, 0 raised |
-| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, achievements, utility spells, web client routes, browser smoke) | 272 passed |
+| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, achievements, utility spells, locks, web client routes, browser smoke) | 285 passed |
 | Live smoke test (Flask server, `/app`, start/state/abilities/inventory/actions/command/save/load) | passed |
 
 The last comparison is the strongest evidence: the pristine Italian code and the finished

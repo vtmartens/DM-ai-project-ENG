@@ -4,7 +4,7 @@ from entities.npc import NPC
 from states.dialogue import DialogueState
 from entities.player import Player
 from states.inventory_management import InventoryManagementState
-from items.interactive_object import Chest, Lever, Door, InteractiveObject, Trap, BreakableObject
+from items.interactive_object import Chest, InteractiveObject
 from items.item import Item  # Make sure this import is correct
 from states.ability_check import AbilityCheckState
 from states.commands import handle_targeted_command, parse_targeted_command
@@ -45,14 +45,7 @@ class MarketState(BaseGameState):
             "chest_merchant": Chest("Merchant's Chest", "An iron chest with a sturdy lock.",
                                    content=[Item("Amulet", "accessory", {"luck": 1}, 10)],
                                    requires_key=True, position="market"),
-            "door_magazzino": Door("Warehouse Door", "A door that leads to the market's warehouse.",
-                                    state="closed", requires_key=True, position="market",
-                                    destination_position="warehouse"),
-            "secret_lever": Lever("Hidden Lever", "A lever hidden under the counter.", position="market")
         }
-
-        # Link the lever to the warehouse door
-        self.interactive_objects["secret_lever"].link_item("door", self.interactive_objects["door_magazzino"])
 
         # NEW OBJECT 1: Ancient Statue with several required abilities
         ancient_statue = InteractiveObject("Ancient Statue", "A stone statue depicting a merchant. It looks very old.", state="normal", position="market")
@@ -570,8 +563,8 @@ class MarketState(BaseGameState):
             press_enter(game)
             return
 
-        item.describe()
-        item.interact(game.player)
+        item.describe(game)
+        item.interact(game.player, game)
 
         self.phase = "main_menu"
         press_enter(game)

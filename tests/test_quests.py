@@ -140,6 +140,29 @@ def test_violet_dialogue_starts_quest_and_recruits_ally(client):
     assert state["active_quests"][0]["objective"].startswith("Defeat Vargas")
 
 
+def test_warehouse_travel_requires_violets_key(client):
+    import server
+
+    session_id = _start(client)
+
+    blocked = client.post(
+        "/command", json={"session_id": session_id, "command": "go to warehouse"}
+    ).get_json()
+    assert any("locked" in message["text"].lower() for message in blocked["output"])
+    assert blocked["state"]["position"]["map"] == "tavern"
+
+    _accept_violet_quest(client, session_id)
+    session = server.active_sessions[session_id]
+    assert "Warehouse Key" in [
+        getattr(item, "name", item) for item in session.game.player.inventory
+    ]
+
+    allowed = client.post(
+        "/command", json={"session_id": session_id, "command": "go to warehouse"}
+    ).get_json()
+    assert allowed["state"]["position"]["map"] == "warehouse"
+
+
 def test_warehouse_group_fight_includes_ally_and_marks_quest_ready(client):
     import server
 

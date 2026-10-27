@@ -23,7 +23,8 @@
   "items": {},
   "npc": {},
   "doors": {
-    "(1, 7)": ["market", 14, 5]
+    "(1, 7)": ["market", 14, 5],
+    "(18, 7)": ["tavern", 22, 8]
   },
   "player_start_position": [3, 7]
 } 

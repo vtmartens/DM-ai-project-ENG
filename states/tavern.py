@@ -41,7 +41,7 @@ class TavernState(BaseGameState):
             "counter": InteractiveObject("counter", "A long, polished wooden counter where drinks are served.", "clean", position="tavern"),
             "fireplace": InteractiveObject("fireplace", "A large stone fireplace with a crackling fire.", "on", position="tavern"),
             "hidden_chest": Chest("Hidden Chest", "A small chest hidden under a floorboard.",
-                                     content=[Item("Rusty Key", "key", {}, 2, "An old rusty key.")],
+                                     content=[Item("Rusty Key", "key", {"opens": ["Treasure Chest"]}, 2, "An old rusty key.")],
                                      position="tavern"),
             "cellar_door": Door("Cellar Door", "A sturdy door that leads to the cellar.",
                                   state="closed", requires_key=True, position="tavern",
@@ -477,8 +477,8 @@ class TavernState(BaseGameState):
                 items_list = self.contextual_data["items_list"]
                 if 1 <= selection <= len(items_list):
                     _, item = items_list[selection - 1]
-                    item.describe()
-                    item.interact(game.player)
+                    item.describe(game)
+                    item.interact(game.player, game)
                 elif selection == len(items_list) + 1:
                     # Return to the main menu
                     pass
@@ -488,8 +488,8 @@ class TavernState(BaseGameState):
                 if 1 <= selection <= len(self.interactive_objects):
                     item_name = list(self.interactive_objects.keys())[selection - 1]
                     item = self.interactive_objects[item_name]
-                    item.describe()
-                    item.interact(game.player)
+                    item.describe(game)
+                    item.interact(game.player, game)
                 elif selection == len(self.interactive_objects) + 1:
                     # Return to the main menu
                     pass

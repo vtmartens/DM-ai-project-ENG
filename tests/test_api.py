@@ -408,6 +408,32 @@ def test_abilities_unlock_after_reaching_the_required_level(client):
     assert "Fireball" in data["abilities"]
 
 
+def test_map_view_legend_lists_locked_doors_and_treasure_chest(client):
+    session_id = _start(client)
+
+    tavern = client.get(
+        "/map_view", query_string={"session_id": session_id}
+    ).get_json()
+    tavern_names = {
+        member["name"].casefold()
+        for entry in tavern["legend"]
+        for member in entry.get("members", [])
+    }
+    assert "cellar door" in tavern_names
+    assert "treasure chest" in tavern_names
+
+    client.post("/command", json={"session_id": session_id, "command": "go to market"})
+    market = client.get(
+        "/map_view", query_string={"session_id": session_id}
+    ).get_json()
+    market_names = {
+        member["name"].casefold()
+        for entry in market["legend"]
+        for member in entry.get("members", [])
+    }
+    assert "warehouse door" in market_names
+
+
 def test_abilities_expose_utility_spells(client):
     session_id = _start(client, char_class="wizard")
 

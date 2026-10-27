@@ -426,7 +426,7 @@ class AbilityCheckState(BaseState):
             # Activate the specific interaction with the object
             if self.chosen_ability == "strength" and hasattr(item, "state") and item.state == "intact":
                 game.io.show_message(f"Thanks to your strength, you can interact effectively with {item.name}!")
-                item.interact(game.player)
+                item.interact(game.player, game)
         else:
             game.io.show_message(f"You failed the {self.chosen_ability} check with {item.name}.")
             self._manage_failure(game, self.chosen_ability)

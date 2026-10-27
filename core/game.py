@@ -85,6 +85,42 @@ class Game:
         except IndexError:
             return None
 
+    def _restore_quest_items(self):
+        """Grants quest items that saves written before a content fix lack."""
+        player = getattr(self, "player", None)
+        if player is None:
+            return
+
+        quest_ids = {
+            quest.get("id")
+            for quest in (
+                list(getattr(player, "active_quests", []))
+                + list(getattr(player, "completed_quests", []))
+            )
+            if isinstance(quest, dict)
+        }
+        if "shadows_of_the_market" not in quest_ids:
+            return
+
+        names = {
+            getattr(item, "name", item)
+            for item in getattr(player, "inventory", [])
+        }
+        if "Warehouse Key" in names:
+            return
+
+        from items.item import Item
+
+        player.add_item(
+            Item(
+                "Warehouse Key",
+                "key",
+                {"opens": ["Warehouse Door"]},
+                25,
+                "An iron key taken from one of the hooded figures",
+            )
+        )
+
     def push_state(self, new_state):
         """
         Pushes a new state on top of the current one
@@ -524,6 +560,7 @@ class Game:
                 self.player = Player.from_dict(data["player"])
                 if hasattr(self.player, "set_game_context"):
                     self.player.set_game_context(self)
+                self._restore_quest_items()
             except KeyError:
                 logger.error("Missing or incomplete player data in the save file")
                 self.io.show_message("Missing or incomplete player data in the save file")

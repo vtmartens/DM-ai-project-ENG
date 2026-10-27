@@ -1,4 +1,11 @@
-from items.interactive_object import InteractiveObject 
+from items.interactive_object import (
+    BreakableObject,
+    Chest,
+    Door,
+    InteractiveObject,
+    Lever,
+    Trap,
+)
 from entities.npc import NPC     
 from entities.entity import Entity   
 from entities.player import Player
@@ -297,15 +304,25 @@ class Map:
             map.grid = [row.copy() for row in data["grid"]]
         
         # Load the objects
-        from items.interactive_object import InteractiveObject
+        object_classes = {
+            "chest": Chest,
+            "door": Door,
+            "lever": Lever,
+            "trap": Trap,
+            "breakable_object": BreakableObject,
+        }
         for pos_str, obj_data in data.get("items", {}).items():
             try:
                 # Convert the position string into a tuple
                 pos = eval(pos_str)  # Safe because the position is a simple tuple (x, y)
 
-                # Create the object using from_dict if available
+                # Restore the correct subclass so locks, loot and levers keep
+                # their behaviour after loading a save.
                 if isinstance(obj_data, dict):
-                    obj = InteractiveObject.from_dict(obj_data)
+                    object_class = object_classes.get(
+                        obj_data.get("type"), InteractiveObject
+                    )
+                    obj = object_class.from_dict(obj_data)
                     map.items[pos] = obj
                     # Update the object's position
                     obj.position = (pos[0], pos[1], map.name)

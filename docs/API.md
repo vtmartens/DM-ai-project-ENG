@@ -185,6 +185,11 @@ etc. also move directly. Unknown targets show a message and fall back to the cor
 menu. Map layout and exits are refreshed from `data/maps/` when an older save or session
 is loaded, so fixes to door coordinates apply to existing games.
 
+Keyed doors block both walking and `go to <map>`. A matching key in the inventory opens
+the route (fast travel reports the unlock) and `Knock` opens a locked door within two
+steps; without either, the command returns a message and the player stays on the same map.
+The warehouse route needs the key Violet hands over when her quest is accepted.
+
 #### `GET /state?session_id=...`
 
 Returns the state object above.
@@ -460,7 +465,8 @@ Returns the current map as an ASCII grid with the player marked `P`:
 }
 ```
 
-Walls are `#`, floors are `.`, and `>` marks an exit to another map. Every other cell is a
+Walls are `#`, floors are `.`, and `>` marks a map exit with no interactive object on its
+cell. Cells that have a door object show the door's own token instead. Every other cell is a
 single-character token. `legend` maps each token to the name(s) and type(s) it represents
 (a `>` entry is named e.g. “Exit to market”); a token can group several objects. `members`
 keeps the type per name, so clients can label characters — the web client appends `(NPC)`.

@@ -183,6 +183,17 @@
         },
         "value": 20,
         "description": "An antidote that neutralizes poisons"
+      },
+      {
+        "name": "Warehouse Key",
+        "type": "key",
+        "effect": {
+          "opens": [
+            "Warehouse Door"
+          ]
+        },
+        "value": 25,
+        "description": "An iron key taken from one of the hooded figures"
       }
     ],
     "gold": 300,
@@ -387,6 +398,53 @@
         },
         "value": 10,
         "description": "A small dagger for personal defense"
+      }
+    ],
+    "gold": 10,
+    "friendly": false
+  },
+  "Specter": {
+    "name": "Specter",
+    "description": "A cold, translucent shape that drifts above the cellar floor.",
+    "profession": "Undead",
+    "level": 3,
+    "hp": 18,
+    "hp_max": 18,
+    "strength_base": 12,
+    "dexterity_base": 14,
+    "constitution_base": 10,
+    "intelligence_base": 10,
+    "wisdom_base": 12,
+    "charisma_base": 8,
+    "token": "S",
+    "inventory": [],
+    "gold": 15,
+    "friendly": false
+  },
+  "Cultist": {
+    "name": "Cultist",
+    "description": "A nervous cultist in a stained robe, clutching a curved knife.",
+    "profession": "Cultist",
+    "level": 2,
+    "hp": 12,
+    "hp_max": 12,
+    "strength_base": 12,
+    "dexterity_base": 10,
+    "constitution_base": 10,
+    "intelligence_base": 8,
+    "wisdom_base": 8,
+    "charisma_base": 8,
+    "token": "K",
+    "inventory": [
+      {
+        "name": "dagger",
+        "type": "weapon",
+        "effect": {
+          "strength": 2,
+          "dexterity": 2
+        },
+        "value": 10,
+        "description": "A curved knife"
       }
     ],
     "gold": 10,

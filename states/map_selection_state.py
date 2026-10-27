@@ -130,6 +130,16 @@ class MapSelectionState(BaseGameState):
             game: The game instance
             destination_map: Name of the destination map
         """
+        # Direct travel must obey the same locked doors as walking.
+        allowed, message = game.map_manager.prepare_map_entry(
+            game.player, destination_map
+        )
+        if not allowed:
+            game.io.show_message(message)
+            return
+        if message:
+            game.io.show_message(message)
+
         # Change the player's current map
         map = game.map_manager.get_map(destination_map)
         if map:

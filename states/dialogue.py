@@ -166,10 +166,17 @@ class DialogueState(BaseState):
                 game.io.show_message(f"\n*{self.npc.name} gave you {quantity} gold coins*")
                 
             elif type == "add_item":
-                item = effect.get("item")
-                if item and self.npc.remove_item(item):
-                    game.player.add_item(item)
-                    game.io.show_message(f"\n*You received {item} from {self.npc.name}*")
+                item_name = effect.get("item")
+                found = None
+                for npc_item in getattr(self.npc, "inventory", []):
+                    if getattr(npc_item, "name", npc_item) == item_name:
+                        found = npc_item
+                        break
+                if found is not None and self.npc.remove_item(item_name):
+                    game.player.add_item(found)
+                    game.io.show_message(
+                        f"\n*You received {item_name} from {self.npc.name}*"
+                    )
                     
             elif type == "remove_item":
                 item = effect.get("item")

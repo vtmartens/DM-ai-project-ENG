@@ -103,6 +103,11 @@ def test_web_client_smoke(live_server):
             driver.find_element(By.ID, "achievements-count").text.strip(),
         )
 
+        # Locked travel reports a message and leaves the player in the tavern.
+        driver.find_element(By.ID, "command-input").send_keys("go to warehouse")
+        driver.find_element(By.ID, "send-button").click()
+        wait.until(lambda d: "locked" in d.find_element(By.ID, "log").text.lower())
+
         # Natural-language targeting: this used to open the NPC list.
         driver.find_element(By.ID, "command-input").send_keys("talk to Durnan")
         driver.find_element(By.ID, "send-button").click()

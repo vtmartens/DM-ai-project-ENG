@@ -38,6 +38,12 @@
       {
         "name": "Cellar Key",
         "type": "key",
+        "effect": {
+          "opens": [
+            "Cellar Door",
+            "Secret Door"
+          ]
+        },
         "value": 10,
         "description": "An old key that opens the cellar door"
       }
@@ -518,14 +524,14 @@
   {
     "name": "exit_door",
     "type": "door",
-    "description": "A massive door that leads outside the cellar.",
+    "description": "A massive door that leads up to the tavern.",
     "state": "closed",
     "token": "X",
     "requires_key": false,
-    "destination_position": "market",
+    "destination_position": "tavern",
     "state_descriptions": {
-      "closed": "A massive door that leads outside the cellar.",
-      "open": "A massive door open to the outside."
+      "closed": "A massive door that leads up to the tavern.",
+      "open": "A massive door open toward the tavern stairs."
     },
     "possible_states": {
       "closed": [
@@ -535,5 +541,15 @@
         "closed"
       ]
     }
+  },
+  {
+    "name": "Warehouse Door",
+    "type": "door",
+    "description": "A reinforced door with a heavy iron lock.",
+    "state": "closed",
+    "requires_key": true,
+    "position": "market",
+    "destination_position": "warehouse",
+    "token": "D"
   }
 ]

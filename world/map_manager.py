@@ -1,6 +1,7 @@
 from world.map import Map
 import random
 from items.interactive_object import InteractiveObject, Door, Chest, Lever, Trap
+from items.keys import find_matching_key
 from entities.player import Player
 from entities.npc import NPC
 from entities.enemy import Enemy
@@ -20,6 +21,23 @@ def _same_object_name(first, second):
         return str(value).replace("_", " ").replace("-", " ").strip().casefold()
 
     return normalize(first) == normalize(second)
+
+
+def _is_locked_door(door):
+    """True for a keyed door that has not been opened yet."""
+    return (
+        isinstance(door, Door)
+        and bool(getattr(door, "requires_key", False))
+        and getattr(door, "state", "closed") not in {"open", "unlocked"}
+    )
+
+
+def _door_label(door):
+    """Human-readable door name for messages ("cellar_door" -> "Cellar door")."""
+    label = str(getattr(door, "name", "door")).replace("_", " ").strip()
+    if not label:
+        return "Door"
+    return label[:1].upper() + label[1:]
 
 
 class MapManager:
@@ -386,7 +404,13 @@ class MapManager:
                         if _same_object_name(
                             getattr(existing, "name", ""), getattr(item, "name", "")
                         ):
-                            # Already placed from map_objects.json; keep that instance.
+                            # Already placed from map_objects.json; keep that
+                            # instance and point the state at it so menu actions
+                            # and map movement share one door/chest.
+                            if isinstance(
+                                getattr(state, "interactive_objects", None), dict
+                            ):
+                                state.interactive_objects[key] = existing
                             continue
                         logging.warning(f"Position ({x}, {y}) already occupied, cannot place object {key}")
                     elif (x, y) in map.npc:
@@ -460,6 +484,16 @@ class MapManager:
 
         # A door may be the only opening in a wall, so doors are checked first.
         door_dest = map.doors.get((new_x, new_y))
+        door_object = map.items.get((new_x, new_y))
+
+        # A keyed door blocks the transition until it is opened with its key,
+        # Knock, or a lever.
+        if door_dest is not None and _is_locked_door(door_object):
+            return {
+                "success": False,
+                "message": f"The {_door_label(door_object)} is locked.",
+                "change_map": False,
+            }
 
         # Check whether there is a wall (unless this cell is a door)
         if door_dest is None and map.grid[new_y][new_x] != 0:
@@ -536,6 +570,53 @@ class MapManager:
         _, free_y, free_x = min(pool)
         return free_x, free_y
 
+    def routes_to(self, map_name):
+        """Returns (source map, cell, door object or None) for every route."""
+        routes = []
+        for source_name, source_map in self.maps.items():
+            for (x, y), destination in source_map.doors.items():
+                if destination[0] != map_name:
+                    continue
+                routes.append(
+                    (source_name, (x, y), source_map.items.get((x, y)))
+                )
+        return routes
+
+    def prepare_map_entry(self, player, map_name):
+        """Decides whether the player may enter a map.
+
+        Every physical route into the destination is considered. When all of
+        them are locked, a matching key in the player's inventory opens the
+        first one; otherwise entry is refused. Returns ``(allowed, message)``.
+        """
+        if map_name not in self.maps:
+            return False, f"Map {map_name} does not exist."
+
+        # Re-entering the map you are already on cannot be locked out.
+        if getattr(player, "current_map", None) == map_name:
+            return True, None
+
+        routes = self.routes_to(map_name)
+        if not routes:
+            return True, None
+
+        locked = [door for _, _, door in routes if _is_locked_door(door)]
+        if len(locked) < len(routes):
+            return True, None
+
+        for door in locked:
+            key = find_matching_key(player, getattr(door, "name", ""))
+            if key is not None:
+                door.state = "open"
+                return True, (
+                    f"You unlock the {_door_label(door)} with {key.name}."
+                )
+
+        return False, (
+            f"The way to {map_name.capitalize()} is locked "
+            f"({_door_label(locked[0])})."
+        )
+
     def change_player_map(self, player, map_name, x=None, y=None):
         """
         Changes the player's current map.
@@ -551,6 +632,17 @@ class MapManager:
         # Check that the map exists
         if map_name not in self.maps:
             return {"success": False, "message": f"Map {map_name} does not exist"}
+
+        # Direct travel (map selection, "go to <map>") must obey the same
+        # locks as walking through a door.
+        if getattr(player, "current_map", None) != map_name:
+            allowed, message = self.prepare_map_entry(player, map_name)
+            if not allowed:
+                return {"success": False, "message": message}
+            if message:
+                game = getattr(player, "game", None)
+                if game is not None and getattr(game, "io", None):
+                    game.io.show_message(message)
 
         # Get the new map
         new_map = self.maps[map_name]
