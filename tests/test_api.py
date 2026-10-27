@@ -227,6 +227,29 @@ def test_log_records_events_emitted_by_the_engine(client):
     assert data["events"], "starting a game should emit at least the tavern menu"
 
 
+def test_session_lookup_helper_caches_loaded_sessions(client):
+    import server
+
+    session_id = _start(client)
+    session = server.active_sessions[session_id]
+    server.save_session(session_id, session)
+    server.active_sessions.pop(session_id, None)
+
+    loaded, error = server.get_session_or_error(session_id)
+
+    assert error is None
+    assert loaded is not None
+    assert server.active_sessions[session_id] is loaded
+
+    missing, error = server.get_session_or_error("no-such-session")
+    assert missing is None
+    assert error[1] == 404
+
+    missing, error = server.get_session_or_error(None)
+    assert missing is None
+    assert error[1] == 400
+
+
 def test_available_actions_use_the_real_state_and_targets(client):
     session_id = _start(client)
 

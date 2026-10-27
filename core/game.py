@@ -567,22 +567,8 @@ class Game:
             from items.item import Item
             from items.interactive_object import InteractiveObject
             
-            # Map of state classes to their modules
-            mapping_states = {
-                "TavernState": "states.tavern",
-                "DialogueState": "states.dialogue", 
-                "CombatState": "states.combat",
-                "MarketState": "states.market",
-                "WaystationState": "states.waystation",
-                "BountyBoardState": "states.bounty_board",
-                "RunePillarState": "states.rune_pillar",
-                "InventoryManagementState": "states.inventory_management",
-                "AbilityCheckState": "states.ability_check",
-                "MapState": "states.map_state",
-                "MapSelectionState": "states.map_selection_state",
-                "MenuState": "states.menu"
-            }
-            
+            from states.registry import load_state_class
+
             # Load the player
             try:
                 # Use the standard version directly without loaded_objects for the player
@@ -607,30 +593,23 @@ class Game:
                 if not state_type:
                     continue
 
-                # Dynamically import the state class
+                # Dynamically import the state class through the shared registry.
                 try:
-                    # Use the mapping to find the correct module
-                    if state_type in mapping_states:
-                        module_name = mapping_states[state_type]
-
-                        # Dynamically import the module
-                        import importlib
-                        module = importlib.import_module(module_name)
-
-                        # Get the class by the same name
-                        state_class = getattr(module, state_type)
-
-                        # Rebuild the state using from_dict
-                        if hasattr(state_class, 'from_dict'):
-                            # Just use the standard version
-                            state = state_class.from_dict(state_data)
-                            self.state_stack.append(state)
-                        else:
-                            logger.warning(f"State {state_type} has no from_dict method")
-                            self.io.show_message(f"Warning: {state_type} has no from_dict method")
-                    else:
+                    state_cls = load_state_class(state_type)
+                    if state_cls is None:
                         logger.warning(f"No mapping found for {state_type}")
-                        self.io.show_message(f"Warning: no mapping found for {state_type}")
+                        self.io.show_message(
+                            f"Warning: no mapping found for {state_type}"
+                        )
+                        continue
+
+                    if hasattr(state_cls, "from_dict"):
+                        self.state_stack.append(state_cls.from_dict(state_data))
+                    else:
+                        logger.warning(f"State {state_type} has no from_dict method")
+                        self.io.show_message(
+                            f"Warning: {state_type} has no from_dict method"
+                        )
                 except Exception as e:
                     logger.error(f"Error loading state {state_type}: {str(e)}")
                     import traceback

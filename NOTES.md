@@ -843,6 +843,18 @@ entirely. The doors that existed were also misaligned with the map exits.
   loading/map round trips, interaction, success/reward-once, failure/retry and Guidance
   consumption. 481 tests pass.
 
+## Hardening pass (2026-10-27)
+
+- Removed the unused legacy `world/map_controller.py`; all live map/state navigation goes
+  through `MapManager`, `MapState` and the registered game states.
+- Added `states/registry.py` as the single source of truth for restoring state classes.
+  Both `Game.load` and `BaseState.from_dict` now use it, so adding a state no longer
+  requires updating two separate mappings. Registry tests import every registered class.
+- Added `server.get_session_or_error` and routed endpoint session lookup through it. It
+  handles the shared 400/404 responses and caches sessions loaded from disk consistently.
+  A regression test covers disk loading and cache insertion.
+- Full suite after the refactor: 485 tests pass.
+
 ## Stable map ordering (CI fix, 2026-10-27)
 
 - `Path.glob()` order is filesystem-dependent. After the Road and Waystation maps were
@@ -881,7 +893,7 @@ entirely. The doors that existed were also misaligned with the map exits.
 | Residual Italian (glossary-derived denylist + accented characters) | 0 hits |
 | **Original Italian vs translated, identical input** | **46/46 placements, identical sequence** |
 | Flask API in-process (test client, no socket) | 31 × 200, 0 raised |
-| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, AI memory, hints, achievements, utility spells, locks, vault, quests, enemy abilities, encounters, saving throws, conditions, combat status, attack rolls/AC, Defend/Aim, defeat recovery, session recap, equipment economy, road/wilderness/loot, Broken Waystation, bounty board, progression achievements, weapon properties, Rune Pillar, rest, accessibility, web client routes, browser smoke/mobile) | 481 passed |
+| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, AI memory, hints, achievements, utility spells, locks, vault, quests, enemy abilities, encounters, saving throws, conditions, combat status, attack rolls/AC, Defend/Aim, defeat recovery, session recap, equipment economy, road/wilderness/loot, Broken Waystation, bounty board, progression achievements, weapon properties, Rune Pillar, hardening, rest, accessibility, web client routes, browser smoke/mobile) | 485 passed |
 | Live smoke test (Flask server, `/app`, start/state/abilities/inventory/actions/command/save/load) | passed |
 
 The last comparison is the strongest evidence: the pristine Italian code and the finished

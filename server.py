@@ -70,6 +70,22 @@ def load_session(session_id):
         return session
     return None
 
+def get_session_or_error(session_id):
+    """Returns (session, error_response) and caches disk-loaded sessions."""
+    if not session_id:
+        return None, (jsonify({"error": "Session ID not provided"}), 400)
+
+    session = active_sessions.get(session_id)
+    if session is None:
+        session = load_session(session_id)
+        if session is not None:
+            active_sessions[session_id] = session
+
+    if session is None:
+        return None, (jsonify({"error": "Session not found"}), 404)
+    return session, None
+
+
 def add_notification(session_id, type, message, data=None):
     """Add a notification to the system"""
     if session_id not in system_notifications:
@@ -183,23 +199,9 @@ def run_command():
     session_id = data.get("session_id")
     command = data.get("command", "")
     
-    # Check that the session ID was provided
-    if not session_id:
-        return jsonify({"error": "Session ID not provided"}), 400
-    
-    # Check whether the session is active in memory
-    session = active_sessions.get(session_id)
-    
-    # If it is not in memory, try loading it from disk
-    if not session:
-        session = load_session(session_id)
-        if session:
-            # If found on disk, load it into memory
-            active_sessions[session_id] = session
-    
-    # If it is still not found, return an error
-    if not session:
-        return jsonify({"error": "Session not found"}), 404
+    session, error = get_session_or_error(session_id)
+    if error:
+        return error
     
     # Process the command
     session.process_command(command)
@@ -239,14 +241,11 @@ def get_state():
     session_id = request.args.get("session_id")
     
     # Check that the session ID was provided
-    if not session_id:
-        return jsonify({"error": "Session ID not provided"}), 400
     
     # Look for the session in memory or on disk
-    session = active_sessions.get(session_id) or load_session(session_id)
-    
-    if not session:
-        return jsonify({"error": "Session not found"}), 404
+    session, error = get_session_or_error(session_id)
+    if error:
+        return error
     
     # Return the current state
     return jsonify(session.get_current_state())
@@ -260,14 +259,11 @@ def save_game():
     file_name = data.get("file_name", "save.json")
     
     # Check that the session ID was provided
-    if not session_id:
-        return jsonify({"error": "Session ID not provided"}), 400
     
     # Look for the session
-    session = active_sessions.get(session_id) or load_session(session_id)
-    
-    if not session:
-        return jsonify({"error": "Session not found"}), 404
+    session, error = get_session_or_error(session_id)
+    if error:
+        return error
     
     # Save the game
     try:
@@ -296,9 +292,9 @@ def load_game():
     # screen): create a fresh session for it. A provided-but-unknown session
     # ID is still a 404 so clients notice stale IDs.
     if session_id:
-        session = active_sessions.get(session_id) or load_session(session_id)
-        if not session:
-            return jsonify({"error": "Session not found"}), 404
+        session, error = get_session_or_error(session_id)
+        if error:
+            return error
     else:
         session_id = str(uuid4())
         session = GameState(Player("Adventurer", "fighter"), None)
@@ -368,14 +364,11 @@ def get_map():
     session_id = request.args.get("session_id")
     
     # Check that the session ID was provided
-    if not session_id:
-        return jsonify({"error": "Session ID not provided"}), 400
     
     # Look for the session
-    session = active_sessions.get(session_id) or load_session(session_id)
-    
-    if not session:
-        return jsonify({"error": "Session not found"}), 404
+    session, error = get_session_or_error(session_id)
+    if error:
+        return error
     
     # Get information about the map
     position_info = session.get_player_position()
@@ -394,16 +387,13 @@ def move_player():
     direction = data.get("direction")
     
     # Check that both the session ID and the direction were provided
-    if not session_id:
-        return jsonify({"error": "Session ID not provided"}), 400
     if not direction:
         return jsonify({"error": "Direction not provided"}), 400
     
     # Look for the session
-    session = active_sessions.get(session_id) or load_session(session_id)
-    
-    if not session:
-        return jsonify({"error": "Session not found"}), 404
+    session, error = get_session_or_error(session_id)
+    if error:
+        return error
     
     # Move the player
     movement = session.move_player(direction)
@@ -422,13 +412,9 @@ def get_inventory():
     """Get the player's inventory"""
     session_id = request.args.get("session_id")
     
-    if not session_id:
-        return jsonify({"error": "Session ID not provided"}), 400
-    
-    session = active_sessions.get(session_id) or load_session(session_id)
-    
-    if not session:
-        return jsonify({"error": "Session not found"}), 404
+    session, error = get_session_or_error(session_id)
+    if error:
+        return error
     
     # Get the full state and extract only the inventory information
     state = session.get_current_state()
@@ -443,13 +429,9 @@ def get_stats():
     """Get the player's stats"""
     session_id = request.args.get("session_id")
     
-    if not session_id:
-        return jsonify({"error": "Session ID not provided"}), 400
-    
-    session = active_sessions.get(session_id) or load_session(session_id)
-    
-    if not session:
-        return jsonify({"error": "Session not found"}), 404
+    session, error = get_session_or_error(session_id)
+    if error:
+        return error
     
     # Get the full state and extract only the stats
     state = session.get_current_state()
@@ -467,13 +449,10 @@ def get_map_view():
     """Get the current map as an ASCII grid with the player marked."""
     session_id = request.args.get("session_id")
 
-    if not session_id:
-        return jsonify({"error": "Session ID not provided"}), 400
 
-    session = active_sessions.get(session_id) or load_session(session_id)
-
-    if not session:
-        return jsonify({"error": "Session not found"}), 404
+    session, error = get_session_or_error(session_id)
+    if error:
+        return error
 
     view = session.get_map_view()
     if not view:
@@ -487,13 +466,9 @@ def get_position():
     """Get the player's current position"""
     session_id = request.args.get("session_id")
     
-    if not session_id:
-        return jsonify({"error": "Session ID not provided"}), 400
-    
-    session = active_sessions.get(session_id) or load_session(session_id)
-    
-    if not session:
-        return jsonify({"error": "Session not found"}), 404
+    session, error = get_session_or_error(session_id)
+    if error:
+        return error
     
     # Use the existing method to get the position
     position_info = session.get_player_position()
@@ -514,13 +489,9 @@ def get_quests():
     """Get the list of the player's active and completed quests"""
     session_id = request.args.get("session_id")
     
-    if not session_id:
-        return jsonify({"error": "Session ID not provided"}), 400
-    
-    session = active_sessions.get(session_id) or load_session(session_id)
-    
-    if not session:
-        return jsonify({"error": "Session not found"}), 404
+    session, error = get_session_or_error(session_id)
+    if error:
+        return error
     
     # The player keeps a quest log; the state view exposes it directly.
     state = session.get_current_state()
@@ -537,13 +508,9 @@ def get_combat_state():
     """Get the current combat state"""
     session_id = request.args.get("session_id")
     
-    if not session_id:
-        return jsonify({"error": "Session ID not provided"}), 400
-    
-    session = active_sessions.get(session_id) or load_session(session_id)
-    
-    if not session:
-        return jsonify({"error": "Session not found"}), 404
+    session, error = get_session_or_error(session_id)
+    if error:
+        return error
     
     return jsonify(session.get_combat_state())
 
@@ -557,16 +524,13 @@ def run_combat_action():
     target = data.get("target", "")
     parameters = data.get("parameters", {})
     
-    if not session_id:
-        return jsonify({"error": "Session ID not provided"}), 400
     
     if not action:
         return jsonify({"error": "Action not specified"}), 400
     
-    session = active_sessions.get(session_id) or load_session(session_id)
-    
-    if not session:
-        return jsonify({"error": "Session not found"}), 404
+    session, error = get_session_or_error(session_id)
+    if error:
+        return error
     
     # Build a formatted command for the combat action
     command = f"{action}"
@@ -599,13 +563,9 @@ def get_npc():
     """Get information about the NPCs in the current location"""
     session_id = request.args.get("session_id")
     
-    if not session_id:
-        return jsonify({"error": "Session ID not provided"}), 400
-    
-    session = active_sessions.get(session_id) or load_session(session_id)
-    
-    if not session:
-        return jsonify({"error": "Session not found"}), 404
+    session, error = get_session_or_error(session_id)
+    if error:
+        return error
     
     return jsonify(session.get_npcs_in_location())
 
@@ -618,16 +578,13 @@ def interact_with_item():
     item = data.get("item", "")
     action = data.get("action", "use")
     
-    if not session_id:
-        return jsonify({"error": "Session ID not provided"}), 400
     
     if not item:
         return jsonify({"error": "Item not specified"}), 400
     
-    session = active_sessions.get(session_id) or load_session(session_id)
-    
-    if not session:
-        return jsonify({"error": "Session not found"}), 404
+    session, error = get_session_or_error(session_id)
+    if error:
+        return error
     
     # Build the command for interacting with the item
     command = f"{action} {item}"
@@ -686,13 +643,9 @@ def get_log():
     """Get the log of recent events"""
     session_id = request.args.get("session_id")
     
-    if not session_id:
-        return jsonify({"error": "Session ID not provided"}), 400
-    
-    session = active_sessions.get(session_id) or load_session(session_id)
-    
-    if not session:
-        return jsonify({"error": "Session not found"}), 404
+    session, error = get_session_or_error(session_id)
+    if error:
+        return error
     
     # The session keeps a rolling log of the events the engine emitted.
     max_events = int(request.args.get("max", 50))
@@ -708,17 +661,9 @@ def dungeon_master_hint():
     data = request.json or {}
     session_id = data.get("session_id")
 
-    if not session_id:
-        return jsonify({"error": "Session ID not provided"}), 400
-
-    session = active_sessions.get(session_id)
-    if not session:
-        session = load_session(session_id)
-        if session:
-            active_sessions[session_id] = session
-
-    if not session:
-        return jsonify({"error": "Session not found"}), 404
+    session, error = get_session_or_error(session_id)
+    if error:
+        return error
 
     from ai.hints import generate_hint
 
@@ -743,17 +688,9 @@ def session_recap():
     data = request.json or {}
     session_id = data.get("session_id")
 
-    if not session_id:
-        return jsonify({"error": "Session ID not provided"}), 400
-
-    session = active_sessions.get(session_id)
-    if not session:
-        session = load_session(session_id)
-        if session:
-            active_sessions[session_id] = session
-
-    if not session:
-        return jsonify({"error": "Session not found"}), 404
+    session, error = get_session_or_error(session_id)
+    if error:
+        return error
 
     from ai.recap import generate_recap
 
@@ -788,8 +725,6 @@ def manage_equipment():
     item = data.get("item", "")
     slot = data.get("slot", "")  # e.g. "weapon", "armor", "ring", etc.
     
-    if not session_id:
-        return jsonify({"error": "Session ID not provided"}), 400
     
     if not item:
         return jsonify({"error": "Item not specified"}), 400
@@ -797,10 +732,9 @@ def manage_equipment():
     if not action:
         return jsonify({"error": "Action not specified"}), 400
     
-    session = active_sessions.get(session_id) or load_session(session_id)
-    
-    if not session:
-        return jsonify({"error": "Session not found"}), 404
+    session, error = get_session_or_error(session_id)
+    if error:
+        return error
     
     # Build the appropriate command based on the requested action
     if action == "equip":
@@ -840,13 +774,9 @@ def get_available_actions():
     """Get the actions available in the current context"""
     session_id = request.args.get("session_id")
     
-    if not session_id:
-        return jsonify({"error": "Session ID not provided"}), 400
-    
-    session = active_sessions.get(session_id) or load_session(session_id)
-    
-    if not session:
-        return jsonify({"error": "Session not found"}), 404
+    session, error = get_session_or_error(session_id)
+    if error:
+        return error
     
     state = session.get_current_state()
     state_name = state.get("state", "NoneState")
@@ -910,12 +840,10 @@ def get_available_actions():
 def get_shop():
     """Get the market's purchasable stock and the player's sellable items."""
     session_id = request.args.get("session_id")
-    if not session_id:
-        return jsonify({"error": "Session ID not provided"}), 400
 
-    session = active_sessions.get(session_id) or load_session(session_id)
-    if not session:
-        return jsonify({"error": "Session not found"}), 404
+    session, error = get_session_or_error(session_id)
+    if error:
+        return error
 
     current = session.game.current_state()
     if type(current).__name__ != "MarketState":
@@ -929,14 +857,12 @@ def shop_buy():
     data = request.json or {}
     session_id = data.get("session_id")
     item_name = data.get("item")
-    if not session_id:
-        return jsonify({"error": "Session ID not provided"}), 400
     if not item_name:
         return jsonify({"error": "Item name not provided"}), 400
 
-    session = active_sessions.get(session_id) or load_session(session_id)
-    if not session:
-        return jsonify({"error": "Session not found"}), 404
+    session, error = get_session_or_error(session_id)
+    if error:
+        return error
 
     current = session.game.current_state()
     if type(current).__name__ != "MarketState":
@@ -961,14 +887,12 @@ def shop_sell():
     data = request.json or {}
     session_id = data.get("session_id")
     item_name = data.get("item")
-    if not session_id:
-        return jsonify({"error": "Session ID not provided"}), 400
     if not item_name:
         return jsonify({"error": "Item name not provided"}), 400
 
-    session = active_sessions.get(session_id) or load_session(session_id)
-    if not session:
-        return jsonify({"error": "Session not found"}), 404
+    session, error = get_session_or_error(session_id)
+    if error:
+        return error
 
     current = session.game.current_state()
     if type(current).__name__ != "MarketState":
@@ -996,16 +920,13 @@ def manage_dialogue():
     npc = data.get("npc", "")
     option = data.get("option", "")
     
-    if not session_id:
-        return jsonify({"error": "Session ID not provided"}), 400
     
     if not npc:
         return jsonify({"error": "NPC not specified"}), 400
     
-    session = active_sessions.get(session_id) or load_session(session_id)
-    
-    if not session:
-        return jsonify({"error": "Session not found"}), 404
+    session, error = get_session_or_error(session_id)
+    if error:
+        return error
     
     # Build the dialogue command
     if option:
@@ -1044,13 +965,9 @@ def explore_environment():
     data = request.json or {}
     session_id = data.get("session_id")
     
-    if not session_id:
-        return jsonify({"error": "Session ID not provided"}), 400
-    
-    session = active_sessions.get(session_id) or load_session(session_id)
-    
-    if not session:
-        return jsonify({"error": "Session not found"}), 404
+    session, error = get_session_or_error(session_id)
+    if error:
+        return error
     
     # Run a "look" or "explore" command
     session.process_command("look")
@@ -1084,13 +1001,9 @@ def save_preferences():
     session_id = data.get("session_id")
     preferences = data.get("preferences", {})
     
-    if not session_id:
-        return jsonify({"error": "Session ID not provided"}), 400
-    
-    session = active_sessions.get(session_id) or load_session(session_id)
-    
-    if not session:
-        return jsonify({"error": "Session not found"}), 404
+    session, error = get_session_or_error(session_id)
+    if error:
+        return error
     
     # Save the preferences in the session context
     # This operation assumes GameState has a way to manage preferences
@@ -1128,8 +1041,6 @@ def get_notifications():
     """Get the notifications for the current session"""
     session_id = request.args.get("session_id")
     
-    if not session_id:
-        return jsonify({"error": "Session ID not provided"}), 400
     
     # Initialize the notifications array if it does not exist
     if session_id not in system_notifications:
@@ -1165,8 +1076,6 @@ def read_notification():
     notification_id = data.get("notification_id")
     all = data.get("all", False)
     
-    if not session_id:
-        return jsonify({"error": "Session ID not provided"}), 400
     
     if session_id not in system_notifications:
         return jsonify({"error": "No notifications found for this session"}), 404
@@ -1233,13 +1142,11 @@ def get_tutorial():
     session_id = request.args.get("session_id")
     type = request.args.get("type")  # e.g. "combat", "inventory", "dialogue"
     
-    if not session_id:
-        return jsonify({"error": "Session ID not provided"}), 400
     
     # Check that the session exists
-    session = active_sessions.get(session_id) or load_session(session_id)
-    if not session:
-        return jsonify({"error": "Session not found"}), 404
+    session, error = get_session_or_error(session_id)
+    if error:
+        return error
     
     # Load the tutorials from the external file using the data manager
     tutorial = get_data_manager().get_tutorials()
@@ -1256,13 +1163,11 @@ def get_achievements():
     """Get the player's achievements"""
     session_id = request.args.get("session_id")
     
-    if not session_id:
-        return jsonify({"error": "Session ID not provided"}), 400
     
     # Check that the session exists
-    session = active_sessions.get(session_id) or load_session(session_id)
-    if not session:
-        return jsonify({"error": "Session not found"}), 404
+    session, error = get_session_or_error(session_id)
+    if error:
+        return error
     
     # In a real implementation, these data would be extracted from the game state
     state = session.get_current_state()
@@ -1297,16 +1202,14 @@ def get_item_details():
     item_id = request.args.get("item_id")
     object_name = request.args.get("object_name")
     
-    if not session_id:
-        return jsonify({"error": "Session ID not provided"}), 400
     
     if not item_id and not object_name:
         return jsonify({"error": "Item ID or item name not provided"}), 400
     
     # Check that the session exists
-    session = active_sessions.get(session_id) or load_session(session_id)
-    if not session:
-        return jsonify({"error": "Session not found"}), 404
+    session, error = get_session_or_error(session_id)
+    if error:
+        return error
     
     # Get the player's inventory
     state = session.get_current_state()
@@ -1381,13 +1284,11 @@ def get_ability():
     """Get the player's abilities"""
     session_id = request.args.get("session_id")
     
-    if not session_id:
-        return jsonify({"error": "Session ID not provided"}), 400
     
     # Check that the session exists
-    session = active_sessions.get(session_id) or load_session(session_id)
-    if not session:
-        return jsonify({"error": "Session not found"}), 404
+    session, error = get_session_or_error(session_id)
+    if error:
+        return error
     
     return jsonify(session.get_abilities())
 
@@ -1400,16 +1301,14 @@ def use_ability():
     ability_name = data.get("ability_name")
     target = data.get("target", "")
     
-    if not session_id:
-        return jsonify({"error": "Session ID not provided"}), 400
     
     if not ability_id and not ability_name:
         return jsonify({"error": "Ability ID or ability name not provided"}), 400
     
     # Check that the session exists
-    session = active_sessions.get(session_id) or load_session(session_id)
-    if not session:
-        return jsonify({"error": "Session not found"}), 404
+    session, error = get_session_or_error(session_id)
+    if error:
+        return error
     
     from core.abilities import resolve_ability
 
@@ -1450,8 +1349,6 @@ def export_save():
     session_id = data.get("session_id")
     file_name = data.get("file_name")
     
-    if not session_id:
-        return jsonify({"error": "Session ID not provided"}), 400
     
     # Never let a request escape the saves directory
     file_name = os.path.basename(file_name)
@@ -1464,9 +1361,9 @@ def export_save():
         file_name += ".json"
 
     # Check that the session exists
-    session = active_sessions.get(session_id) or load_session(session_id)
-    if not session:
-        return jsonify({"error": "Session not found"}), 404
+    session, error = get_session_or_error(session_id)
+    if error:
+        return error
 
     # Save the file temporarily
     temp_path = get_save_path(file_name)

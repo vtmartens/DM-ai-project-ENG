@@ -306,49 +306,23 @@ class BaseState:
         # If there is a specific type, create the appropriate instance
         state_type = data.get("type")
         if state_type != cls.__name__:
-            # Dynamic import of the correct state
-            import importlib
             import traceback
-            
+
+            from states.registry import load_state_class
+
             try:
-                # Search in all states modules
-                # Fix: explicit mapping of class names to modules
-                state_module_map = {
-                    "TavernState": "tavern",
-                    "MarketState": "market",
-                    "WaystationState": "waystation",
-                    "BountyBoardState": "bounty_board",
-                    "RunePillarState": "rune_pillar",
-                    "CombatState": "combat",
-                    "DialogueState": "dialogue",
-                    "InventoryManagementState": "inventory_management",
-                    "AbilityCheckState": "ability_check",
-                    "MapState": "map_state",
-                    "MapSelectionState": "map_selection_state",
-                    "MenuState": "menu"
-                }
-                
-                # Use the mapping if available, otherwise fall back to the lowercase name
-                module_suffix = state_module_map.get(state_type, state_type.lower())
-                module_name = f"states.{module_suffix}"
-                
-                module = importlib.import_module(module_name)
-                state_class = getattr(module, state_type)
-                
-                # Create the instance using the class's from_dict method
-                if hasattr(state_class, 'from_dict'):
-                    return state_class.from_dict(data)
-                else:
-                    # If it has no from_dict method, create a default instance
-                    return state_class()
+                state_cls = load_state_class(state_type)
+                if state_cls is None:
+                    return cls()
+
+                if hasattr(state_cls, "from_dict"):
+                    return state_cls.from_dict(data)
+                return state_cls()
             except (ImportError, AttributeError) as e:
-                # Log the error for debugging
                 print(f"Error while loading state {state_type}: {e}")
                 print(traceback.format_exc())
-                # Fall back to a base instance instead of None
                 return cls()
             except Exception as e:
-                # Catch any other unexpected error
                 print(f"Unexpected error while loading state: {e}")
                 print(traceback.format_exc())
                 return cls()
