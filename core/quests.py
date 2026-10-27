@@ -49,12 +49,16 @@ def start_quest(player, quest_id, game=None):
             game.io.show_message(f"You already know about {definition['title']}.")
         return False
 
+    if not isinstance(getattr(player, "progress_quests", None), dict):
+        player.progress_quests = {}
+
     quest = {
         "id": quest_id,
         "title": definition.get("title", quest_id),
         "description": definition.get("description", ""),
         "objective": definition.get("objective", ""),
         "target": definition.get("target", ""),
+        "turn_in": definition.get("turn_in", ""),
         "status": "active",
     }
     player.active_quests.append(quest)
@@ -64,6 +68,32 @@ def start_quest(player, quest_id, game=None):
         if quest["objective"]:
             game.io.show_message(f"Objective: {quest['objective']}")
     return True
+
+
+def mark_quest_ready(player, quest_id, game=None):
+    """Marks an active quest's objective complete without granting rewards."""
+    for quest in getattr(player, "active_quests", []):
+        if not isinstance(quest, dict) or quest.get("id") != quest_id:
+            continue
+        if quest.get("status") == "ready":
+            return False
+
+        quest["status"] = "ready"
+        if not isinstance(getattr(player, "progress_quests", None), dict):
+            player.progress_quests = {}
+        player.progress_quests.setdefault(quest_id, {})["status"] = "ready"
+
+        if game:
+            game.io.show_message(
+                f"\nObjective complete: {quest.get('title', quest_id)}"
+            )
+            turn_in = quest.get("turn_in")
+            if turn_in:
+                game.io.show_message(
+                    f"Return to {turn_in} to collect your reward."
+                )
+        return True
+    return False
 
 
 def complete_quest(player, quest_id, game=None):
@@ -105,15 +135,22 @@ def complete_quest(player, quest_id, game=None):
 
 
 def record_enemy_defeat(player, enemy_name, game=None):
-    """Completes any active quest whose target was just defeated."""
-    completed = []
+    """Marks target quests ready (or completes quests without a turn-in NPC)."""
+    changed = []
     for quest in list(getattr(player, "active_quests", [])):
         if not isinstance(quest, dict):
             continue
-        if _normalize(quest.get("target")) == _normalize(enemy_name):
-            if complete_quest(player, quest.get("id"), game):
-                completed.append(quest.get("id"))
-    return completed
+        if _normalize(quest.get("target")) != _normalize(enemy_name):
+            continue
+
+        quest_id = quest.get("id")
+        turn_in = quest.get("turn_in")
+        if turn_in:
+            if mark_quest_ready(player, quest_id, game):
+                changed.append(quest_id)
+        elif complete_quest(player, quest_id, game):
+            changed.append(quest_id)
+    return changed
 
 
 def recruit_ally(player, npc_name, game=None):

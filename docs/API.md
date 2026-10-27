@@ -555,6 +555,7 @@ the action, so `"attack"` with `"Goblin B"` attacks that enemy directly.
       "description": "Hooded figures have been seen around the old warehouse...",
       "objective": "Defeat Vargas and break up the cult cell in the old warehouse.",
       "target": "Vargas",
+      "turn_in": "Violet",
       "status": "active"
     }
   ],
@@ -564,6 +565,10 @@ the action, so `"attack"` with `"Goblin B"` attacks that enemy directly.
   }
 }
 ```
+
+Active quests can be `active` or `ready`; `ready` means the objective is complete and the
+player must speak to the `turn_in` NPC before the reward is granted. Completed quests move
+to `completed` with `"status": "completed"`.
 
 #### `GET /tutorial?session_id=...&type=combat`
 

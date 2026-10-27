@@ -50,6 +50,7 @@ You can also set `localStorage["dm_api_base"]`.
   With multiple enemies, each row has a Target button; the current target is marked.
   Recruited allies appear below the enemies.
 - Quests panel driven by `GET /missions`, showing each active quest and its objective.
+  Completed objectives change to “Ready to turn in — speak to …” until rewards are collected.
 - Clickable dialogue options (from `state.dialogue`), in addition to typing numbers. The
   play area puts the Adventure log (with the DM narration first) at the top, and the NPC
   dialogue/options card below it. The log keeps the NPC text and consequences but omits

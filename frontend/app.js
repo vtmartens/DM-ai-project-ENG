@@ -626,6 +626,9 @@ function renderQuests(data) {
 
   for (const quest of active) {
     const item = document.createElement("li");
+    const ready = typeof quest === "object" && quest.status === "ready";
+    if (ready) item.classList.add("ready");
+
     const title = document.createElement("strong");
     title.textContent =
       typeof quest === "string" ? quest : quest.title || quest.id || "Quest";
@@ -633,7 +636,9 @@ function renderQuests(data) {
     objective.textContent =
       typeof quest === "string"
         ? ""
-        : quest.objective || quest.description || "";
+        : ready
+          ? `Ready to turn in — speak to ${quest.turn_in || "the quest giver"}.`
+          : quest.objective || quest.description || "";
     item.append(title, objective);
     el.questList.appendChild(item);
   }

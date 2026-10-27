@@ -4,6 +4,7 @@ from core.game import Game
 from core.quests import (
     build_ally_party,
     complete_quest,
+    mark_quest_ready,
     recruit_ally,
     record_enemy_defeat,
     start_quest,
@@ -58,16 +59,24 @@ def test_mirt_dialogue_starts_the_vargas_debt_quest(client):
     assert active["A Debt to Collect"]["target"] == "Vargas"
 
 
-def test_both_vargas_quests_complete_on_the_same_defeat(recording_io):
+def test_both_vargas_quests_turn_in_after_vargas(recording_io):
     player = Player("Double Quest", "fighter")
     game = Game(player, None, recording_io, temporary=True)
 
     assert start_quest(player, "shadows_of_the_market", game) is True
     assert start_quest(player, "vargas_debt", game) is True
 
-    completed = record_enemy_defeat(player, "Vargas", game)
+    ready = record_enemy_defeat(player, "Vargas", game)
 
-    assert set(completed) == {"shadows_of_the_market", "vargas_debt"}
+    assert set(ready) == {"shadows_of_the_market", "vargas_debt"}
+    assert {
+        quest["status"] for quest in player.active_quests
+    } == {"ready"}
+    assert player.completed_quests == []
+
+    assert complete_quest(player, "shadows_of_the_market", game) is True
+    assert complete_quest(player, "vargas_debt", game) is True
+
     assert {
         quest["title"] for quest in player.completed_quests
     } == {"Shadows in the Market", "A Debt to Collect"}
@@ -89,9 +98,16 @@ def test_quest_rewards_and_recruited_ally(recording_io):
     assert recruit_ally(player, "Violet", game) is False
     assert [ally.name for ally in build_ally_party(player)] == ["Violet"]
 
-    completed = record_enemy_defeat(player, "Vargas", game)
+    ready = record_enemy_defeat(player, "Vargas", game)
 
-    assert completed == ["shadows_of_the_market"]
+    assert ready == ["shadows_of_the_market"]
+    assert player.active_quests[0]["status"] == "ready"
+    assert player.completed_quests == []
+    assert player.gold == before_gold
+    assert "Objective complete: Shadows in the Market" in recording_io.text
+
+    assert complete_quest(player, "shadows_of_the_market", game) is True
+
     assert player.active_quests == []
     assert [quest["title"] for quest in player.completed_quests] == [
         "Shadows in the Market"
@@ -124,7 +140,7 @@ def test_violet_dialogue_starts_quest_and_recruits_ally(client):
     assert state["active_quests"][0]["objective"].startswith("Defeat Vargas")
 
 
-def test_warehouse_group_fight_includes_ally_and_completes_quest(client):
+def test_warehouse_group_fight_includes_ally_and_marks_quest_ready(client):
     import server
 
     session_id = _start(client)
@@ -160,8 +176,65 @@ def test_warehouse_group_fight_includes_ally_and_completes_quest(client):
     ).get_json()
 
     assert any("You defeated Vargas!" in text for text in texts)
-    assert any("Quest complete: Shadows in the Market" in text for text in texts)
+    assert any(
+        "Objective complete: Shadows in the Market" in text for text in texts
+    )
+    assert any("Return to Violet" in text for text in texts)
+    assert missions["active"][0]["status"] == "ready"
+    assert missions["completed"] == []
+
+
+@pytest.mark.parametrize(
+    ("npc_name", "quest_id", "title", "reward_gold", "option_text"),
+    [
+        ("Mirt", "vargas_debt", "A Debt to Collect", 50, "settled Vargas"),
+        (
+            "Violet",
+            "shadows_of_the_market",
+            "Shadows in the Market",
+            60,
+            "broke up Vargas",
+        ),
+    ],
+)
+def test_quest_turn_in_dialogue_completes_the_quest(
+    client, npc_name, quest_id, title, reward_gold, option_text
+):
+    import server
+
+    session_id = _start(client)
+    session = server.active_sessions[session_id]
+    player = session.game.player
+    start_quest(player, quest_id)
+    mark_quest_ready(player, quest_id)
+
+    if npc_name == "Violet":
+        client.post(
+            "/command", json={"session_id": session_id, "command": "go to market"}
+        )
+
+    dialogue = client.post(
+        "/command",
+        json={"session_id": session_id, "command": f"talk to {npc_name}"},
+    ).get_json()
+    options = dialogue["state"]["dialogue"]["options"]
+    turn_in = next(
+        option for option in options if option_text in option["text"]
+    )
+    before_gold = player.gold
+
+    result = client.post(
+        "/command",
+        json={"session_id": session_id, "command": str(turn_in["index"])},
+    ).get_json()
+    missions = client.get(
+        "/missions", query_string={"session_id": session_id}
+    ).get_json()
+
+    assert player.gold == before_gold + reward_gold
     assert missions["active"] == []
-    assert [quest["title"] for quest in missions["completed"]] == [
-        "Shadows in the Market"
-    ]
+    assert [quest["title"] for quest in missions["completed"]] == [title]
+    assert any(
+        f"Quest complete: {title}" in message["text"]
+        for message in result["output"]
+    )

@@ -421,7 +421,7 @@ class GameState:
         options = [
             {"index": index, "text": text, "target": target}
             for index, (text, target) in enumerate(
-                conversation.get("options", []), start=1
+                current.visible_options(self.game, conversation), start=1
             )
         ]
         return {

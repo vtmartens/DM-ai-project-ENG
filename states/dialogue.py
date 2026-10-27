@@ -21,6 +21,38 @@ class DialogueState(BaseState):
         self.contextual_data = {}  # To store data across multiple phases
         self.last_effect_state = None
         
+    def _quest_status(self, quest_id, game=None):
+        player = (game or self.game).player
+        for quest in getattr(player, "active_quests", []):
+            if isinstance(quest, dict) and quest.get("id") == quest_id:
+                return quest.get("status", "active")
+        for quest in getattr(player, "completed_quests", []):
+            if isinstance(quest, dict) and quest.get("id") == quest_id:
+                return "completed"
+        return None
+
+    def _option_visible(self, option, game=None):
+        if len(option) < 3 or not isinstance(option[2], dict):
+            return True
+        condition = option[2]
+        quest_id = condition.get("quest")
+        if not quest_id:
+            return True
+        return self._quest_status(quest_id, game) == condition.get("status")
+
+    def visible_options(self, game=None, conversation_data=None):
+        """Returns the options whose optional quest conditions currently hold."""
+        game = game or self.game
+        if conversation_data is None:
+            conversation_data = self.npc.get_conversation(self.current_state) or {}
+        options = []
+        for option in conversation_data.get("options", []):
+            if len(option) < 2:
+                continue
+            if self._option_visible(option, game):
+                options.append((option[0], option[1]))
+        return options
+
     def run(self, game):
         """
         Run the dialogue phase
@@ -62,35 +94,37 @@ class DialogueState(BaseState):
         # Show the conversation text
         io.show_message(f"{self.npc.name}: {conversation_data['text']}")
         
-        # If the conversation has no options, return to the return state
-        if not conversation_data.get("options"):
+        options = self.visible_options(game, conversation_data)
+
+        # If the conversation has no visible options, return to the return state
+        if not options:
             press_enter(game, "\nPress Enter to continue...")
             game.pop_state()  # Exit the current state
             return self.return_state or "map"
-        
+
         # The web client draws these as buttons in its dialogue card; only
         # terminal-style clients also need the numbered copy in the log.
         options_in_log = getattr(io, "dialogue_options_in_log", True)
         if options_in_log:
             io.show_message("\nOptions:")
-            for i, (text, _) in enumerate(conversation_data["options"], 1):
+            for i, (text, _) in enumerate(options, 1):
                 io.show_message(f"{i}. {text}")
 
         # Get the user's choice
         selection_input = io.request_input(
             "\nChoose an option: " if options_in_log else ""
         )
-        
+
         # Convert the input to a number
         try:
             selection = int(selection_input)
-            if selection < 1 or selection > len(conversation_data["options"]):
+            if selection < 1 or selection > len(options):
                 io.show_message("Invalid choice.")
                 press_enter(game, "\nPress Enter to continue...")
                 return "dialogue"  # Stay in the same state
-                
+
             # Get the destination (next state) of the choice
-            _, destination = conversation_data["options"][selection - 1]
+            _, destination = options[selection - 1]
             
             # If the destination is None, return to the return state
             if destination is None:

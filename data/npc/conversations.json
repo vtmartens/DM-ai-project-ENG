@@ -186,7 +186,10 @@
         ["What kind of business do you offer?", "business_info"],
         ["I was told you might have a map of Undermountain.", "ask_map"],
         ["I am looking for information about the local market.", "info_market"],
-        ["Just passing through, thanks.", null]
+        ["Just passing through, thanks.", null],
+        ["About Vargas and the debt...", "vargas_debt_reminder", {"quest": "vargas_debt", "status": "active"}],
+        ["I have settled Vargas's debt.", "vargas_debt_turn_in", {"quest": "vargas_debt", "status": "ready"}],
+        ["About Vargas...", "vargas_debt_done", {"quest": "vargas_debt", "status": "completed"}]
       ]
     },
     "business_info": {
@@ -253,6 +256,36 @@
         ["Deal, see you soon.", null]
       ]
     },
+    "vargas_debt_reminder": {
+      "text": "Vargas is hiding in the old warehouse at the eastern edge of the market. He still owes me, and I do not forget a debt.",
+      "options": [
+        ["I will settle it.", null]
+      ]
+    },
+    "vargas_debt_turn_in": {
+      "text": "So Vargas has paid at last. A pity it took steel to make him remember. Here is your fifty gold, as promised.",
+      "effect": {
+        "type": "complete_quest",
+        "quest": "vargas_debt"
+      },
+      "options": [
+        ["It was a pleasure.", null],
+        ["What happens to the cult now?", "vargas_followup"]
+      ]
+    },
+    "vargas_debt_done": {
+      "text": "The debt is settled, and Vargas will not trouble honest merchants again. If you hear whispers about who was buying his smuggled goods, I would like to know.",
+      "options": [
+        ["I will keep my eyes open.", null],
+        ["Tell me about that buyer.", "vargas_followup"]
+      ]
+    },
+    "vargas_followup": {
+      "text": "Vargas was only a collector. Someone in the city paid for what his cult carried out of the warehouse. A silent partner, and a patient one. That is a name worth finding.",
+      "options": [
+        ["I will find them.", null]
+      ]
+    },
     "ask_map": {
       "text": "Ah, Undermountain... yes, I might have something like that. *lowers his voice* It costs 100 gold coins. It is an authentic map of the first three levels, very detailed. Are you interested?",
       "options": [
@@ -291,7 +324,10 @@
       "options": [
         ["Durnan said you have seen strange things around the market.", "strange_info"],
         ["What do you sell here?", "shop_info"],
-        ["Just browsing, thanks.", null]
+        ["Just browsing, thanks.", null],
+        ["I am on my way to the warehouse.", "shadows_reminder", {"quest": "shadows_of_the_market", "status": "active"}],
+        ["I broke up Vargas's cell.", "shadows_turn_in", {"quest": "shadows_of_the_market", "status": "ready"}],
+        ["What happens now?", "shadows_done", {"quest": "shadows_of_the_market", "status": "completed"}]
       ]
     },
     "strange_info": {
@@ -318,6 +354,36 @@
       ],
       "options": [
         ["Let us go to the warehouse.", null]
+      ]
+    },
+    "shadows_reminder": {
+      "text": "The old warehouse is at the eastern edge of the market, past the last stalls. I will be right behind you. Do not let Vargas reach the crates.",
+      "options": [
+        ["I am going now.", null]
+      ]
+    },
+    "shadows_turn_in": {
+      "text": "You did it! The market can breathe again. Here is what I promised - and thank you. I would not have dared face them alone.",
+      "effect": {
+        "type": "complete_quest",
+        "quest": "shadows_of_the_market"
+      },
+      "options": [
+        ["We made a good team.", null],
+        ["Vargas mentioned a buyer.", "shadows_followup"]
+      ]
+    },
+    "shadows_done": {
+      "text": "The cult is broken, but Vargas was only the hand that moved the crates. Someone in the city paid for what he smuggled. A silent partner, still out there.",
+      "options": [
+        ["I will find them.", null],
+        ["Tell me what you know.", "shadows_followup"]
+      ]
+    },
+    "shadows_followup": {
+      "text": "Only a name half-heard over the crates: 'the Silent Partner.' Whoever it is has money and patience. If you find them, come back - I will have a few more antidotes ready.",
+      "options": [
+        ["I will keep my eyes open.", null]
       ]
     },
     "shop_info": {

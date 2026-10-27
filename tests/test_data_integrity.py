@@ -153,6 +153,9 @@ def test_quest_targets_are_known_npcs():
     for quest_id, quest in quests.items():
         target = quest.get("target")
         assert target in npcs, f"{quest_id}: unknown target {target!r}"
+        assert quest.get("turn_in") in npcs, (
+            f"{quest_id}: unknown turn-in NPC {quest.get('turn_in')!r}"
+        )
         assert quest.get("title")
         assert quest.get("objective")
 
@@ -229,8 +232,18 @@ def test_dialogue_option_targets_exist():
 
     for npc_name, graph in conversations.items():
         for state_name, node in graph.items():
-            for text, target in node.get("options", []):
+            for option in node.get("options", []):
+                text, target = option[0], option[1]
                 if target is not None:
                     assert target in graph, (
                         f"{npc_name}.{state_name}: {text!r} points to missing state {target!r}"
                     )
+                if len(option) > 2:
+                    condition = option[2]
+                    assert isinstance(condition, dict)
+                    assert condition.get("quest")
+                    assert condition.get("status") in {
+                        "active",
+                        "ready",
+                        "completed",
+                    }

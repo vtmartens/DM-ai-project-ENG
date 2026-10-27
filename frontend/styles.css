@@ -314,6 +314,7 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
 
 .quest-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .quest-list li { display: grid; gap: 3px; padding: 8px 9px; border-radius: 8px; background: var(--bg-input); border: 1px solid var(--border); }
+.quest-list li.ready { border-color: color-mix(in srgb, var(--accent) 55%, var(--border)); }
 .quest-list strong { font-size: 13px; color: var(--accent-strong); }
 .quest-list span { font-size: 12px; color: var(--text-muted); line-height: 1.35; }
 .quest-list .empty-note { padding: 0; background: none; border: 0; }
