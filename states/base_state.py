@@ -316,6 +316,7 @@ class BaseState:
                 state_module_map = {
                     "TavernState": "tavern",
                     "MarketState": "market",
+                    "WaystationState": "waystation",
                     "CombatState": "combat",
                     "DialogueState": "dialogue",
                     "InventoryManagementState": "inventory_management",

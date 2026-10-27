@@ -38,5 +38,18 @@
       {"monster_type": "wolf", "name": "Wolf A"},
       {"monster_type": "wolf", "name": "Wolf B"}
     ]
+  },
+  "waystation_chief": {
+    "title": "The Broken Waystation",
+    "description": "A bandit chief and two cutthroats have turned the ruined waystation into a fortified camp.",
+    "difficulty": "hard",
+    "location": "waystation",
+    "clears_area": "waystation",
+    "reward": {"gold": 50, "experience": 150},
+    "enemies": [
+      {"monster_type": "bandit_chief", "name": "Waystation Chief"},
+      {"monster_type": "bandit", "name": "Bandit A"},
+      {"monster_type": "bandit", "name": "Bandit B"}
+    ]
   }
 }

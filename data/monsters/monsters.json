@@ -165,5 +165,47 @@
     "experience": 80,
     "token": "Z",
     "difficulty": "medium"
+  },
+  "bandit": {
+    "name": "Waystation Bandit",
+    "description": "A road bandit in a patched cloak, blade bared.",
+    "stats": {
+      "hp": 14,
+      "strength": 12,
+      "dexterity": 14,
+      "ac": 13,
+      "constitution": 12,
+      "intelligence": 8,
+      "wisdom": 8,
+      "charisma": 8
+    },
+    "weapons": ["Short Sword"],
+    "armor": "Leather Armor",
+    "gold": 10,
+    "experience": 60,
+    "token": "b",
+    "difficulty": "easy",
+    "abilities": ["cheap_shot"]
+  },
+  "bandit_chief": {
+    "name": "Waystation Chief",
+    "description": "A scarred bandit leader holding the old waystation with an iron grip.",
+    "stats": {
+      "hp": 45,
+      "strength": 16,
+      "dexterity": 12,
+      "ac": 15,
+      "constitution": 14,
+      "intelligence": 10,
+      "wisdom": 10,
+      "charisma": 12
+    },
+    "weapons": ["Long Sword"],
+    "armor": "Chainmail",
+    "gold": 40,
+    "experience": 250,
+    "token": "C",
+    "difficulty": "hard",
+    "abilities": ["shield_bash"]
   }
 } 

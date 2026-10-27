@@ -573,6 +573,7 @@ class Game:
                 "DialogueState": "states.dialogue", 
                 "CombatState": "states.combat",
                 "MarketState": "states.market",
+                "WaystationState": "states.waystation",
                 "InventoryManagementState": "states.inventory_management",
                 "AbilityCheckState": "states.ability_check",
                 "MapState": "states.map_state",

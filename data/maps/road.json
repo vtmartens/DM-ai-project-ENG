@@ -23,6 +23,7 @@
   "items": {},
   "npc": {},
   "doors": {
+    "(21, 7)": ["waystation", 2, 7],
     "(23, 7)": ["market", 33, 6]
   },
   "player_start_position": [2, 7]

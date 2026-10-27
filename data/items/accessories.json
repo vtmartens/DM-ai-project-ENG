@@ -54,5 +54,13 @@
     "effect": {"defense": 1, "wisdom": 1},
     "value": 150,
     "description": "A heavy silver signet worn by the vault's wardens"
+  },
+  {
+    "name": "Wayfarer's Cloak",
+    "type": "accessory",
+    "effect": {"defense": 1, "initiative": 1},
+    "value": 120,
+    "rarity": "rare",
+    "description": "A travel-worn cloak lined with road dust and old protective runes"
   }
 ]

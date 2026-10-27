@@ -369,14 +369,20 @@ def test_encounter_definitions_are_well_formed():
         assert gold or experience, encounter_id
 
 
-def test_quest_targets_are_known_npcs():
+def test_quest_targets_are_known_combatants():
     quests = _load(ROOT / "data" / "quests" / "quests.json")
     npcs = _load(ROOT / "data" / "npc" / "npcs.json")
+    monsters = _load(ROOT / "data" / "monsters" / "monsters.json")
+    monster_names = {
+        entry.get("name") for entry in monsters.values() if isinstance(entry, dict)
+    }
 
     for quest_id, quest in quests.items():
         target = quest.get("target")
         if quest.get("completion") != "dialogue" and not quest.get("target_item"):
-            assert target in npcs, f"{quest_id}: unknown target {target!r}"
+            assert target in npcs or target in monster_names, (
+                f"{quest_id}: unknown target {target!r}"
+            )
         assert quest.get("turn_in") in npcs, (
             f"{quest_id}: unknown turn-in NPC {quest.get('turn_in')!r}"
         )
@@ -545,4 +551,5 @@ def test_dialogue_option_targets_exist():
                         "active",
                         "ready",
                         "completed",
+                        "not_started",
                     }

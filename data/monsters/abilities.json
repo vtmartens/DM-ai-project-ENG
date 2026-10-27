@@ -75,6 +75,17 @@
       "damage": 7
     }
   },
+  "cheap_shot": {
+    "id": "cheap_shot",
+    "name": "Cheap Shot",
+    "description": "A quick jab at an exposed opening.",
+    "cooldown": 2,
+    "telegraph": "The bandit feints and looks for an opening.",
+    "effect": {
+      "type": "attack",
+      "damage": 5
+    }
+  },
   "shield_bash": {
     "id": "shield_bash",
     "name": "Shield Bash",

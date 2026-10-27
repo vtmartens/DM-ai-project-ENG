@@ -51,6 +51,8 @@ class Player(Entity):
         self.conditions = {}
         self.allies = []
         self.defeats = 0
+        self.cleared_areas = []
+        self.claimed_rewards = []
 
         # Achievement tracking (persisted with the player)
         from core.achievements import DEFAULT_ACHIEVEMENT_STATS
@@ -500,6 +502,8 @@ class Player(Entity):
             "conditions": dict(getattr(self, "conditions", {})),
             "allies": list(getattr(self, "allies", [])),
             "defeats": int(getattr(self, "defeats", 0) or 0),
+            "cleared_areas": list(getattr(self, "cleared_areas", [])),
+            "claimed_rewards": list(getattr(self, "claimed_rewards", [])),
             "achievements": list(getattr(self, "achievements", [])),
             "achievement_timestamps": dict(
                 getattr(self, "achievement_timestamps", {})
@@ -574,6 +578,8 @@ class Player(Entity):
         player.conditions = dict(data.get("conditions", {}))
         player.allies = list(data.get("allies", []))
         player.defeats = int(data.get("defeats", 0) or 0)
+        player.cleared_areas = list(data.get("cleared_areas", []) or [])
+        player.claimed_rewards = list(data.get("claimed_rewards", []) or [])
 
         # Achievement progress (absent in saves written before the feature).
         from core.achievements import coerce_stats

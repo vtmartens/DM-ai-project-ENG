@@ -614,6 +614,13 @@ At level 1–2 the encounter table uses Goblin Scouts and Wolf Pack; Orc Patrol 
 level 3. Victories use the curated encounter reward and can additionally roll loot from
 `data/monsters/loot_tables.json` into the player's inventory.
 
+The road's far end leads to the **Broken Waystation** (`WaystationState`). Its actions are
+`confront`, `strongbox`, `rest` and `leave`. Confronting the bandits starts the fixed
+`waystation_chief` encounter; victory marks the area cleared, readies Mirt's
+`waystation_trouble` quest and returns to the waystation menu. Opening the cleared strongbox
+grants the unique Wayfarer's Cloak and 50 gold; the cleared campfire fully restores HP, mana
+and clears conditions.
+
 #### `GET /npcs?session_id=...`
 
 Returns a list of NPC names placed on the current map.
@@ -632,10 +639,11 @@ Returns a list of NPC names placed on the current map.
 }
 ```
 
-The action list depends on the current state: combat, dialogue, market, inventory and the
-tavern each advertise their own commands. In the tavern, `rest` is the long-rest action
-(10 gold; restores HP and mana and clears conditions). In the market it includes `shop`,
-`buy` and `sell`, which drive the shop modal and the numbered terminal shop.
+The action list depends on the current state: combat, dialogue, market, inventory, the
+tavern and the Broken Waystation each advertise their own commands. In the tavern, `rest`
+is the long-rest action (10 gold; restores HP and mana and clears conditions). In the market
+it includes `shop`, `buy` and `sell`, which drive the shop modal and the numbered terminal
+shop. The waystation advertises `confront`, `strongbox`, `rest` and `leave`.
 
 #### `POST /dialogue`
 

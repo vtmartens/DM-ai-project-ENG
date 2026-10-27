@@ -262,6 +262,10 @@ def _enter_destination_state(game, destination):
         from states.tavern import TavernState
 
         game.change_state(TavernState(game))
+    elif destination == "waystation":
+        from states.waystation import WaystationState
+
+        game.change_state(WaystationState(game))
     else:
         from states.map_state import MapState
 

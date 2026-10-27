@@ -196,7 +196,11 @@
         ["Tell me about the sealed vault beneath the warehouse.", "sentinel_sigil_offer", {"quest": "shadows_of_the_market", "status": "completed"}],
         ["About the sealed vault...", "sentinel_sigil_reminder", {"quest": "sentinel_sigil", "status": "active"}],
         ["I recovered Sentinel's Edge.", "sentinel_sigil_turn_in", {"quest": "sentinel_sigil", "status": "ready"}],
-        ["What did you do with the sigil?", "sentinel_sigil_done", {"quest": "sentinel_sigil", "status": "completed"}]
+        ["What did you do with the sigil?", "sentinel_sigil_done", {"quest": "sentinel_sigil", "status": "completed"}],
+        ["You look worried. What troubles you?", "waystation_offer", {"quest": "waystation_trouble", "status": "not_started"}],
+        ["About the Broken Waystation...", "waystation_reminder", {"quest": "waystation_trouble", "status": "active"}],
+        ["The waystation is clear.", "waystation_turn_in", {"quest": "waystation_trouble", "status": "ready"}],
+        ["What will happen to the trade road now?", "waystation_done", {"quest": "waystation_trouble", "status": "completed"}]
       ]
     },
     "business_info": {
@@ -245,6 +249,39 @@
       "text": "The sigil is already sold, but Mirt raises his cup. 'The vault is open and my purse is heavier. Not a bad day's work.'",
       "options": [
         ["Until next time.", null]
+      ]
+    },
+    "waystation_offer": {
+      "text": "Mirt taps the map. 'The trade road east of the market has gone quiet. A bandit chief has taken the Broken Waystation and is bleeding my caravans dry. Clear him out and I will make it worth your while.'",
+      "options": [
+        ["I will clear the waystation.", "waystation_accept"],
+        ["Not now.", null]
+      ]
+    },
+    "waystation_accept": {
+      "text": "The waystation sits at the far end of the Trade Road. Expect a chief and at least a pair of cutthroats; the road itself is not safe either. Come back when the road is open.",
+      "effect": {"type": "start_quest", "quest": "waystation_trouble"},
+      "options": [
+        ["I will return when it is done.", null]
+      ]
+    },
+    "waystation_reminder": {
+      "text": "Follow the Trade Road east from the market. The Broken Waystation is at the far end. The chief will not give it up without a fight, so carry potions and keep your guard up.",
+      "options": [
+        ["I am on my way.", null]
+      ]
+    },
+    "waystation_turn_in": {
+      "text": "Mirt listens to your account, then sets a heavy purse on the table. 'The road is open again. That is worth more than coin to me, but take this anyway.'",
+      "effect": {"type": "complete_quest", "quest": "waystation_trouble"},
+      "options": [
+        ["A fair reward.", null]
+      ]
+    },
+    "waystation_done": {
+      "text": "Mirt's caravans have started moving again. 'If you find more trouble on that road, I want to hear about it before it reaches my ledgers.'",
+      "options": [
+        ["I will keep my eyes open.", null]
       ]
     },
     "show_items": {

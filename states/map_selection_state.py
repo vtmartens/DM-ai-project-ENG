@@ -153,6 +153,10 @@ class MapSelectionState(BaseGameState):
                     new_state.first_visit = False
             elif destination_map == "market":
                 new_state = MarketState(game)
+            elif destination_map == "waystation":
+                from states.waystation import WaystationState
+
+                new_state = WaystationState(game)
             else:
                 # For other maps, use MapState with the correct state as origin
                 new_state = MapState()

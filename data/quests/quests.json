@@ -45,5 +45,17 @@
         "Vault Warden's Signet"
       ]
     }
+  },
+  "waystation_trouble": {
+    "title": "Trouble on the Trade Road",
+    "description": "Mirt's caravans have stopped using the eastern trade road. A bandit chief has taken the Broken Waystation and is taxing anyone who survives the journey.",
+    "objective": "Clear the Broken Waystation at the end of the Trade Road.",
+    "target": "Waystation Chief",
+    "target_item": "Wayfarer's Cloak",
+    "turn_in": "Mirt",
+    "reward": {
+      "gold": 75,
+      "experience": 150
+    }
   }
 }

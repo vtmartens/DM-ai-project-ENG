@@ -183,6 +183,12 @@ class MapState(BaseState):
     
     def _manage_change_map(self, game, origin_map, destination_map):
         """Handle the state change based on the map change"""
+        if destination_map == "waystation":
+            from states.waystation import WaystationState
+
+            game.change_state(WaystationState(game))
+            return
+
         # Web sessions do not need the extra y/n pause: enter the destination
         # state directly when it has one (market/tavern). Cellar has no state,
         # so stay in MapState and keep exploring.

@@ -826,6 +826,17 @@ class CombatState(BaseState):
             bonus.append(f"{experience} XP")
         if bonus:
             game.io.show_message(f"Encounter bonus: {', '.join(bonus)}.")
+
+        area = self.encounter.get("clears_area")
+        if isinstance(area, str) and area:
+            cleared = getattr(game.player, "cleared_areas", None)
+            if not isinstance(cleared, list):
+                cleared = []
+                game.player.cleared_areas = cleared
+            if area not in cleared:
+                cleared.append(area)
+                label = area.replace("_", " ").title()
+                game.io.show_message(f"The {label} is clear.")
         return True
 
     def _handle_defeat(self, game, enemy_name):

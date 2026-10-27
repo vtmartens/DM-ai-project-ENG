@@ -881,7 +881,7 @@ class TavernState(BaseGameState):
             elif selection == "8":
                 from core.encounters import encounter_catalogue
 
-                catalogue = encounter_catalogue()
+                catalogue = encounter_catalogue("tavern")
                 if not catalogue:
                     game.io.show_message("\nNo curated encounters are available.")
                     self.phase = "main_menu"

@@ -38,7 +38,11 @@ class DialogueState(BaseState):
         quest_id = condition.get("quest")
         if not quest_id:
             return True
-        return self._quest_status(quest_id, game) == condition.get("status")
+        expected = condition.get("status")
+        status = self._quest_status(quest_id, game)
+        if expected in {"not_started", "none"}:
+            return status is None
+        return status == expected
 
     def visible_options(self, game=None, conversation_data=None):
         """Returns the options whose optional quest conditions currently hold."""

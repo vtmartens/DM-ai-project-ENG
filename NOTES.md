@@ -757,7 +757,24 @@ entirely. The doors that existed were also misaligned with the map exits.
   and loot tables.
 - Tests: map connection, deterministic encounter triggering, grace/cooldown sequencing,
   level-gated encounter tables, road-only loot, non-road no-loot behavior, API travel to the
-  road, loot-table integrity and road encounter id integrity. 445 tests pass.
+  road, loot-table integrity and road encounter id integrity.
+
+## The Broken Waystation (2026-10-27)
+
+- Added the `waystation` map at the far end of the Trade Road (`road (21,7)` ↔
+  `waystation (1,7)`), plus a `WaystationState` menu with confront, strongbox, campfire rest
+  and leave actions. The state is included in save/load state restoration.
+- Added the `Waystation Chief` and `Waystation Bandit` monsters, a `cheap_shot` bandit
+  ability, and the fixed `waystation_chief` encounter (chief + two bandits). The encounter is
+  marked `location: "waystation"`, so the tavern's curated encounter list excludes it.
+- Victory marks `waystation` in `player.cleared_areas`; the cleared strongbox grants the
+  unique **Wayfarer's Cloak** plus 50 gold once, tracked in `player.claimed_rewards`. The
+  cleared campfire is a free full HP/mana/condition reset.
+- Added Mirt's **Trouble on the Trade Road** quest. Dialogue visibility now supports
+  `not_started`, and defeating the chief marks the quest ready for turn-in.
+- Added 9 tests covering map/encounter data, boss victory and quest readiness, unique loot,
+  campfire recovery, uncleared refusals, Mirt's dialogue options, leaving for the road,
+  persistence, and the API fight flow. 455 tests pass.
 
 ## Deliberate translation choices worth knowing
 
@@ -787,7 +804,7 @@ entirely. The doors that existed were also misaligned with the map exits.
 | Residual Italian (glossary-derived denylist + accented characters) | 0 hits |
 | **Original Italian vs translated, identical input** | **46/46 placements, identical sequence** |
 | Flask API in-process (test client, no socket) | 31 × 200, 0 raised |
-| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, AI memory, hints, achievements, utility spells, locks, vault, quests, enemy abilities, encounters, saving throws, conditions, combat status, attack rolls/AC, Defend/Aim, defeat recovery, session recap, equipment economy, road/wilderness/loot, rest, accessibility, web client routes, browser smoke/mobile) | 445 passed |
+| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, AI memory, hints, achievements, utility spells, locks, vault, quests, enemy abilities, encounters, saving throws, conditions, combat status, attack rolls/AC, Defend/Aim, defeat recovery, session recap, equipment economy, road/wilderness/loot, Broken Waystation, rest, accessibility, web client routes, browser smoke/mobile) | 455 passed |
 | Live smoke test (Flask server, `/app`, start/state/abilities/inventory/actions/command/save/load) | passed |
 
 The last comparison is the strongest evidence: the pristine Italian code and the finished
