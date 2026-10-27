@@ -167,6 +167,23 @@ def test_enemy_ability_definitions_are_well_formed():
 
         effect = ability.get("effect", {})
         assert effect.get("type") in {"attack", "heal"}, ability_id
+        save = ability.get("save")
+        if save is not None:
+            assert isinstance(save, dict), ability_id
+            assert save.get("ability") in {
+                "strength",
+                "dexterity",
+                "constitution",
+                "intelligence",
+                "wisdom",
+                "charisma",
+            }, ability_id
+            assert 5 <= int(save.get("dc", 0)) <= 30, ability_id
+            assert save.get("success", "half") in {
+                "half",
+                "negate",
+            }, ability_id
+            assert effect.get("type") == "attack", ability_id
         if effect["type"] == "attack":
             assert int(effect.get("damage", 0)) > 0, ability_id
             poison = effect.get("poison")

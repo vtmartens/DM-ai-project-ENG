@@ -594,7 +594,9 @@ the action, so `"attack"` with `"Goblin B"` attacks that enemy directly.
 
 Enemies also act on data-driven abilities with cooldowns. Their telegraphs and effects appear
 in `output`; `combat.enemies` reflects the resulting HP. Abilities may deal damage, poison,
-heal the enemy, or raise a guard that reduces the next physical attack.
+heal the enemy, or raise a guard that reduces the next physical attack. Some abilities call
+for an ability save (CON, DEX, WIS, etc.); the roll, DC and outcome appear in `output`, and a
+success halves or negates damage and can prevent poison.
 
 ### Reference data
 

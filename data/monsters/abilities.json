@@ -5,6 +5,11 @@
     "description": "A green-stained arrow that leaves venom in the wound.",
     "cooldown": 3,
     "telegraph": "The goblin nocks a green-stained arrow.",
+    "save": {
+      "ability": "constitution",
+      "dc": 12,
+      "success": "half"
+    },
     "effect": {
       "type": "attack",
       "damage": 6,
@@ -20,6 +25,11 @@
     "description": "A clatter of sharpened bone shards.",
     "cooldown": 2,
     "telegraph": "The skeleton rattles and raises a fistful of bone shards.",
+    "save": {
+      "ability": "dexterity",
+      "dc": 12,
+      "success": "half"
+    },
     "effect": {
       "type": "attack",
       "damage": 7
@@ -43,6 +53,11 @@
     "description": "A lance of cold, whispered power.",
     "cooldown": 2,
     "telegraph": "The cultist's voice drops to a whisper.",
+    "save": {
+      "ability": "wisdom",
+      "dc": 12,
+      "success": "half"
+    },
     "effect": {
       "type": "attack",
       "damage": 6
@@ -65,6 +80,11 @@
     "description": "A crushing blow that leaves the sentinel braced.",
     "cooldown": 3,
     "telegraph": "The Iron Sentinel locks its shield forward.",
+    "save": {
+      "ability": "dexterity",
+      "dc": 13,
+      "success": "half"
+    },
     "effect": {
       "type": "attack",
       "damage": 12,
@@ -88,6 +108,11 @@
     "description": "A pocketful of stinging powder and a low blow.",
     "cooldown": 3,
     "telegraph": "Vargas reaches into his coat with a thin smile.",
+    "save": {
+      "ability": "constitution",
+      "dc": 12,
+      "success": "half"
+    },
     "effect": {
       "type": "attack",
       "damage": 8,

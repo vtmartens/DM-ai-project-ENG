@@ -29,6 +29,23 @@ class Dice:
         roll2 = self.roll()
         return min(roll1, roll2), roll1, roll2
 
+
+def roll_d20(advantage=False, disadvantage=False):
+    """Rolls a d20, optionally with advantage or disadvantage.
+
+    Returns ``(result, rolls)``. ``rolls`` contains both dice when one of the
+    options applied and is empty for a normal roll. Advantage and disadvantage
+    together cancel out, as in D&D.
+    """
+    dice = Dice(20)
+    if advantage and not disadvantage:
+        result, first, second = dice.roll_with_advantage()
+        return result, [first, second]
+    if disadvantage and not advantage:
+        result, first, second = dice.roll_with_disadvantage()
+        return result, [first, second]
+    return dice.roll(), []
+
 def roll_dice(formula):
     """
     Performs a dice roll according to a formula, for example "2d6+3" or "1d20-1".

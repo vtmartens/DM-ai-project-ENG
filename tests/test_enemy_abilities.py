@@ -25,7 +25,14 @@ def test_monsters_and_npcs_load_their_abilities():
     assert NPC("Iron Sentinel").ability_ids == ["shield_bash", "repair"]
 
 
-def test_goblin_poison_arrow_damages_poisons_and_starts_cooldown(recording_io):
+def test_goblin_poison_arrow_damages_poisons_and_starts_cooldown(
+    recording_io, monkeypatch
+):
+    import util.dice as dice_module
+
+    # Force the Constitution save to fail so the full effect lands.
+    monkeypatch.setattr(dice_module.Dice, "roll", lambda self: 1)
+
     enemy = Enemy("Goblin", monster_type="goblin")
     player, game, combat = _combat(recording_io, enemy)
     before = player.hp

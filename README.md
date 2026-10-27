@@ -49,6 +49,7 @@ Each game phase (map exploration, combat, dialogues, inventory management) is ha
 - Non-combat utility spells: Knock (open a locked door or chest within two steps without a key), Mage Hand (operate a door, chest or lever at range) and Guidance (+2 to the next ability check). Use them from the abilities panel or with `/use_ability`; they are refused in combat and do not spend mana when there is no valid target
 - Class-based level progression: HP/mana growth follows the class data, and level-3/5/7 abilities unlock automatically (Fierce Attack, Fireball, Backstab, Restoration, and more)
 - Enemy abilities: goblins use Poison Arrow, orcs and the Iron Sentinel Shield Bash, cultists Dark Bolt, specters Spectral Touch, wolves/trolls Savage Bite, and the Sentinel repairs itself. Abilities have cooldowns, telegraphs in the combat log, poison/self-heal/guard effects, and fall back to basic attacks
+- Saving throws and advantage: Poison Arrow, Shield Bash, Dark Bolt, Dirty Trick and Bone Volley call for ability saves; success halves damage and prevents poison. Ability checks and saves support advantage/disadvantage from conditions, with both dice shown in the log
 - Curated encounters: the tavern fight menu offers Goblin Scouts, an Orc Patrol, a Bone Pack and a Wolf Pack, each with a difficulty label and a gold/experience completion bonus on victory
 - Group combat: the tavern's “Fight an enemy” menu offers a pair of goblins; every living enemy acts each round, allies can fight alongside you, and you can choose the current target from the combat menu or combat card
 - Story slice: Violet's “Shadows in the Market” quest leads to a new warehouse area and a three-enemy cult fight against Vargas and his hooded cultists. Violet joins as a recruitable ally, and the quest log has its own sidebar panel. Mirt's existing Vargas job is also a tracked quest (“A Debt to Collect”). Defeating Vargas makes both quests ready to turn in; return to Violet and Mirt for the rewards and follow-up hooks
@@ -87,7 +88,7 @@ Each game phase (map exploration, combat, dialogues, inventory management) is ha
 ✅ Add modular I/O interfaces (text, GUI, AI)  
 🟡 Web client (dependency-free SPA in `frontend/`; React/Vite optional later)  
 🟡 Implement Dungeon Master AI (narration and hint rephrasing slices; decisions remain deterministic)
-⬜ D&D rules improvement and adherence to official system  
+🟡 D&D rules improvement (saving throws, advantage/disadvantage); attack rolls/AC and broader conditions remain future work
 🟡 Class abilities, mana and level-based unlocks; utility spells (Knock, Mage Hand, Guidance) added, broader non-combat spell utility remains future work\
 🟡 Multiple enemies, target selection, allies and curated encounters; broader encounter tuning and balancing remain future work\
 ⬜ Online multiplayer implementation  

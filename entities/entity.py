@@ -1,5 +1,6 @@
 import random
 from core.io_interface import TerminalIO
+from util.dice import roll_d20
 
 # Map of skills associated with attributes (D&D 5e style)
 ASSOCIATED_SKILLS = {
@@ -232,31 +233,87 @@ class Entity:
             game_ctx.io.show_message(f"\n*** {self.name} has reached level {self.level}! ***")
             game_ctx.io.show_message(f"Their {attribute_to_increase.replace('_base', '')}, defense and maximum health have increased!")
 
-    def ability_check(self, ability, difficulty, game=None):
+    def roll_flags(self, kind="check"):
+        """Returns (advantage, disadvantage) from active conditions."""
+        conditions = getattr(self, "conditions", None)
+        if not isinstance(conditions, dict):
+            return False, False
+        advantage = bool(
+            conditions.get("advantage")
+            or conditions.get(f"{kind}_advantage")
+        )
+        disadvantage = bool(
+            conditions.get("disadvantage")
+            or conditions.get(f"{kind}_disadvantage")
+        )
+        return advantage, disadvantage
+
+    def ability_check(self, ability, difficulty, game=None, advantage=None, disadvantage=None):
         # Use the stored game context if none is provided
         game_ctx = game if game else getattr(self, 'game', None)
-        
-        dice = Dice(20)
-        roll = dice.roll()
-        
-        # Get the appropriate modifier
-        if ability == "strength":
-            modifier = self.modifier_strength
-        elif ability == "dexterity":
-            modifier = self.modifier_dexterity
-        # and so on...
-        else:
-            modifier = getattr(self, f"modifier_{ability}", 0)
-            
+
+        condition_advantage, condition_disadvantage = self.roll_flags("check")
+        if advantage is None:
+            advantage = condition_advantage
+        if disadvantage is None:
+            disadvantage = condition_disadvantage
+
+        roll, rolls = roll_d20(bool(advantage), bool(disadvantage))
+        modifier = getattr(self, f"modifier_{ability}", 0)
         result = roll + modifier
-        
+
         if game_ctx:
-            game_ctx.io.show_message(f"{self.name} rolls {roll} + {modifier} ({ability}) = {result}")
-            
+            mode = None
+            if advantage and not disadvantage:
+                mode = "advantage"
+            elif disadvantage and not advantage:
+                mode = "disadvantage"
+            if mode:
+                game_ctx.io.show_message(
+                    f"{self.name} rolls {rolls[0]} / {rolls[1]} ({mode}) "
+                    f"+ {modifier} ({ability}) = {result}"
+                )
+            else:
+                game_ctx.io.show_message(
+                    f"{self.name} rolls {roll} + {modifier} ({ability}) = {result}"
+                )
+
         return result >= difficulty
 
-    def saving_throw(self, type, difficulty, game=None):
-        return self.ability_check(type, difficulty, game)
+    def saving_throw(self, ability, difficulty, game=None, advantage=None, disadvantage=None):
+        game_ctx = game if game else getattr(self, 'game', None)
+
+        condition_advantage, condition_disadvantage = self.roll_flags("save")
+        if advantage is None:
+            advantage = condition_advantage
+        if disadvantage is None:
+            disadvantage = condition_disadvantage
+
+        roll, rolls = roll_d20(bool(advantage), bool(disadvantage))
+        modifier = getattr(self, f"modifier_{ability}", 0)
+        result = roll + modifier
+        passed = result >= difficulty
+
+        if game_ctx:
+            mode = None
+            if advantage and not disadvantage:
+                mode = "advantage"
+            elif disadvantage and not advantage:
+                mode = "disadvantage"
+            if mode:
+                game_ctx.io.show_message(
+                    f"{self.name} rolls {rolls[0]} / {rolls[1]} ({mode}) "
+                    f"+ {modifier} ({ability}) = {result}"
+                )
+            else:
+                game_ctx.io.show_message(
+                    f"{self.name} rolls {roll} + {modifier} ({ability}) = {result}"
+                )
+            game_ctx.io.show_message(
+                f"DC {difficulty}: {'success' if passed else 'failure'}."
+            )
+
+        return passed
 
     def calculate_modifier(self, value):
         return (value - 10) // 2

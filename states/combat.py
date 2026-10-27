@@ -1141,6 +1141,25 @@ class CombatState(BaseState):
             enemy.hp = min(getattr(enemy, "hp_max", before), before + amount)
             game.io.show_message(f"{enemy.name} recovers {enemy.hp - before} HP.")
         else:
+            save_data = ability.get("save")
+            saved = False
+            save_success = "half"
+            if isinstance(save_data, dict):
+                save_success = str(
+                    save_data.get("success", "half")
+                ).casefold()
+                saved = player.saving_throw(
+                    str(save_data.get("ability", "dexterity")),
+                    int(save_data.get("dc", 10) or 10),
+                    game,
+                )
+                if saved:
+                    game.io.show_message(
+                        "You avoid the effect entirely."
+                        if save_success == "negate"
+                        else "You shrug off the worst of it."
+                    )
+
             damage = effect.get("damage")
             if "multiplier" in effect:
                 damage = max(
@@ -1152,12 +1171,23 @@ class CombatState(BaseState):
                 damage = getattr(enemy, "strength", 1)
             damage = max(1, int(damage)) + int(effect.get("bonus", 0) or 0)
 
-            effective_damage = self._apply_incoming_damage(
-                player, game, damage
-            )
+            if saved and save_success == "negate":
+                damage = 0
+            elif saved:
+                damage = max(1, damage // 2)
+
+            effective_damage = 0
+            if damage > 0:
+                effective_damage = self._apply_incoming_damage(
+                    player, game, damage
+                )
 
             poison = effect.get("poison")
-            if effective_damage > 0 and isinstance(poison, dict):
+            if (
+                not saved
+                and effective_damage > 0
+                and isinstance(poison, dict)
+            ):
                 self._poison_player(player, game, poison)
 
             self_heal = int(effect.get("self_heal", 0) or 0)

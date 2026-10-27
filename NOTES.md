@@ -565,6 +565,22 @@ entirely. The doors that existed were also misaligned with the map exits.
 - Tests: construction/metadata, victory reward, no reward on defeat, serialization, the
   tavern menu end to end and data integrity. 357 tests pass.
 
+## Saving throws and advantage (2026-10-26)
+
+- `util.dice.roll_d20(advantage, disadvantage)` rolls two d20s and keeps the high/low die;
+  both flags cancel. Both dice are shown in the log.
+- `Entity.ability_check` and `Entity.saving_throw` use the helper and read
+  `advantage`/`disadvantage` (or `check_*`/`save_*`) from `player.conditions`; saving throws
+  show the roll, ability modifier, DC and success/failure. `AbilityCheckState` uses the same
+  roll helper, so Guidance and condition advantage compose.
+- Enemy abilities gained optional `save` blocks: Poison Arrow CON 12, Shield Bash DEX 13,
+  Dark Bolt WIS 12, Dirty Trick CON 12 and Bone Volley DEX 12. A successful save halves
+  damage (`success: "negate"` is also supported) and prevents poison; the enemy's own
+  self-heal/guard still applies.
+- Data-integrity tests validate save ability/DC/success values; tests cover advantage/
+  disadvantage, save DCs, poisoning on failure, half damage, guard interaction and ability
+  checks. 366 tests pass. Attack rolls/AC and a general condition UI remain future work.
+
 ## Deliberate translation choices worth knowing
 
 - **`hp_base` / `mana_base` were left as-is.** They are consistent between code and JSON
@@ -593,7 +609,7 @@ entirely. The doors that existed were also misaligned with the map exits.
 | Residual Italian (glossary-derived denylist + accented characters) | 0 hits |
 | **Original Italian vs translated, identical input** | **46/46 placements, identical sequence** |
 | Flask API in-process (test client, no socket) | 31 × 200, 0 raised |
-| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, hints, achievements, utility spells, locks, vault, quests, enemy abilities, encounters, accessibility, web client routes, browser smoke/mobile) | 357 passed |
+| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, hints, achievements, utility spells, locks, vault, quests, enemy abilities, encounters, saving throws, accessibility, web client routes, browser smoke/mobile) | 366 passed |
 | Live smoke test (Flask server, `/app`, start/state/abilities/inventory/actions/command/save/load) | passed |
 
 The last comparison is the strongest evidence: the pristine Italian code and the finished

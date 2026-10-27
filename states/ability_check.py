@@ -1,5 +1,5 @@
 from states.base_state import BaseState
-from util.dice import Dice
+from util.dice import roll_d20
 from util.helpers import press_enter
 from entities.npc import NPC
 from items.interactive_object import InteractiveObject
@@ -40,8 +40,19 @@ class AbilityCheckState(BaseState):
             return 0
 
     def _roll_with_guidance(self, game):
-        """Rolls d20 and applies (consuming) any active Guidance bonus."""
-        roll = Dice(20).roll()
+        """Rolls d20 (with conditions) and applies any Guidance bonus."""
+        advantage, disadvantage = game.player.roll_flags("check")
+        roll, rolls = roll_d20(advantage, disadvantage)
+        if rolls:
+            mode = (
+                "advantage"
+                if advantage and not disadvantage
+                else "disadvantage"
+            )
+            game.io.show_message(
+                f"{mode.capitalize()} roll: {rolls[0]} / {rolls[1]} -> {roll}."
+            )
+
         bonus = self._consume_guidance(game)
         if bonus:
             game.io.show_message(f"Guidance adds {bonus} to the check.")
