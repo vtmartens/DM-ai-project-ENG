@@ -51,7 +51,8 @@ You can also set `localStorage["dm_api_base"]`.
   `(NPC)` so it is clear who can be talked to. Map exits are shown as `>` and named in the
   legend (“Exit to market”).
 - Combat card with every enemy's name/HP, armor class and the current round (from `state.combat`).
-  With multiple enemies, each row has a Target button; the current target is marked.
+  With multiple enemies, each row has a Target button; the current target is marked. If the
+  player is defeated, the log explains the recovery and the session returns to the tavern.
   Recruited allies appear below the enemies. Enemy abilities and their telegraphs appear in
   the adventure log, and the card reflects HP changes. Status tags show each enemy's physical
   guard and ability cooldowns.

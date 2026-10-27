@@ -187,6 +187,12 @@ Response:
 
 `end` becomes `true` when the state stack is empty.
 
+When the player's HP reaches 0 in combat, the engine resolves a defeat recovery instead of
+ending the game: HP and mana are set to half their maximum (at least 1 HP), up to 20 gold is
+lost, conditions are cleared, and the player is moved to the tavern. Quest progress and map
+state are preserved. The response's `state.state` is then `"TavernState"` with the tavern
+menu waiting for the next command.
+
 Free-text commands are still accepted. In the tavern, market and on the map screen the
 engine resolves targets deterministically: `talk to Durnan`, `attack the goblin`,
 `use Healing Potion`, `go to the market`, `examine the chair`, `interact with the barrel`.

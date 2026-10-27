@@ -6,6 +6,8 @@ from entities.npc import NPC
 from util.dice import Dice
 
 class CombatState(BaseState):
+    DEFEAT_GOLD_LOSS = 20
+
     def __init__(self, enemy=None, hostile_npc=None, enemies=None, allies=None, encounter=None):
         """
         Initialize the combat state.
@@ -793,6 +795,58 @@ class CombatState(BaseState):
             game.io.show_message(f"Encounter bonus: {', '.join(bonus)}.")
         return True
 
+    def _handle_defeat(self, game, enemy_name):
+        """Moves a defeated player back to the tavern with a recovery cost."""
+        player = game.player
+        game.io.show_message(
+            f"\n{enemy_name} strikes you down. The world goes dark..."
+        )
+
+        lost = min(
+            int(getattr(player, "gold", 0) or 0), self.DEFEAT_GOLD_LOSS
+        )
+        if lost:
+            player.gold -= lost
+
+        hp_max = int(getattr(player, "hp_max", 1) or 1)
+        mana_max = int(getattr(player, "mana_max", 0) or 0)
+        player.hp = max(1, hp_max // 2)
+        player.mana = max(0, mana_max // 2)
+
+        conditions = getattr(player, "conditions", None)
+        if isinstance(conditions, dict):
+            conditions.clear()
+
+        tavern_map = game.map_manager.get_map("tavern")
+        if tavern_map:
+            game.map_manager.set_current_map("tavern")
+            x, y = tavern_map.player_start_position
+            player.set_position("tavern", x, y)
+
+        game.io.show_message(
+            "You wake in a bed at the Yawning Portal, battered but alive."
+        )
+        if lost:
+            game.io.show_message(
+                "The healers' bill and the room cost you "
+                f"{lost} gold."
+            )
+        else:
+            game.io.show_message("The innkeeper waves off the cost of the room.")
+        game.io.show_message("You have recovered half your health and mana.")
+
+        if not getattr(self, "_outcome_recorded", False):
+            from core.achievements import record_event
+
+            record_event(player, "combat_defeat", game=game)
+            self._outcome_recorded = True
+
+        from states.tavern import TavernState
+
+        tavern = TavernState(game)
+        tavern.first_visit = False
+        game.reset_to_state(tavern)
+
     def _check_end_combat(self, game):
         """Check whether the combat is over."""
         player = game.player
@@ -800,17 +854,7 @@ class CombatState(BaseState):
         if player.hp <= 0:
             last_enemy = self.opponent
             enemy_name = getattr(last_enemy, "name", "Your enemy")
-            game.io.show_message(
-                f"\n{enemy_name} defeated you! You are gravely wounded..."
-            )
-            player.hp = 1
-            if not getattr(self, "_outcome_recorded", False):
-                from core.achievements import record_event
-
-                record_event(player, "combat_defeat", game=game)
-                self._outcome_recorded = True
-            if game.current_state():
-                game.pop_state()
+            self._handle_defeat(game, enemy_name)
             return True
 
         self._process_defeated_enemies(game)

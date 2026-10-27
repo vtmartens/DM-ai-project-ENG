@@ -661,7 +661,24 @@ entirely. The doors that existed were also misaligned with the map exits.
 - Tests: AC calculation, player hit/miss, natural 20 criticals, natural 1 misses,
   advantage, enemy attacks against player AC, non-save enemy ability misses, API exposure,
   monster data integrity, and deterministic updates to the existing combat tests.
-  407 tests pass.
+
+## Defeat and recovery (2026-10-27)
+
+- Reaching 0 HP no longer leaves the player at 1 HP in the middle of the map. Combat ends,
+  the state stack is replaced with a fresh `TavernState`, and the player is placed at the
+  tavern's start position.
+- Recovery restores half of maximum HP and mana (at least 1 HP), clears every condition,
+  and charges up to 20 gold (`CombatState.DEFEAT_GOLD_LOSS`). With less gold, the loss is
+  capped at the current purse. The log reports the defeat, the wake-up, the charge and the
+  partial recovery; the normal tavern menu follows.
+- Quest progress, opened routes, defeated NPCs and other map state are untouched, so the
+  player can rest for full HP or return to the fight. The welcome message is suppressed for
+  the recovery visit.
+- `Game.reset_to_state` clears the old stack (avoiding a stale map or combat state below the
+  tavern) and enters the replacement state. The API response reports `TavernState` and the
+  new position immediately.
+- Tests: unit recovery, gold capping, condition clearing, quest preservation, tavern
+  position, and the API transition. 410 tests pass.
 
 ## Deliberate translation choices worth knowing
 
@@ -691,7 +708,7 @@ entirely. The doors that existed were also misaligned with the map exits.
 | Residual Italian (glossary-derived denylist + accented characters) | 0 hits |
 | **Original Italian vs translated, identical input** | **46/46 placements, identical sequence** |
 | Flask API in-process (test client, no socket) | 31 × 200, 0 raised |
-| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, AI memory, hints, achievements, utility spells, locks, vault, quests, enemy abilities, encounters, saving throws, conditions, combat status, attack rolls/AC, rest, accessibility, web client routes, browser smoke/mobile) | 407 passed |
+| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, AI memory, hints, achievements, utility spells, locks, vault, quests, enemy abilities, encounters, saving throws, conditions, combat status, attack rolls/AC, defeat recovery, rest, accessibility, web client routes, browser smoke/mobile) | 410 passed |
 | Live smoke test (Flask server, `/app`, start/state/abilities/inventory/actions/command/save/load) | passed |
 
 The last comparison is the strongest evidence: the pristine Italian code and the finished

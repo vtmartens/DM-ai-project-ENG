@@ -201,6 +201,19 @@ class Game:
             if not self.state_stack:
                 self.active = False
 
+    def reset_to_state(self, new_state):
+        """Clears the state stack and enters a fresh state.
+
+        Used for recovery transitions (for example after a defeat) where the
+        previous map or combat state should not remain underneath.
+        """
+        for state in reversed(self.state_stack):
+            if state is not None:
+                state.exit(self)
+        self.state_stack.clear()
+        self.active = True
+        self.push_state(new_state)
+
     def change_state(self, new_state):
         """
         Replaces the current state with a new one
