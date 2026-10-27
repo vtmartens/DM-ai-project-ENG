@@ -18,6 +18,7 @@ const store = {
   sessionId: localStorage.getItem(SESSION_KEY) || null,
   state: null,
   classes: {},
+  difficulties: [],
   achievements: [],
   log: [],
   busy: false,
@@ -32,6 +33,8 @@ const el = {
   playerName: document.getElementById("player-name"),
   classSelect: document.getElementById("class-select"),
   classSummary: document.getElementById("class-summary"),
+  difficultySelect: document.getElementById("difficulty-select"),
+  difficultySummary: document.getElementById("difficulty-summary"),
   savesList: document.getElementById("saves-list"),
   refreshSaves: document.getElementById("refresh-saves"),
   connection: document.getElementById("connection"),
@@ -216,6 +219,37 @@ async function loadClasses() {
   renderClassSummary();
 }
 
+async function loadDifficulties() {
+  try {
+    const data = await api("/difficulties");
+    store.difficulties = data?.difficulties || [];
+  } catch (error) {
+    store.difficulties = [];
+    el.startError.textContent = error.message;
+    return;
+  }
+
+  el.difficultySelect.innerHTML = "";
+  for (const difficulty of store.difficulties) {
+    const option = document.createElement("option");
+    option.value = difficulty.id;
+    option.textContent = difficulty.name || difficulty.id;
+    el.difficultySelect.appendChild(option);
+  }
+  const preferred =
+    store.difficulties.find((entry) => entry.default) ||
+    store.difficulties[0];
+  if (preferred) el.difficultySelect.value = preferred.id;
+  renderDifficultySummary();
+}
+
+function renderDifficultySummary() {
+  const selected = store.difficulties.find(
+    (entry) => entry.id === el.difficultySelect.value
+  );
+  el.difficultySummary.textContent = selected?.description || "";
+}
+
 function renderClassSummary() {
   const name = el.classSelect.value;
   const data = store.classes[name];
@@ -259,6 +293,7 @@ async function startGame(event) {
 
   const name = (el.playerName.value || "Adventurer").trim() || "Adventurer";
   const charClass = el.classSelect.value;
+  const difficulty = el.difficultySelect.value || "standard";
   if (!charClass) {
     el.startError.textContent = "Choose a class first.";
     return;
@@ -269,7 +304,7 @@ async function startGame(event) {
   try {
     const data = await api("/start", {
       method: "POST",
-      body: { name, char_class: charClass },
+      body: { name, char_class: charClass, difficulty },
     });
     enterGame(data.session_id, data.state, data.output);
     showToast("New game started.", "success");
@@ -316,6 +351,7 @@ function enterGame(sessionId, state, output) {
 
   if (state) renderState(state);
   refreshSidePanels(state);
+  window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   el.commandInput.focus({ preventScroll: true });
 }
 
@@ -1064,6 +1100,9 @@ function renderCampaign(data) {
   el.campaignProgress.textContent = `${completed} / ${total}`;
 
   const summary = [];
+  if (data?.difficulty?.name) {
+    summary.push(`${data.difficulty.name} difficulty`);
+  }
   if (Number(data?.cycle || 1) > 1) {
     summary.push(`Cycle ${Number(data.cycle)}`);
   }
@@ -2421,6 +2460,7 @@ function showToast(message, kind = "") {
 function bindEvents() {
   el.startForm.addEventListener("submit", startGame);
   el.classSelect.addEventListener("change", renderClassSummary);
+  el.difficultySelect.addEventListener("change", renderDifficultySummary);
   el.refreshSaves.addEventListener("click", refreshSaves);
   el.themeToggle.addEventListener("click", toggleTheme);
   el.commandForm.addEventListener("submit", (event) => {
@@ -2479,6 +2519,7 @@ async function init() {
   applyTheme(storedTheme(), false);
   bindEvents();
   await loadClasses();
+  await loadDifficulties();
   refreshSaves();
 
   if (store.sessionId) {
@@ -2492,6 +2533,7 @@ async function init() {
 function showStart() {
   el.gameScreen.classList.add("hidden");
   el.startScreen.classList.remove("hidden");
+  window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   el.playerName.focus();
 }
 

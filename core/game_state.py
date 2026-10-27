@@ -505,7 +505,20 @@ class GameState:
             "location": location,
         }
 
+        from core.difficulty import (
+            difficulty_definition,
+            player_difficulty,
+        )
+
+        difficulty_id = player_difficulty(player)
+        difficulty = difficulty_definition(difficulty_id) or {}
+
         return {
+            "difficulty": {
+                "id": difficulty_id,
+                "name": difficulty.get("name", difficulty_id.title()),
+                "description": difficulty.get("description", ""),
+            },
             "chapters": chapters,
             "completed_chapters": sum(
                 1 for chapter in chapters if chapter["status"] == "completed"
@@ -916,6 +929,8 @@ class GameState:
     def get_player_summary(self):
         """Returns a compact, serializable summary of the player."""
         player = self.game.player
+        from core.difficulty import player_difficulty
+
         return {
             "name": player.name,
             "char_class": player.char_class,
@@ -933,6 +948,7 @@ class GameState:
             "stealthed": bool(getattr(player, "stealthed", False)),
             "disguised": bool(getattr(player, "disguised", False)),
             "rune_shards": int(getattr(player, "rune_shards", 0) or 0),
+            "difficulty": player_difficulty(player),
         }
 
     def get_abilities(self):
@@ -1058,9 +1074,12 @@ class GameState:
             "initiative": getattr(self.game.player, "initiative", 0),
         }
         
+        from core.difficulty import player_difficulty
+
         return {
             "name": self.game.player.name,
             "char_class": self.game.player.char_class,
+            "difficulty": player_difficulty(self.game.player),
             "hp": self.game.player.hp,
             "max_hp": self.game.player.hp_max,
             "state": state_name,

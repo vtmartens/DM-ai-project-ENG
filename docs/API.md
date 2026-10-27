@@ -65,6 +65,7 @@ a server restart. A stale `session_id` returns `404`.
 {
   "name": "Aria",
   "char_class": "wizard",
+  "difficulty": "standard",
   "hp": 6,
   "max_hp": 6,
   "state": "TavernState",
@@ -162,7 +163,8 @@ A compact player summary is also returned by `/start`, `/load`, and `/import_sav
   "mana": 20,
   "mana_max": 20,
   "ac": 13,
-  "attack_bonus": 1
+  "attack_bonus": 1,
+  "difficulty": "standard"
 }
 ```
 
@@ -173,8 +175,11 @@ A compact player summary is also returned by `/start`, `/load`, and `/import_sav
 #### `POST /start`
 
 ```json
-{"name": "Aria", "char_class": "wizard"}
+{"name": "Aria", "char_class": "wizard", "difficulty": "standard"}
 ```
+
+`difficulty` is optional and defaults to `standard`; it must match one of
+`GET /difficulties`. An unknown value returns `400`.
 
 Response:
 
@@ -403,6 +408,32 @@ Returns the full class catalogue from `data/classes/classes.json`:
   }
 }
 ```
+
+#### `GET /difficulties`
+
+Returns the Story/Standard/Hard presets from `data/difficulty/difficulty.json`:
+
+```json
+{
+  "difficulties": [
+    {
+      "id": "standard",
+      "name": "Standard",
+      "description": "The intended balance for the campaign...",
+      "enemy": {"hp_percent": 0, "damage_bonus": 0, "ac_bonus": 0},
+      "reward_percent": 100,
+      "rest_cost": 10,
+      "defeat_gold_loss": 20,
+      "default": true
+    }
+  ],
+  "default": "standard"
+}
+```
+
+Difficulty modifies enemy HP/damage/AC, quest/encounter/trial rewards, inn rest cost and the
+gold lost on defeat. It stacks with New Cycle scaling. `GET /state` exposes the selected
+`difficulty`, and `GET /campaign` includes its id, name and description.
 
 #### `GET /stats?session_id=...`
 
@@ -1160,6 +1191,11 @@ in `GET /state`.
 
 ```json
 {
+  "difficulty": {
+    "id": "standard",
+    "name": "Standard",
+    "description": "The intended balance for the campaign..."
+  },
   "chapters": [
     {
       "id": "vargas_debt",
@@ -1183,8 +1219,8 @@ in `GET /state`.
 ```
 
 Chapters use the seven main story quests and report `not_started`, `active`, `ready` or
-`completed`. The same campaign object is included in `GET /state`; the web client renders it
-as the Campaign panel.
+`completed`. `difficulty` reports the active preset and is also summarised in the web
+client's Campaign panel. The same campaign object is included in `GET /state`.
 
 #### `GET /party?session_id=...`
 
@@ -1266,13 +1302,14 @@ calls `Game.start_new_cycle()`:
 - resets quests, cleared areas, campaign flags, map state, conditions, allies and defeats
 - clears `claimed_rewards` except `crafted:*` forge flags and `black_market:*` unique
   purchase flags
-- keeps level, XP, equipment, inventory, gold, achievements, faction standing, Rune Shards,
-  Rune Trials best/runs and forged gear
+- keeps level, XP, equipment, inventory, gold, achievements, faction standing, difficulty,
+  Rune Shards, Rune Trials best/runs and forged gear
 - increments `player.cycle`, restores HP/mana and returns to the Tavern
 
-Enemy HP, damage and AC scale by `data/cycles/cycles.json`; encounter, quest and trial
-completion rewards scale by the same cycle data. `GET /state` exposes the cycle in the
-player/campaign data, and the Cyclebreaker achievement unlocks on cycle 2.
+Enemy HP, damage and AC scale by `data/cycles/cycles.json` and stack with the selected
+difficulty; encounter, quest and trial completion rewards use both multipliers.
+`GET /state` exposes the cycle and difficulty in the player/campaign data, and the
+Cyclebreaker achievement unlocks on cycle 2.
 
 #### `GET /tutorial?session_id=...&type=combat`
 

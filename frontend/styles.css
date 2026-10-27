@@ -258,6 +258,12 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
 .class-summary strong { color: var(--text); }
 .class-summary .tag-list { margin-top: 9px; }
 
+.difficulty-summary {
+  margin: 6px 0 0;
+  font-size: 12.5px;
+  line-height: 1.35;
+}
+
 .error { color: var(--danger); font-size: 13px; min-height: 20px; margin-top: 10px; }
 
 .saves-card { min-height: 240px; }

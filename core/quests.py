@@ -226,12 +226,13 @@ def complete_quest(player, quest_id, game=None):
     granted = []
 
     from core.cycles import reward_multiplier
+    from core.difficulty import reward_multiplier as difficulty_reward_multiplier
 
-    cycle_multiplier = reward_multiplier(
+    multiplier = reward_multiplier(
         getattr(player, "cycle", 1)
-    )
-    gold = int(gold * cycle_multiplier)
-    experience = int(experience * cycle_multiplier)
+    ) * difficulty_reward_multiplier(player)
+    gold = int(gold * multiplier)
+    experience = int(experience * multiplier)
 
     faction_id = (
         definition.get("faction") if isinstance(definition, dict) else None

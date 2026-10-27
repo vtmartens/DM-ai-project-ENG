@@ -1,0 +1,38 @@
+{
+  "story": {
+    "name": "Story",
+    "description": "Enemies hit softer, rests are cheap, and rewards are reduced. The story comes first.",
+    "enemy": {
+      "hp_percent": -20,
+      "damage_bonus": -1,
+      "ac_bonus": -1
+    },
+    "reward_percent": 75,
+    "rest_cost": 5,
+    "defeat_gold_loss": 10
+  },
+  "standard": {
+    "name": "Standard",
+    "description": "The intended balance for the campaign, encounters, trials and New Cycle.",
+    "enemy": {
+      "hp_percent": 0,
+      "damage_bonus": 0,
+      "ac_bonus": 0
+    },
+    "reward_percent": 100,
+    "rest_cost": 10,
+    "defeat_gold_loss": 20
+  },
+  "hard": {
+    "name": "Hard",
+    "description": "Enemies are tougher and hit harder; rewards and rest costs rise to match.",
+    "enemy": {
+      "hp_percent": 25,
+      "damage_bonus": 1,
+      "ac_bonus": 1
+    },
+    "reward_percent": 125,
+    "rest_cost": 15,
+    "defeat_gold_loss": 30
+  }
+}

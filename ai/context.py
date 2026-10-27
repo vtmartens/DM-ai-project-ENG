@@ -142,6 +142,11 @@ def build_context(game, memory=None) -> dict[str, Any]:
     if player is None:
         return {}
 
+    from core.difficulty import difficulty_definition, player_difficulty
+
+    difficulty_id = player_difficulty(player)
+    difficulty = difficulty_definition(difficulty_id) or {}
+
     context: dict[str, Any] = {
         "player": {
             "name": getattr(player, "name", "Adventurer"),
@@ -151,7 +156,11 @@ def build_context(game, memory=None) -> dict[str, Any]:
             "hp": getattr(player, "hp", 0),
             "hp_max": getattr(player, "hp_max", 0),
             "disguised": bool(getattr(player, "disguised", False)),
-        }
+        },
+        "difficulty": {
+            "id": difficulty_id,
+            "name": difficulty.get("name", difficulty_id.title()),
+        },
     }
 
     current_map = getattr(player, "current_map", None)

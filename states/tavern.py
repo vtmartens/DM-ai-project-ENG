@@ -168,7 +168,9 @@ class TavernState(BaseGameState):
             game.io.show_message("11. Interact with the environment")
             game.io.show_message("12. Save game")
             game.io.show_message("13. Exit the game")
-            game.io.show_message(f"14. Rest at the inn ({self.REST_COST} gold)")
+            game.io.show_message(
+                f"14. Rest at the inn ({self._rest_cost(game.player)} gold)"
+            )
             game.io.show_message("15. Bounty board")
             if self._campaign_complete(game.player):
                 game.io.show_message(
@@ -334,9 +336,16 @@ class TavernState(BaseGameState):
         game.io.show_message("You remain in the current cycle.")
         self.phase = "main_menu"
 
+    @staticmethod
+    def _rest_cost(player):
+        from core.difficulty import rest_cost
+
+        return rest_cost(player, TavernState.REST_COST)
+
     def _rest(self, game):
         """Restore the party at the inn for gold and clear temporary effects."""
         player = game.player
+        cost = self._rest_cost(player)
         mana = int(getattr(player, "mana", 0) or 0)
         mana_max = int(getattr(player, "mana_max", 0) or 0)
         conditions = getattr(player, "conditions", None)
@@ -357,16 +366,16 @@ class TavernState(BaseGameState):
             self.phase = "main_menu"
             return
 
-        if player.gold < self.REST_COST:
+        if player.gold < cost:
             game.io.show_message(
                 f"\nThe innkeeper shakes her head. A long rest costs "
-                f"{self.REST_COST} gold, and you only have {player.gold}."
+                f"{cost} gold, and you only have {player.gold}."
             )
             press_enter(game)
             self.phase = "main_menu"
             return
 
-        player.gold -= self.REST_COST
+        player.gold -= cost
         player.hp = player.hp_max
         player.mana = mana_max
         player.stealthed = False
@@ -375,7 +384,7 @@ class TavernState(BaseGameState):
         conditions.clear()
 
         game.io.show_message(
-            f"\nYou pay {self.REST_COST} gold for a room and take a long rest. "
+            f"\nYou pay {cost} gold for a room and take a long rest. "
             "Your wounds close and your strength returns."
         )
         if cleared:

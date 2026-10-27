@@ -23,12 +23,13 @@ You can also set `localStorage["dm_api_base"]`.
 
 ## What it does
 
-- Character creation (name + class, with class details from `GET /classes`).
+- Character creation (name + class, with class details from `GET /classes`, plus
+  Story/Standard/Hard selection from `GET /difficulties`).
 - Load/delete saves from the start screen or the in-game Load modal.
 - Live adventure log, including AI narration styled separately (`type: "narration"`).
 - Command input, quick actions from `GET /available_actions`, and menu-number play. The
-  tavern quick actions include **Rest** (10 gold); resting restores HP/mana and clears
-  conditions.
+  tavern quick actions include **Rest** (5/10/15 gold by difficulty); resting restores
+  HP/mana and clears conditions.
 - Natural-language target commands in the tavern, market and map screen: “talk to Durnan”,
   “attack the goblin”, “use Healing Potion”, “go to the market”, “examine the chair”, and
   direction words such as “south” or “move east”. Unknown targets fall back to the normal

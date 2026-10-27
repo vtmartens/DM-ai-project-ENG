@@ -316,6 +316,25 @@ def test_condition_definitions_are_well_formed():
             assert isinstance(modifier, int), condition_id
 
 
+def test_difficulty_definitions_are_well_formed():
+    difficulties = _load(ROOT / "data" / "difficulty" / "difficulty.json")
+
+    assert {"story", "standard", "hard"} <= set(difficulties)
+    for difficulty_id, definition in difficulties.items():
+        assert definition.get("name"), difficulty_id
+        assert definition.get("description"), difficulty_id
+        enemy = definition.get("enemy", {})
+        assert isinstance(enemy, dict), difficulty_id
+        assert isinstance(enemy.get("hp_percent", 0), int), difficulty_id
+        assert isinstance(enemy.get("damage_bonus", 0), int), difficulty_id
+        assert isinstance(enemy.get("ac_bonus", 0), int), difficulty_id
+        assert 0 <= int(definition.get("reward_percent", 0)) <= 300, (
+            difficulty_id
+        )
+        assert int(definition.get("rest_cost", 0)) >= 0, difficulty_id
+        assert int(definition.get("defeat_gold_loss", 0)) >= 0, difficulty_id
+
+
 def test_weapon_properties_are_well_formed():
     weapons = _load(ITEMS_DIR / "weapons.json")
     abilities = {

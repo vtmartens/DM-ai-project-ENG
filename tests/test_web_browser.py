@@ -233,6 +233,57 @@ def test_web_client_smoke(live_server):
         driver.quit()
 
 
+def test_start_screen_selects_difficulty(live_server):
+    driver = _make_driver()
+    wait = WebDriverWait(driver, 40)
+
+    try:
+        driver.get(f"{live_server}/app/")
+        wait.until(
+            lambda d: len(
+                d.find_elements(By.CSS_SELECTOR, "#difficulty-select option")
+            )
+            >= 3
+        )
+        values = {
+            option.get_attribute("value")
+            for option in driver.find_elements(
+                By.CSS_SELECTOR, "#difficulty-select option"
+            )
+        }
+        assert {"story", "standard", "hard"} <= values
+        assert (
+            driver.find_element(By.ID, "difficulty-select").get_attribute(
+                "value"
+            )
+            == "standard"
+        )
+
+        Select(
+            driver.find_element(By.ID, "difficulty-select")
+        ).select_by_value("hard")
+        assert driver.find_element(By.ID, "difficulty-summary").text
+
+        Select(
+            driver.find_element(By.ID, "class-select")
+        ).select_by_value("fighter")
+        driver.find_element(By.ID, "start-button").click()
+        wait.until(
+            lambda d: d.find_element(By.ID, "game-screen").is_displayed()
+        )
+
+        session_id = driver.execute_script(
+            "return localStorage.getItem('dm_session_id');"
+        )
+        import server
+
+        session = server.active_sessions[session_id]
+        assert session.game.player.difficulty == "hard"
+        assert session.get_current_state()["difficulty"] == "hard"
+    finally:
+        driver.quit()
+
+
 def test_modal_keyboard_and_skip_links(live_server):
     driver = _make_driver()
     wait = WebDriverWait(driver, 40)

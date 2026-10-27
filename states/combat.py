@@ -119,34 +119,43 @@ class CombatState(BaseState):
         )
 
     def _apply_cycle_scaling(self, player):
-        """Scales enemies once for the current New Cycle."""
+        """Scales enemies once for New Cycle and the chosen difficulty."""
         if getattr(self, "cycle_scaled", False):
             return
         self.cycle_scaled = True
 
-        from core.cycles import cycle_number, enemy_scaling
+        from core.cycles import (
+            cycle_number,
+            enemy_scaling as cycle_scaling,
+        )
+        from core.difficulty import enemy_scaling as difficulty_scaling
 
-        scaling = enemy_scaling(cycle_number(player))
-        hp_percent = int(scaling.get("hp_percent", 0) or 0)
-        damage_bonus = int(scaling.get("damage_bonus", 0) or 0)
-        ac_bonus = int(scaling.get("ac_bonus", 0) or 0)
+        cycle = cycle_scaling(cycle_number(player))
+        difficulty = difficulty_scaling(player)
+        hp_percent = int(cycle.get("hp_percent", 0) or 0) + int(
+            difficulty.get("hp_percent", 0) or 0
+        )
+        damage_bonus = int(cycle.get("damage_bonus", 0) or 0) + int(
+            difficulty.get("damage_bonus", 0) or 0
+        )
+        ac_bonus = int(cycle.get("ac_bonus", 0) or 0) + int(
+            difficulty.get("ac_bonus", 0) or 0
+        )
         if not (hp_percent or damage_bonus or ac_bonus):
             return
 
         for enemy in self.enemies:
             if hp_percent:
-                bonus = max(
-                    1, int(round(enemy.hp_max * hp_percent / 100))
-                )
-                enemy.hp_max += bonus
-                enemy.hp = min(enemy.hp_max, enemy.hp + bonus)
+                bonus = int(round(enemy.hp_max * hp_percent / 100))
+                enemy.hp_max = max(1, enemy.hp_max + bonus)
+                enemy.hp = max(1, min(enemy.hp_max, enemy.hp + bonus))
             if damage_bonus:
                 enemy.damage_bonus = int(
                     getattr(enemy, "damage_bonus", 0) or 0
                 ) + damage_bonus
             if ac_bonus:
-                enemy.armor_class_value = (
-                    int(self._armor_class_for(enemy)) + ac_bonus
+                enemy.armor_class_value = max(
+                    5, int(self._armor_class_for(enemy)) + ac_bonus
                 )
 
     def cover_available(self, game=None):
@@ -1318,10 +1327,11 @@ class CombatState(BaseState):
         gold = int(reward.get("gold", 0) or 0)
         experience = int(reward.get("experience", 0) or 0)
         from core.cycles import reward_multiplier
+        from core.difficulty import reward_multiplier as difficulty_reward_multiplier
 
         multiplier = reward_multiplier(
             getattr(game.player, "cycle", 1)
-        )
+        ) * difficulty_reward_multiplier(game.player)
         gold = int(gold * multiplier)
         experience = int(experience * multiplier)
 
@@ -1370,8 +1380,11 @@ class CombatState(BaseState):
             f"\n{enemy_name} strikes you down. The world goes dark..."
         )
 
+        from core.difficulty import defeat_gold_loss
+
         lost = min(
-            int(getattr(player, "gold", 0) or 0), self.DEFEAT_GOLD_LOSS
+            int(getattr(player, "gold", 0) or 0),
+            defeat_gold_loss(player, self.DEFEAT_GOLD_LOSS),
         )
         if lost:
             player.gold -= lost

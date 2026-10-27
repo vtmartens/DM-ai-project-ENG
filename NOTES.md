@@ -1312,6 +1312,34 @@ entirely. The doors that existed were also misaligned with the map exits.
   menu access and the API. Data integrity validates the stock definition.
   **715 tests pass.**
 
+## Difficulty presets (2026-10-27)
+
+- Added `data/difficulty/difficulty.json` with **Story**, **Standard** and **Hard**. Each
+  defines enemy HP/damage/AC modifiers, a quest/encounter/trial reward percentage, inn rest
+  cost (5/10/15 gold) and defeat gold loss (10/20/30).
+- `core/difficulty.py` exposes the catalogue, player difficulty fallback, enemy scaling,
+  reward multiplier, rest cost and defeat loss helpers. `DataManager` registers the
+  `difficulty` directory.
+- `Player.difficulty` defaults to `standard`, survives `to_dict`/`from_dict` and is retained
+  through New Cycle. Old saves without the field load as Standard.
+- `CombatState._apply_cycle_scaling` now combines New Cycle and difficulty modifiers, with
+  HP/AC floors and negative Story modifiers handled safely. Quest, encounter and Rune
+  Trials completion rewards multiply both sources. Tavern rest and defeat recovery use the
+  difficulty values.
+- `POST /start` accepts `difficulty` and rejects unknown values with `400`.
+  `GET /difficulties` lists the presets. `GET /state` exposes `difficulty`; the campaign
+  object includes its id, name and description; AI context includes the difficulty name.
+- The start screen has a difficulty selector populated from `/difficulties` with a
+  description. The Campaign panel summary shows the active preset. Assets are at `?v=46`.
+- Fixed a mobile entry bug uncovered by the added start-screen field: the page now scrolls
+  to the top when entering the game or returning to the start screen, so the sticky topbar
+  no longer covers the Map button.
+- Tests: `tests/test_difficulty.py` covers the catalogue, default/persistence, Story/Hard
+  combat scaling, New Cycle stacking, quest and encounter rewards, rest/defeat costs,
+  context/campaign exposure, `/start` selection/rejection and `/difficulties`. A browser
+  test also selects Hard on the start screen and verifies the created session.
+  **728 tests pass.**
+
 ## Deliberate translation choices worth knowing
 
 - **`hp_base` / `mana_base` were left as-is.** They are consistent between code and JSON

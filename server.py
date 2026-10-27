@@ -122,6 +122,7 @@ def home():
             "GET /map_view": "Get the current map as an ASCII grid",
             "GET /missions": "Get active/completed quests",
             "GET /classes": "Get information about the available classes",
+            "GET /difficulties": "Get the available difficulty presets",
             "GET /saves": "Get the list of available saves (legacy shape)",
             "GET /list_saves": "Get the list of available saves",
             "GET /combat": "Get the current combat state",
@@ -174,12 +175,20 @@ def start_game():
     data = request.json or {}
     name = data.get("name", "Adventurer")
     char_class = data.get("char_class", "fighter").lower()
-    
+    difficulty = str(
+        data.get("difficulty", "standard") or "standard"
+    ).casefold()
+
+    from core.difficulty import difficulty_definition
+
+    if difficulty_definition(difficulty) is None:
+        return jsonify({"error": "Unknown difficulty"}), 400
+
     # Create a new session ID
     session_id = str(uuid4())
-    
+
     # Create a new player
-    player = Player(name, char_class)
+    player = Player(name, char_class, difficulty=difficulty)
     
     # Create a new game session
     session = GameState(player, TavernState())
@@ -496,6 +505,20 @@ def get_classes():
     """Get information about the available character classes"""
     # Use the data manager to load the classes from the external file
     return jsonify(get_data_manager().get_classes())
+
+
+@app.route("/difficulties", methods=["GET"])
+def get_difficulties():
+    """Get the available Story/Standard/Hard presets."""
+    from core.difficulty import difficulty_entries
+
+    return jsonify(
+        {
+            "difficulties": difficulty_entries(),
+            "default": "standard",
+        }
+    )
+
 
 @app.route("/missions", methods=["GET"])
 def get_quests():

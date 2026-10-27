@@ -4,9 +4,10 @@ from items.item import Item
 from entities.entity import Entity, ASSOCIATED_SKILLS
 
 class Player(Entity):
-    def __init__(self, name, char_class):
+    def __init__(self, name, char_class, difficulty="standard"):
         # Initialize player-specific values
         self.char_class = char_class
+        self.difficulty = str(difficulty or "standard").casefold()
         
         # Load the class data from JSON
         self.classes_data = self._load_data_classes()
@@ -540,6 +541,7 @@ class Player(Entity):
             ),
             "rune_shards": int(getattr(self, "rune_shards", 0) or 0),
             "cycle": int(getattr(self, "cycle", 1) or 1),
+            "difficulty": getattr(self, "difficulty", "standard"),
             "allies": list(getattr(self, "allies", [])),
             "ally_stances": dict(getattr(self, "ally_stances", {}) or {}),
             "disguised": bool(getattr(self, "disguised", False)),
@@ -628,6 +630,9 @@ class Player(Entity):
         )
         player.rune_shards = int(data.get("rune_shards", 0) or 0)
         player.cycle = max(1, int(data.get("cycle", 1) or 1))
+        player.difficulty = str(
+            data.get("difficulty", "standard") or "standard"
+        ).casefold()
         player.allies = list(data.get("allies", []))
         player.ally_stances = dict(data.get("ally_stances", {}) or {})
         player.disguised = bool(data.get("disguised", False))

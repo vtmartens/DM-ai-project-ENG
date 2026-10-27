@@ -42,6 +42,7 @@ class DataManager:
             "trials": DATA_DIR / "trials",
             "crafting": DATA_DIR / "crafting",
             "cycles": DATA_DIR / "cycles",
+            "difficulty": DATA_DIR / "difficulty",
             "party": DATA_DIR / "party",
             "road": DATA_DIR / "road",
             "scenes": DATA_DIR / "scenes",
