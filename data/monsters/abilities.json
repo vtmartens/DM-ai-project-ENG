@@ -1,0 +1,100 @@
+{
+  "poison_arrow": {
+    "id": "poison_arrow",
+    "name": "Poison Arrow",
+    "description": "A green-stained arrow that leaves venom in the wound.",
+    "cooldown": 3,
+    "telegraph": "The goblin nocks a green-stained arrow.",
+    "effect": {
+      "type": "attack",
+      "damage": 6,
+      "poison": {
+        "damage": 2,
+        "turns": 3
+      }
+    }
+  },
+  "bone_volley": {
+    "id": "bone_volley",
+    "name": "Bone Volley",
+    "description": "A clatter of sharpened bone shards.",
+    "cooldown": 2,
+    "telegraph": "The skeleton rattles and raises a fistful of bone shards.",
+    "effect": {
+      "type": "attack",
+      "damage": 7
+    }
+  },
+  "savage_bite": {
+    "id": "savage_bite",
+    "name": "Savage Bite",
+    "description": "A tearing bite that feeds the beast.",
+    "cooldown": 3,
+    "telegraph": "The wolf lowers its head and snarls.",
+    "effect": {
+      "type": "attack",
+      "damage": 6,
+      "self_heal": 2
+    }
+  },
+  "dark_bolt": {
+    "id": "dark_bolt",
+    "name": "Dark Bolt",
+    "description": "A lance of cold, whispered power.",
+    "cooldown": 2,
+    "telegraph": "The cultist's voice drops to a whisper.",
+    "effect": {
+      "type": "attack",
+      "damage": 6
+    }
+  },
+  "spectral_touch": {
+    "id": "spectral_touch",
+    "name": "Spectral Touch",
+    "description": "A numbing touch from beyond the grave.",
+    "cooldown": 2,
+    "telegraph": "The specter's outline thins and reaches toward you.",
+    "effect": {
+      "type": "attack",
+      "damage": 7
+    }
+  },
+  "shield_bash": {
+    "id": "shield_bash",
+    "name": "Shield Bash",
+    "description": "A crushing blow that leaves the sentinel braced.",
+    "cooldown": 3,
+    "telegraph": "The Iron Sentinel locks its shield forward.",
+    "effect": {
+      "type": "attack",
+      "damage": 12,
+      "guard": 5
+    }
+  },
+  "repair": {
+    "id": "repair",
+    "name": "Repair",
+    "description": "Runes knit the sentinel's plates back together.",
+    "cooldown": 4,
+    "telegraph": "The Iron Sentinel's runes flicker to life.",
+    "effect": {
+      "type": "heal",
+      "amount": 10
+    }
+  },
+  "dirty_trick": {
+    "id": "dirty_trick",
+    "name": "Dirty Trick",
+    "description": "A pocketful of stinging powder and a low blow.",
+    "cooldown": 3,
+    "telegraph": "Vargas reaches into his coat with a thin smile.",
+    "effect": {
+      "type": "attack",
+      "damage": 8,
+      "poison": {
+        "damage": 2,
+        "turns": 2
+      }
+    }
+  }
+}

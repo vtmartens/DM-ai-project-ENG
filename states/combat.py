@@ -1,4 +1,5 @@
 from states.base_state import BaseState
+from core.enemy_abilities import choose_ability, load_abilities
 from entities.enemy import Enemy
 from entities.player import Player
 from entities.npc import NPC
@@ -46,6 +47,9 @@ class CombatState(BaseState):
         self._initiative_checked = False
         # Which enemy currently carries poison, if any
         self.poison_target_index = None
+        # Enemy ability state, keyed by the enemy's index in self.enemies
+        self.ability_cooldowns = {}
+        self.enemy_guard = {}
         # Damage the player has taken in this fight (for the "no damage" achievement)
         self.damage_taken = 0
         # Achievement bookkeeping, so a fight is only counted once
@@ -299,10 +303,11 @@ class CombatState(BaseState):
     
     def _phase_attack_enemy(self, player, game):
         """Each living opponent attacks once."""
-        for enemy in list(self.enemies):
+        self._tick_enemy_ability_cooldowns()
+        for index, enemy in enumerate(list(self.enemies)):
             if getattr(enemy, "hp", 0) <= 0:
                 continue
-            self._attack_enemy(player, game, enemy)
+            self._attack_enemy(player, game, enemy, index=index)
             if player.hp <= 0:
                 break
         if player.hp > 0:
@@ -688,6 +693,8 @@ class CombatState(BaseState):
             if getattr(enemy, "hp", 0) > 0 or index in self.rewarded_enemies:
                 continue
             self.rewarded_enemies.add(index)
+            self.ability_cooldowns.pop(str(index), None)
+            self.enemy_guard.pop(str(index), None)
             game.io.show_message(f"\nYou defeated {enemy.name}!")
             self._remove_defeated_npc(game, enemy)
 
@@ -917,7 +924,19 @@ class CombatState(BaseState):
         if self.dice_d100.roll() <= 10:  # 10% chance of a critical hit
             damage *= 2
             critical = True
-        
+
+        # An enemy ability can raise a guard that absorbs the next hit.
+        if not isinstance(getattr(self, "enemy_guard", None), dict):
+            self.enemy_guard = {}
+        index = self._enemy_index(self.opponent)
+        guard = int(self.enemy_guard.pop(str(index), 0) or 0)
+        if guard:
+            absorbed = min(guard, damage)
+            damage = max(1, damage - absorbed)
+            game.io.show_message(
+                f"{self.opponent.name}'s guard absorbs {absorbed} damage."
+            )
+
         # Apply the damage to the opponent
         self.opponent.wound(damage, game)
         
@@ -934,31 +953,57 @@ class CombatState(BaseState):
             else:
                 game.io.show_message(f"\nYou attack {self.opponent.name} and deal {damage} damage!")
     
-    def _attack_enemy(self, player, game, enemy=None):
-        """Handle one opponent's attack."""
-        enemy = enemy or self.opponent
-        if enemy is None:
+    def _enemy_index(self, enemy):
+        try:
+            return self.enemies.index(enemy)
+        except ValueError:
+            return 0
+
+    def _tick_enemy_ability_cooldowns(self):
+        """Reduces every active enemy ability cooldown by one round."""
+        for cooldowns in self.ability_cooldowns.values():
+            for ability_id, remaining in list(cooldowns.items()):
+                if remaining > 0:
+                    cooldowns[ability_id] = remaining - 1
+
+    def _poison_player(self, player, game, poison):
+        """Applies or refreshes poison on the player."""
+        if not isinstance(poison, dict):
             return
+        poison_damage = int(poison.get("damage", 0) or 0)
+        poison_turns = int(
+            poison.get("turns", poison.get("duration", 0)) or 0
+        )
+        if poison_damage <= 0 or poison_turns <= 0:
+            return
+
+        conditions = getattr(player, "conditions", None)
+        if not isinstance(conditions, dict):
+            conditions = {}
+            player.conditions = conditions
+        current = conditions.get("poison")
+        if isinstance(current, dict):
+            current["damage"] = max(
+                int(current.get("damage", 0) or 0), poison_damage
+            )
+            current["turns"] = max(
+                int(current.get("turns", 0) or 0), poison_turns
+            )
+        else:
+            conditions["poison"] = {
+                "damage": poison_damage,
+                "turns": poison_turns,
+            }
+        game.io.show_message(
+            f"You are poisoned! {poison_damage} damage for "
+            f"{poison_turns} turns."
+        )
+
+    def _apply_incoming_damage(self, player, game, damage):
+        """Applies damage after defense and the player's guard effects."""
         if not isinstance(getattr(self, "effects", None), dict):
             self.effects = {}
         effects = self.effects
-
-        if effects.pop("evade", False):
-            game.io.show_message(f"\nYou evade {enemy.name}'s attack!")
-            return
-
-        strength = getattr(enemy, "strength", None)
-        if strength is None:
-            strength = getattr(enemy, "damage", 1)
-        damage = max(1, int(strength))
-
-        # Attack description
-        if hasattr(enemy, 'weapons') and enemy.weapons:
-            import random
-            weapon = random.choice(enemy.weapons)
-            game.io.show_message(f"\n{enemy.name} attacks you with {weapon}!")
-        else:
-            game.io.show_message(f"\n{enemy.name} attacks you!")
 
         # Apply defense once here (take_damage() would subtract it again).
         effective_damage = max(1, int(damage) - int(player.defense))
@@ -992,6 +1037,46 @@ class CombatState(BaseState):
             game.io.show_message(f"You take {effective_damage} damage!")
         else:
             game.io.show_message("You take no damage.")
+        return effective_damage
+
+    def _attack_enemy(self, player, game, enemy=None, index=None):
+        """Handle one opponent's action: ability when ready, else basic attack."""
+        enemy = enemy or self.opponent
+        if enemy is None:
+            return
+        if index is None:
+            index = self._enemy_index(enemy)
+
+        if not isinstance(getattr(self, "effects", None), dict):
+            self.effects = {}
+
+        if self.effects.pop("evade", False):
+            game.io.show_message(f"\nYou evade {enemy.name}'s attack!")
+            return
+
+        abilities = getattr(enemy, "abilities", None)
+        if abilities is None:
+            abilities = load_abilities(getattr(enemy, "ability_ids", []))
+        cooldowns = self.ability_cooldowns.setdefault(str(index), {})
+        ability = choose_ability(abilities, cooldowns, enemy)
+        if ability is not None:
+            self._use_enemy_ability(player, game, enemy, ability, index)
+            return
+
+        strength = getattr(enemy, "strength", None)
+        if strength is None:
+            strength = getattr(enemy, "damage", 1)
+        damage = max(1, int(strength))
+
+        # Attack description
+        if hasattr(enemy, 'weapons') and enemy.weapons:
+            import random
+            weapon = random.choice(enemy.weapons)
+            game.io.show_message(f"\n{enemy.name} attacks you with {weapon}!")
+        else:
+            game.io.show_message(f"\n{enemy.name} attacks you!")
+
+        effective_damage = self._apply_incoming_damage(player, game, damage)
 
         attack_effect = getattr(enemy, "attack_effect", None)
         if (
@@ -999,30 +1084,69 @@ class CombatState(BaseState):
             and isinstance(attack_effect, dict)
             and attack_effect.get("type") == "poison"
         ):
-            poison_damage = int(attack_effect.get("damage", 0) or 0)
-            poison_turns = int(attack_effect.get("turns", 0) or 0)
-            if poison_damage > 0 and poison_turns > 0:
-                conditions = getattr(player, "conditions", None)
-                if not isinstance(conditions, dict):
-                    conditions = {}
-                    player.conditions = conditions
-                poison = conditions.get("poison")
-                if isinstance(poison, dict):
-                    poison["damage"] = max(
-                        int(poison.get("damage", 0) or 0), poison_damage
-                    )
-                    poison["turns"] = max(
-                        int(poison.get("turns", 0) or 0), poison_turns
-                    )
-                else:
-                    conditions["poison"] = {
-                        "damage": poison_damage,
-                        "turns": poison_turns,
-                    }
-                game.io.show_message(
-                    f"You are poisoned! {poison_damage} damage for "
-                    f"{poison_turns} turns."
+            self._poison_player(player, game, attack_effect)
+
+    def _use_enemy_ability(self, player, game, enemy, ability, index):
+        """Applies one enemy ability and starts its cooldown."""
+        name = ability.get("name", "an ability")
+        telegraph = ability.get("telegraph")
+        if telegraph:
+            game.io.show_message(f"\n{telegraph}")
+        game.io.show_message(f"\n{enemy.name} uses {name}!")
+
+        effect = ability.get("effect", {}) or {}
+        kind = effect.get("type", "attack")
+
+        if kind == "heal":
+            amount = int(effect.get("amount", 0) or 0)
+            before = getattr(enemy, "hp", 0)
+            enemy.hp = min(getattr(enemy, "hp_max", before), before + amount)
+            game.io.show_message(f"{enemy.name} recovers {enemy.hp - before} HP.")
+        else:
+            damage = effect.get("damage")
+            if "multiplier" in effect:
+                damage = max(
+                    1,
+                    int(getattr(enemy, "strength", 1))
+                    * int(effect.get("multiplier", 1) or 1),
                 )
+            elif damage is None:
+                damage = getattr(enemy, "strength", 1)
+            damage = max(1, int(damage)) + int(effect.get("bonus", 0) or 0)
+
+            effective_damage = self._apply_incoming_damage(
+                player, game, damage
+            )
+
+            poison = effect.get("poison")
+            if effective_damage > 0 and isinstance(poison, dict):
+                self._poison_player(player, game, poison)
+
+            self_heal = int(effect.get("self_heal", 0) or 0)
+            if self_heal:
+                before = getattr(enemy, "hp", 0)
+                enemy.hp = min(
+                    getattr(enemy, "hp_max", before), before + self_heal
+                )
+                if enemy.hp > before:
+                    game.io.show_message(
+                        f"{enemy.name} drains life and recovers "
+                        f"{enemy.hp - before} HP."
+                    )
+
+            guard = int(effect.get("guard", 0) or 0)
+            if guard:
+                key = str(index)
+                self.enemy_guard[key] = max(
+                    int(self.enemy_guard.get(key, 0) or 0), guard
+                )
+                game.io.show_message(f"{enemy.name} raises its guard.")
+
+        cooldown = int(ability.get("cooldown", 0) or 0)
+        ability_id = ability.get("id") or name
+        self.ability_cooldowns.setdefault(str(index), {})[
+            ability_id
+        ] = cooldown
     
     def _apply_effect_item(self, player, item, game):
         """Apply the effect of an item"""
@@ -1114,6 +1238,10 @@ class CombatState(BaseState):
             self._initiative_checked = True
         if not hasattr(self, "last_ability_used"):
             self.last_ability_used = None
+        if not isinstance(getattr(self, "ability_cooldowns", None), dict):
+            self.ability_cooldowns = {}
+        if not isinstance(getattr(self, "enemy_guard", None), dict):
+            self.enemy_guard = {}
 
     @classmethod
     def from_dict(cls, data):
@@ -1174,6 +1302,20 @@ class CombatState(BaseState):
         state.effects = data.get("effects", {})
         state._initiative_checked = data.get("initiative_checked", True)
         state.damage_taken = int(data.get("damage_taken", 0) or 0)
+        state.ability_cooldowns = {
+            str(index): {
+                str(ability_id): int(remaining or 0)
+                for ability_id, remaining in cooldowns.items()
+            }
+            for index, cooldowns in (
+                data.get("ability_cooldowns", {}) or {}
+            ).items()
+            if isinstance(cooldowns, dict)
+        }
+        state.enemy_guard = {
+            str(index): int(value or 0)
+            for index, value in (data.get("enemy_guard", {}) or {}).items()
+        }
 
         return state
         
@@ -1193,6 +1335,16 @@ class CombatState(BaseState):
                 getattr(self, "_initiative_checked", False)
             ),
             "damage_taken": int(getattr(self, "damage_taken", 0) or 0),
+            "ability_cooldowns": {
+                str(index): dict(cooldowns)
+                for index, cooldowns in getattr(
+                    self, "ability_cooldowns", {}
+                ).items()
+            },
+            "enemy_guard": {
+                str(index): int(value or 0)
+                for index, value in getattr(self, "enemy_guard", {}).items()
+            },
         }
         
         from entities.npc import NPC

@@ -1,6 +1,7 @@
 import json
 import os
 import random
+from core.enemy_abilities import load_abilities
 from entities.entity import Entity
 
 class Enemy(Entity):
@@ -22,6 +23,8 @@ class Enemy(Entity):
                 self.armor = monster_data.get("armor", "")
                 self.experience_value = monster_data.get("experience", 50)  # Renamed to avoid conflicts
                 self.monster_type = monster_type
+                self.ability_ids = list(monster_data.get("abilities", []))
+                self.abilities = load_abilities(self.ability_ids)
                 
                 # DEBUG
                 print(f"DEBUG Enemy - Loading {monster_type}: experience={self.experience_value}")
@@ -57,6 +60,8 @@ class Enemy(Entity):
         self.armor = ""
         self.experience_value = 50  # Renamed to avoid conflicts
         self.monster_type = None
+        self.ability_ids = []
+        self.abilities = []
         
         # Set the base gold
         self.gold = 10
@@ -146,7 +151,8 @@ class Enemy(Entity):
             "attack_effect": self.attack_effect,
             "armor": self.armor,
             "experience": self.experience_value,
-            "monster_type": self.monster_type
+            "monster_type": self.monster_type,
+            "ability_ids": list(getattr(self, "ability_ids", [])),
         })
         return data
     
@@ -189,6 +195,8 @@ class Enemy(Entity):
         enemy.armor = data.get("armor", "")
         enemy.experience_value = data.get("experience", 50)
         enemy.monster_type = data.get("monster_type", None)
+        enemy.ability_ids = list(data.get("ability_ids", []) or [])
+        enemy.abilities = load_abilities(enemy.ability_ids)
         enemy.gold = data.get("gold", 10)
-        
+
         return enemy

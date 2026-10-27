@@ -344,7 +344,8 @@
       }
     ],
     "gold": 120,
-    "friendly": false
+    "friendly": false,
+    "abilities": ["dirty_trick"]
   },
   "Hooded Cultist A": {
     "name": "Hooded Cultist A",
@@ -373,7 +374,8 @@
       }
     ],
     "gold": 10,
-    "friendly": false
+    "friendly": false,
+    "abilities": ["dark_bolt"]
   },
   "Hooded Cultist B": {
     "name": "Hooded Cultist B",
@@ -402,7 +404,8 @@
       }
     ],
     "gold": 10,
-    "friendly": false
+    "friendly": false,
+    "abilities": ["dark_bolt"]
   },
   "Specter": {
     "name": "Specter",
@@ -420,7 +423,8 @@
     "token": "S",
     "inventory": [],
     "gold": 15,
-    "friendly": false
+    "friendly": false,
+    "abilities": ["spectral_touch"]
   },
   "Cultist": {
     "name": "Cultist",
@@ -449,7 +453,8 @@
       }
     ],
     "gold": 10,
-    "friendly": false
+    "friendly": false,
+    "abilities": ["dark_bolt"]
   },
   "Iron Sentinel": {
     "name": "Iron Sentinel",
@@ -480,6 +485,7 @@
       }
     ],
     "gold": 40,
-    "friendly": false
+    "friendly": false,
+    "abilities": ["shield_bash", "repair"]
   }
 }

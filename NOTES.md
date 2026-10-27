@@ -528,6 +528,25 @@ entirely. The doors that existed were also misaligned with the map exits.
   and the vault-chest integration; 336 tests pass. Phase 2's optional rune ability check
   and a dedicated achievement remain future work.
 
+## Enemy abilities and encounter variety (2026-10-26)
+
+- `data/monsters/abilities.json` now defines data-driven enemy abilities; monsters and
+  NPCs reference them through an `abilities` id list. Effects support attack damage,
+  poison, self-heal, a temporary guard, and pure healing, with an optional telegraph.
+- `core/enemy_abilities.py` loads definitions and chooses the first useful off-cooldown
+  ability (heals are skipped at full health).
+- `CombatState` tracks per-enemy cooldowns and guard values, ticks cooldowns at the start of
+  each enemy phase, falls back to a basic attack, and exposes the ability messages in the
+  combat log. A guard absorbs the next physical hit; cooldowns/guards survive the combat
+  state round trip and are cleared when the enemy falls.
+- Assigned abilities: goblin *Poison Arrow*, orc and Iron Sentinel *Shield Bash*, wolf and
+  troll *Savage Bite*, skeleton *Bone Volley*, cultists *Dark Bolt*, specter *Spectral
+  Touch*, Vargas *Dirty Trick*, Iron Sentinel *Repair*.
+- Tests: `tests/test_enemy_abilities.py` covers loading, damage/poison, cooldowns and
+  fallback, Spectral Touch, Shield Bash guard, Repair selection, basic attacks, and the
+  state round trip; data-integrity tests validate definitions and references. 348 tests
+  pass. Encounter tuning remains playtest work.
+
 ## Deliberate translation choices worth knowing
 
 - **`hp_base` / `mana_base` were left as-is.** They are consistent between code and JSON
@@ -556,7 +575,7 @@ entirely. The doors that existed were also misaligned with the map exits.
 | Residual Italian (glossary-derived denylist + accented characters) | 0 hits |
 | **Original Italian vs translated, identical input** | **46/46 placements, identical sequence** |
 | Flask API in-process (test client, no socket) | 31 × 200, 0 raised |
-| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, hints, achievements, utility spells, locks, vault, quests, accessibility, web client routes, browser smoke/mobile) | 336 passed |
+| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, hints, achievements, utility spells, locks, vault, quests, enemy abilities, accessibility, web client routes, browser smoke/mobile) | 348 passed |
 | Live smoke test (Flask server, `/app`, start/state/abilities/inventory/actions/command/save/load) | passed |
 
 The last comparison is the strongest evidence: the pristine Italian code and the finished

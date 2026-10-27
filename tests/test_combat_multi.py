@@ -96,3 +96,13 @@ def test_group_goblin_encounter_supports_target_selection(client):
         enemy["name"]: enemy["hp"] for enemy in action["combat"]["enemies"]
     }
     assert hp_by_name["Goblin B"] < hp_by_name["Goblin A"]
+
+    # The goblins act on initiative before the player's first action, so their
+    # Poison Arrow cooldown is already running by this round.
+    import server
+
+    active = server.active_sessions[session_id].game.current_state()
+    assert any(
+        cooldowns.get("poison_arrow", 0) > 0
+        for cooldowns in active.ability_cooldowns.values()
+    )

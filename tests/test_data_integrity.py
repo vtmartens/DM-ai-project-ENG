@@ -156,6 +156,43 @@ def test_ability_definitions_are_well_formed():
             assert effect.get("attack", 0) > 0 or effect.get("defense", 0) > 0
 
 
+def test_enemy_ability_definitions_are_well_formed():
+    abilities = _load(ROOT / "data" / "monsters" / "abilities.json")
+    assert abilities
+
+    for ability_id, ability in abilities.items():
+        assert ability.get("id") == ability_id
+        assert ability.get("name")
+        assert int(ability.get("cooldown", 0)) >= 0
+
+        effect = ability.get("effect", {})
+        assert effect.get("type") in {"attack", "heal"}, ability_id
+        if effect["type"] == "attack":
+            assert int(effect.get("damage", 0)) > 0, ability_id
+            poison = effect.get("poison")
+            if poison is not None:
+                assert int(poison.get("damage", 0)) > 0, ability_id
+                assert int(poison.get("turns", 0)) > 0, ability_id
+        else:
+            assert int(effect.get("amount", 0)) > 0, ability_id
+
+
+def test_enemy_ability_references_are_defined():
+    abilities = set(_load(ROOT / "data" / "monsters" / "abilities.json"))
+    monsters = _load(ROOT / "data" / "monsters" / "monsters.json")
+    npcs = _load(ROOT / "data" / "npc" / "npcs.json")
+
+    referenced = set()
+    for monster in monsters.values():
+        if isinstance(monster, dict):
+            referenced.update(monster.get("abilities", []) or [])
+    for npc in npcs.values():
+        if isinstance(npc, dict):
+            referenced.update(npc.get("abilities", []) or [])
+
+    assert referenced <= abilities, sorted(referenced - abilities)
+
+
 def test_quest_targets_are_known_npcs():
     quests = _load(ROOT / "data" / "quests" / "quests.json")
     npcs = _load(ROOT / "data" / "npc" / "npcs.json")

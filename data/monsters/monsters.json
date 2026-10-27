@@ -16,7 +16,8 @@
     "gold": 15,
     "experience": 50,
     "token": "G",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "abilities": ["poison_arrow"]
   },
   "orc": {
     "name": "orc",
@@ -35,7 +36,8 @@
     "gold": 30,
     "experience": 100,
     "token": "or",
-    "difficulty": "medium"
+    "difficulty": "medium",
+    "abilities": ["shield_bash"]
   },
   "wolf": {
     "name": "Fierce Wolf",
@@ -54,7 +56,8 @@
     "gold": 5,
     "experience": 75,
     "token": "L",
-    "difficulty": "easy"
+    "difficulty": "easy",
+    "abilities": ["savage_bite"]
   },
   "skeleton": {
     "name": "skeleton",
@@ -73,7 +76,8 @@
     "gold": 20,
     "experience": 90,
     "token": "S",
-    "difficulty": "medium"
+    "difficulty": "medium",
+    "abilities": ["bone_volley"]
   },
   "troll": {
     "name": "troll",
@@ -92,7 +96,8 @@
     "gold": 50,
     "experience": 200,
     "token": "T",
-    "difficulty": "hard"
+    "difficulty": "hard",
+    "abilities": ["savage_bite"]
   },
   "young_dragon": {
     "name": "Young Dragon",

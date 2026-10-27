@@ -1,6 +1,7 @@
 from entities.player import Player
 from items.item import Item
 from entities.entity import Entity, ASSOCIATED_SKILLS
+from core.enemy_abilities import load_abilities
 from util.data_manager import get_data_manager
 
 class NPC(Entity):
@@ -21,6 +22,8 @@ class NPC(Entity):
         self.profession = ""
         self.group = None
         self.friendly = True
+        self.ability_ids = []
+        self.abilities = []
         
         # NPC-specific initializations
         self._initialize_attributes()
@@ -65,6 +68,8 @@ class NPC(Entity):
         self.background = self.npc_data.get("background", "")
         self.profession = self.npc_data.get("profession", "")
         self.friendly = bool(self.npc_data.get("friendly", True))
+        self.ability_ids = list(self.npc_data.get("abilities", []))
+        self.abilities = load_abilities(self.ability_ids)
         
         # Load the inventory
         self.inventory = []
