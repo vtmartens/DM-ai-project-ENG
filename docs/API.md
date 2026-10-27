@@ -869,6 +869,7 @@ Runs `look` and returns `output`, `state`, plus nearby `items`, `exits`, and `np
     "attack",
     "defend",
     "aim",
+    "take cover",
     "use item",
     "use ability",
     "change equipment",
@@ -892,9 +893,11 @@ its own `conditions` map. `guard` is the enemy's remaining physical guard, and `
 lists ability names and rounds until reuse. Timed conditions (burning, frightened, weakened,
 prone, staggered) include a `turns` counter and tick at the end of each combat round.
 `effects.defending` is true while Defend adds +4 AC through the enemy phase;
-`effects.aiming` is true until the next weapon attack consumes the advantage. `surprised`
-is true during the opening round after a stealth attack; it is also repeated on each living
-enemy for status rendering.
+`effects.aiming` is true until the next weapon attack consumes the advantage.
+`effects.covering` grants +2 AC and advantage on Dexterity saves through the enemy phase;
+`effects.flanking` is true while a living ally is in the fight, granting +2 to the player's
+weapon attacks. `surprised` is true during the opening round after a stealth attack; it is
+also repeated on each living enemy for status rendering.
 
 `trip` and `shove` are data-driven maneuvers from `data/combat/maneuvers.json`. Each makes a
 contested Athletics check against the target's Acrobatics or Athletics. Trip applies
@@ -902,6 +905,13 @@ contested Athletics check against the target's Acrobatics or Athletics. Trip app
 spends its next action standing up. Shove applies `staggered`: disadvantage on attacks and
 no special abilities for a round. Both conditions affect the target's next action, appear in
 the log, and are included in the enemy snapshot.
+
+`take cover` spends the turn for +2 AC and advantage on Dexterity saves until the next
+round; the combat card shows **Cover**. It is offered only when the player is adjacent to a
+wall or an object with `provides_cover` (tables, barrels, counters, statues, chests and
+similar terrain); otherwise the action is refused. While any living ally remains in the
+fight, the player's weapon attacks gain +2 to hit and the card shows **Flanking**. Both
+effects are exposed under `effects.covering` and `effects.flanking`.
 
 Monsters may also declare `maneuvers` in their data. Wolves Trip, bandits/smugglers/sentinels
 Shove, and the Rune Warden uses both. An enemy checks its maneuver chance with a d100, skips
@@ -920,10 +930,12 @@ Outside combat: `{"in_combat": false}`.
 
 Returns `output`, `state`, and `combat`. A non-empty `target` selects that enemy before
 the action, so `"attack"` with `"Goblin B"` attacks that enemy directly. `"defend"` spends
-the turn for +4 AC until the next round, and `"aim"` spends it to give the next weapon attack
-advantage; both also work as normal commands via `POST /command`. `"trip"` and `"shove"`
+the turn for +4 AC until the next round; `"aim"` gives the next weapon attack advantage;
+`"take cover"` grants +2 AC and advantage on Dexterity saves until the next round when
+nearby cover exists. All three are also available as normal commands via `POST /command`.
+`"trip"` and `"shove"`
 resolve contested skill checks and apply their condition to the selected target; they are
-also available as normal commands, menu options 9 and 10, and quick actions. `"stand up"`
+also available as normal commands, menu options 10 and 11, and quick actions. `"stand up"`
 spends the turn to clear the player's Prone condition and is advertised only while prone.
 
 Enemies also act on data-driven abilities with cooldowns. Their telegraphs and effects appear

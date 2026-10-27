@@ -6,6 +6,7 @@
     "state": "closed",
     "requires_key": true,
     "token": "C",
+    "provides_cover": true,
     "content": [
       {
         "name": "Golden Ring",
@@ -34,6 +35,7 @@
     "state": "closed",
     "requires_key": false,
     "token": "C",
+    "provides_cover": true,
     "content": [
       {
         "name": "Cellar Key",
@@ -112,6 +114,7 @@
     "description": "An ancient altar with mysterious symbols",
     "state": "inactive",
     "token": "A",
+    "provides_cover": true,
     "state_descriptions": {
       "inactive": "An ancient altar with mysterious symbols that seem dormant",
       "active": "The altar emits an intense blue light and the symbols glow",
@@ -148,6 +151,7 @@
     "description": "A vase decorated with ancient ceramic",
     "state": "intact",
     "required_strength": 5,
+    "provides_cover": true,
     "token": "Z",
     "materials": [
       {
@@ -163,7 +167,8 @@
     "type": "interactive_object",
     "description": "A long wooden counter where Durnan serves drinks",
     "state": "normal",
-    "token": "B"
+    "token": "B",
+    "provides_cover": true
   },
   {
     "name": "fireplace",
@@ -171,6 +176,7 @@
     "description": "A large stone fireplace that warms the tavern",
     "state": "on",
     "token": "F",
+    "provides_cover": true,
     "state_descriptions": {
       "on": "The flames dance merrily in the fireplace, warming the room",
       "off": "The fireplace is cold and the ashes are gray"
@@ -190,6 +196,7 @@
     "description": "A colorful stall full of fresh fruit",
     "state": "normal",
     "token": "U",
+    "provides_cover": true,
     "content": [
       {
         "name": "Apple",
@@ -208,6 +215,7 @@
     "description": "A decorative fountain in the center of the square",
     "state": "active",
     "token": "W",
+    "provides_cover": true,
     "state_descriptions": {
       "active": "Water gushes lively from the fountain",
       "inactive": "The fountain is still and the water unmoving"
@@ -226,7 +234,8 @@
     "type": "interactive_object",
     "description": "A statue of an ancient hero of the city",
     "state": "normal",
-    "token": "S"
+    "token": "S",
+    "provides_cover": true
   },
   {
     "name": "counter",
@@ -272,6 +281,7 @@
     "description": "A sturdy wooden table.",
     "state": "clean",
     "token": "T",
+    "provides_cover": true,
     "state_descriptions": {
       "clean": "A sturdy, well-kept wooden table.",
       "dirty": "A wooden table with some stains of drink and food."
@@ -308,6 +318,7 @@
     "description": "A wooden barrel full of drinks.",
     "state": "closed",
     "token": "R",
+    "provides_cover": true,
     "state_descriptions": {
       "closed": "A wooden barrel full of drinks, sealed airtight.",
       "open": "An open wooden barrel containing an amber liquid."
@@ -349,6 +360,7 @@
     "requires_key": false,
     "hidden": true,
     "detection_dc": 10,
+    "provides_cover": true,
     "content": [
       {
         "name": "Cellar Key",
@@ -402,6 +414,7 @@
     "description": "A stall of a local merchant.",
     "state": "open",
     "token": "V",
+    "provides_cover": true,
     "state_descriptions": {
       "open": "A stall full of colorful and interesting goods.",
       "closed": "A closed stall with its curtains drawn."
@@ -589,6 +602,7 @@
     "description": "A banded strongbox with a fresh warehouse seal.",
     "state": "closed",
     "requires_key": true,
+    "provides_cover": true,
     "token": "C",
     "content": [
       {
@@ -620,6 +634,7 @@
     "description": "A stone chest bound in iron, its lock shaped like a sentinel's sigil.",
     "state": "closed",
     "requires_key": true,
+    "provides_cover": true,
     "token": "C",
     "content": [
       {
@@ -648,6 +663,7 @@
     "type": "rune_pillar",
     "description": "A pillar of black stone covered in warding runes. One line reads: 'Only the sentinel's sigil opens the reliquary.'",
     "state": "inactive",
-    "token": "R"
+    "token": "R",
+    "provides_cover": true
   }
 ]

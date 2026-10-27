@@ -471,6 +471,12 @@ function renderCombat(combat) {
   if (combat.effects?.aiming) {
     addStatusTag(playerStatus, "Aiming · advantage", "cooldown");
   }
+  if (combat.effects?.covering) {
+    addStatusTag(playerStatus, "Cover · +2 AC / DEX saves", "guard");
+  }
+  if (combat.effects?.flanking) {
+    addStatusTag(playerStatus, "Flanking · +2 attack", "condition");
+  }
   if (combat.surprised) {
     addStatusTag(playerStatus, "Surprise round", "condition");
   }

@@ -1053,6 +1053,21 @@ entirely. The doors that existed were also misaligned with the map exits.
 - Tests cover lock/unlock at level 9/10, each capstone effect and the Legend achievement.
   593 tests pass.
 
+## Cover and flanking (2026-10-27)
+
+- Added **Take cover** as combat action 9. It grants +2 AC and advantage on Dexterity saves
+  through the enemy phase, then expires. It is available only when the player is adjacent to
+  a wall or an interactive object tagged `provides_cover`; otherwise it is refused. This is
+  distinct from Defend's +4 AC.
+- Added **Flanking**: while any living ally remains, the player's weapon attacks gain +2 to
+  hit. The bonus is shown in the combat card through `effects.flanking`, and cover through
+  `effects.covering`.
+- Shifted maneuver menu numbers to 10+ and the dynamic Stand Up option accordingly; text
+  commands and quick actions are unchanged in intent.
+- Client asset version bumped to `v=34`. Tests cover cover proximity, AC and expiry,
+  cover-enhanced Dexterity saves, flanking hit/miss comparisons and combat snapshot exposure.
+- Full suite: 599 tests pass.
+
 ## Deliberate translation choices worth knowing
 
 - **`hp_base` / `mana_base` were left as-is.** They are consistent between code and JSON

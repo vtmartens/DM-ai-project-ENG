@@ -27,6 +27,8 @@ class InteractiveObject:
         self.hidden = False
         self.detected = False
         self.detection_dc = 10
+        # Whether an adjacent player can take cover behind this object.
+        self.provides_cover = False
 
         # New attributes
         self.state_descriptions = {state: description}  # Descriptions for each state
@@ -232,6 +234,9 @@ class InteractiveObject:
             "hidden": bool(getattr(self, "hidden", False)),
             "detected": bool(getattr(self, "detected", False)),
             "detection_dc": int(getattr(self, "detection_dc", 10) or 10),
+            "provides_cover": bool(
+                getattr(self, "provides_cover", False)
+            ),
             "state_descriptions": self.state_descriptions,
             "possible_states": self.possible_states,
             "required_abilities": self.required_abilities,
@@ -291,6 +296,9 @@ class InteractiveObject:
         new_object.hidden = bool(data.get("hidden", False))
         new_object.detected = bool(data.get("detected", False))
         new_object.detection_dc = int(data.get("detection_dc", 10) or 10)
+        new_object.provides_cover = bool(
+            data.get("provides_cover", False)
+        )
         
         return new_object
 

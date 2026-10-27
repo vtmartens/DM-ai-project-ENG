@@ -800,6 +800,7 @@ def get_available_actions():
             "attack",
             "defend",
             "aim",
+            "take cover",
             "run",
             "use item",
             "use ability",

@@ -393,6 +393,8 @@ class GameState:
                 "flee",
                 *maneuver_actions(),
             ]
+            if current.cover_available(self.game):
+                actions.append("take cover")
             if condition_stand_up(self.game.player):
                 actions.append("stand up")
             if len(living) > 1:
@@ -471,6 +473,10 @@ class GameState:
                     "aiming": bool(
                         (getattr(current, "effects", {}) or {}).get("aim")
                     ),
+                    "covering": bool(
+                        (getattr(current, "effects", {}) or {}).get("cover")
+                    ),
+                    "flanking": bool(current._flanking_bonus()),
                 },
                 "enemies": enemies,
                 "allies": [

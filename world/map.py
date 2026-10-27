@@ -202,6 +202,26 @@ class Map:
         
         return "\n".join(map_ascii)
     
+    def has_cover_near(self, x, y, radius=1):
+        """True when a wall or cover object is adjacent to the position."""
+        for dx in range(-radius, radius + 1):
+            for dy in range(-radius, radius + 1):
+                if dx == 0 and dy == 0:
+                    continue
+                px, py = x + dx, y + dy
+                if not (0 <= px < self.width and 0 <= py < self.height):
+                    continue
+                if self.grid[py][px] == 1:
+                    return True
+                obj = self.items.get((px, py))
+                if (
+                    obj is not None
+                    and not self.object_is_hidden(obj)
+                    and getattr(obj, "provides_cover", False)
+                ):
+                    return True
+        return False
+
     def get_nearby_items(self, x, y, radius=1, include_hidden=False):
         """
         Returns the objects within a certain radius of the position

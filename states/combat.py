@@ -101,6 +101,33 @@ class CombatState(BaseState):
             enemy for enemy in self.enemies if getattr(enemy, "hp", 0) > 0
         ]
 
+    def _flanking_bonus(self):
+        """A living ally gives the player +2 to weapon attacks."""
+        return (
+            2
+            if any(
+                getattr(ally, "hp", 0) > 0
+                for ally in getattr(self, "allies", [])
+            )
+            else 0
+        )
+
+    def cover_available(self, game=None):
+        """Whether the player has a nearby wall or cover object."""
+        game = game or getattr(self, "game", None)
+        player = getattr(game, "player", None) if game else None
+        if player is None or not getattr(player, "current_map", None):
+            return False
+        map_manager = getattr(game, "map_manager", None)
+        current_map = (
+            map_manager.get_map(player.current_map)
+            if map_manager is not None
+            else None
+        )
+        if current_map is None:
+            return False
+        return current_map.has_cover_near(player.x, player.y)
+
     @property
     def opponent(self):
         """The current target, falling back to the first living enemy."""
@@ -173,23 +200,28 @@ class CombatState(BaseState):
     def _maneuvers(self):
         return maneuver_definitions()
 
+    def _parse_cover_command(self, command):
+        """Matches the Take Cover combat action."""
+        text = str(command or "").strip().casefold()
+        return text in {"9", "cover", "take cover", "take_cover"}
+
     def _parse_stand_command(self, command):
         """Matches the dynamic Stand Up menu option or its text aliases."""
         text = str(command or "").strip().casefold()
         if not text:
             return False
-        stand_number = str(9 + len(self._maneuvers()))
+        stand_number = str(10 + len(self._maneuvers()))
         return text in {stand_number, "stand", "stand up", "rise"}
 
     def _parse_maneuver_command(self, command):
-        """Matches a maneuver id/name or its menu number (9 onward)."""
+        """Matches a maneuver id/name or its menu number (10 onward)."""
         text = str(command or "").strip().casefold()
         if not text:
             return None
 
         maneuvers = self._maneuvers()
         if text.isdigit():
-            index = int(text) - 9
+            index = int(text) - 10
             if 0 <= index < len(maneuvers):
                 return maneuvers[index]
             return None
@@ -287,13 +319,15 @@ class CombatState(BaseState):
             game.io.show_message("6. Choose target")
         game.io.show_message("7. Defend")
         game.io.show_message("8. Aim")
-        for offset, maneuver in enumerate(maneuver_definitions(), start=9):
+        if self.cover_available(game):
+            game.io.show_message("9. Take cover")
+        for offset, maneuver in enumerate(maneuver_definitions(), start=10):
             game.io.show_message(
                 f"{offset}. {maneuver.get('name', 'Maneuver')} — "
                 f"{maneuver.get('description', '')}"
             )
         if condition_stand_up(player):
-            stand_number = 9 + len(maneuver_definitions())
+            stand_number = 10 + len(maneuver_definitions())
             game.io.show_message(f"{stand_number}. Stand up")
 
         # Get the command from the input (already set by the web system)
@@ -349,6 +383,10 @@ class CombatState(BaseState):
         ability_name = self._parse_ability_command(player, selection_input)
         if ability_name:
             self._manage_ability(player, game, ability_name)
+            return
+
+        if self._parse_cover_command(selection_input):
+            self._manage_cover(player, game)
             return
 
         if condition_stand_up(player) and self._parse_stand_command(
@@ -474,6 +512,7 @@ class CombatState(BaseState):
         # until the next weapon attack consumes it.
         if isinstance(getattr(self, "effects", None), dict):
             self.effects.pop("defend", None)
+            self.effects.pop("cover", None)
 
         # Increment the turn
         self.turn += 1
@@ -1213,6 +1252,7 @@ class CombatState(BaseState):
         critical_allowed=True,
         advantage=False,
         disadvantage=False,
+        bonus_modifier=0,
     ):
         """Rolls d20 + attack bonus against AC and logs the result."""
         advantage_flag = bool(advantage)
@@ -1244,16 +1284,24 @@ class CombatState(BaseState):
             roll = self.dice_d20.roll()
             roll_text = str(roll)
 
-        bonus = self._attack_bonus_for(attacker)
+        bonus = self._attack_bonus_for(attacker) + int(
+            bonus_modifier or 0
+        )
         ability = self._attack_ability_for(attacker)
         ability_label = ability[:3].upper()
         total = roll + bonus
         target_ac = self._armor_class_for(target)
-        defense_note = ""
+        defense_notes = []
         effects = getattr(self, "effects", {}) or {}
         if target_is_player and effects.get("defend"):
             target_ac += 4
-            defense_note = " (defending)"
+            defense_notes.append("defending")
+        if target_is_player and effects.get("cover"):
+            target_ac += 2
+            defense_notes.append("in cover")
+        defense_note = (
+            f" ({', '.join(defense_notes)})" if defense_notes else ""
+        )
         critical = critical_allowed and roll == 20
         hit = roll == 20 or (roll != 1 and total >= target_ac)
 
@@ -1295,6 +1343,7 @@ class CombatState(BaseState):
             game,
             player_attacker=True,
             advantage=aiming,
+            bonus_modifier=self._flanking_bonus(),
         )
         if not hit:
             game.io.show_message("Your attack misses.")
@@ -1363,6 +1412,23 @@ class CombatState(BaseState):
         self.effects["aim"] = True
         game.io.show_message(
             "\nYou steady your aim. Your next attack has advantage."
+        )
+        self.phase = "enemy_attack" if self._alive_enemies() else "end_turn"
+
+    def _manage_cover(self, player, game):
+        """Spends the turn taking cover until the next round."""
+        if not self.cover_available(game):
+            game.io.show_message(
+                "\nThere is no wall or sturdy object nearby to take cover behind."
+            )
+            self.phase = "selection"
+            return
+        if not isinstance(getattr(self, "effects", None), dict):
+            self.effects = {}
+        self.effects["cover"] = True
+        game.io.show_message(
+            "\nYou take cover. You gain +2 AC and advantage on Dexterity "
+            "saves until your next turn."
         )
         self.phase = "enemy_attack" if self._alive_enemies() else "end_turn"
 
@@ -1684,10 +1750,18 @@ class CombatState(BaseState):
                 save_success = str(
                     save_data.get("success", "half")
                 ).casefold()
+                save_ability = str(
+                    save_data.get("ability", "dexterity")
+                ).casefold()
+                cover_advantage = (
+                    bool(self.effects.get("cover"))
+                    and save_ability == "dexterity"
+                )
                 saved = player.saving_throw(
-                    str(save_data.get("ability", "dexterity")),
+                    save_ability,
                     int(save_data.get("dc", 10) or 10),
                     game,
+                    advantage=True if cover_advantage else None,
                 )
                 if saved:
                     game.io.show_message(
