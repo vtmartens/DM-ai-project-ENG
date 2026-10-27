@@ -5,7 +5,12 @@ from typing import Any
 
 from ai import config
 from ai.narrator import Narrator
-from ai.prompts import SYSTEM_PROMPT, build_user_prompt
+from ai.prompts import (
+    HINT_SYSTEM_PROMPT,
+    SYSTEM_PROMPT,
+    build_hint_prompt,
+    build_user_prompt,
+)
 
 logger = logging.getLogger("game_rpg.ai")
 
@@ -42,31 +47,47 @@ class ClaudeNarrator(Narrator):
     ) -> str | None:
         if self._disabled or not events:
             return None
+        return self._complete(
+            SYSTEM_PROMPT,
+            build_user_prompt(events, context),
+            self.max_tokens,
+        )
 
-        prompt = build_user_prompt(events, context)
+    def hint(self, hint: str, context: dict[str, Any]) -> str | None:
+        if self._disabled or not hint:
+            return None
+        return self._complete(
+            HINT_SYSTEM_PROMPT,
+            build_hint_prompt(hint, context),
+            min(self.max_tokens, 256),
+        )
+
+    def _complete(self, system_prompt: str, prompt: str, max_tokens: int) -> str | None:
+        if self._disabled:
+            return None
 
         try:
             response = self.client.beta.messages.create(
                 model=self.model,
-                max_tokens=self.max_tokens,
-                system=SYSTEM_PROMPT,
+                max_tokens=max_tokens,
+                system=system_prompt,
                 output_config={"effort": "low"},
                 betas=["server-side-fallback-2026-06-01"],
                 fallbacks=[{"model": FALLBACK_MODEL}],
                 messages=[{"role": "user", "content": prompt}],
             )
         except Exception as exc:
-            # Narration is an optional garnish: never let it break a turn.
-            logger.warning("AI narrator unavailable; using engine text only: %s", exc)
+            # AI output is optional garnish: never let it break a turn or a hint.
+            logger.warning("AI request unavailable; using engine text only: %s", exc)
             self._disable_if_permanent(exc)
             return None
 
         stop_reason = getattr(response, "stop_reason", None)
         if stop_reason == "refusal":
-            logger.info("AI narrator refused this turn; using engine text only")
+            logger.info("AI request refused; using engine text only")
             return None
         if stop_reason == "max_tokens":
-            logger.warning("AI narrator hit max_tokens; dropping truncated narration")
+            logger.warning("AI request hit max_tokens; dropping truncated output")
             return None
 
         text = "".join(

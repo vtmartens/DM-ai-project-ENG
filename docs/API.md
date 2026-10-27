@@ -41,14 +41,16 @@ Endpoints that run a game command return `output`, a list of messages:
 emitted **before** the engine `narrative` messages it was generated from, so clients that
 render in order show the DM paragraph first. `narrative` is the engine's own text and is
 authoritative; `narration` is optional prose and must never be treated as game state. `map`
-is preformatted ASCII; render it in a monospace, whitespace-preserving block.
+is preformatted ASCII; render it in a monospace, whitespace-preserving block. `hint` entries
+come from `POST /hint` and are also kept in the event log.
 
 ## Session flow
 
 1. `POST /start` (new game) or `POST /load` (existing save) returns a `session_id`.
 2. Keep the `session_id` and send it with every session-scoped request.
 3. `POST /command` advances the game and returns `output` plus the updated `state`.
-4. Side panels use `GET /state`, `/abilities`, `/inventory`, and `/available_actions`.
+4. Side panels use `GET /state`, `/abilities`, `/inventory`, `/available_actions` and
+   `POST /hint`.
 5. `POST /save` / `POST /load` manage files under `saves/`.
 
 Sessions are cached in memory and persisted as `sessions/session_<id>.pickle`; they survive
@@ -201,6 +203,28 @@ Returns the rolling event log:
 ```json
 {"events": [{"type": "narrative", "text": "...", "time": 1790000000.0}]}
 ```
+
+#### `POST /hint`
+
+```json
+{"session_id": "uuid"}
+```
+
+Returns a short, deterministic hint for the current state:
+
+```json
+{
+  "session_id": "uuid",
+  "hint": "The Cellar door is locked. Use Cellar Key on it.",
+  "source": "engine"
+}
+```
+
+`source` is `"engine"` when the hint comes from the engine, or `"ai"` when the configured
+narrator rephrased it. AI phrasing uses the same opt-in narrator as narration
+(`DM_AI_NARRATION`); without it, or on any model failure/refusal, the engine hint is returned
+unchanged. Hints never change game state. The hint is also appended to the `/log` stream with
+`type: "hint"`.
 
 #### `POST /save`
 

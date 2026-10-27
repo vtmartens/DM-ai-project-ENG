@@ -1,8 +1,9 @@
 # AI Dungeon Master setup
 
-The AI Dungeon Master is optional. It appends one short atmospheric paragraph to a turn;
-the deterministic engine text is always shown unchanged. If the model is unavailable, slow,
-misconfigured, or refuses, the game continues without the paragraph.
+The AI Dungeon Master is optional. It appends one short atmospheric paragraph to a turn and
+can rephrase the engine's hints; the deterministic engine text is always shown unchanged. If
+the model is unavailable, slow, misconfigured, or refuses, the game continues without the
+paragraph and hints fall back to the engine wording.
 
 This guide focuses on setups that do **not** require a paid API: local inference (Ollama,
 LM Studio) and free cloud tiers. For the default Claude provider, see the README.
@@ -148,11 +149,22 @@ python main.py
 If `ANTHROPIC_BASE_URL` is set in your environment, the SDK will send requests there instead
 of to Anthropic. Unset it when using a real Anthropic key.
 
+## Hints
+
+The web client's **Hint** button calls `POST /hint`. The engine always produces a
+deterministic hint (quest objective, locked door, low HP, nearby NPC/object, combat target).
+When a narrator is configured, it is asked to rewrite that hint in one or two sentences. The
+model cannot add facts or change state; on failure or refusal the engine hint is returned
+with `source: "engine"`.
+
+AI hints use the same configuration as narration: set `DM_AI_NARRATION=1` (and the provider
+variables below). Without it, the Hint button still works with engine wording.
+
 ## Environment variables
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `DM_AI_NARRATION` | off | Must be `1`, `true`, `yes`, or `on` to enable narration |
+| `DM_AI_NARRATION` | off | Must be `1`, `true`, `yes`, or `on` to enable narration and AI-phrased hints |
 | `DM_AI_PROVIDER` | `claude` | `claude`, or `openai` / `openai-compatible` |
 | `DM_AI_MODEL` | `claude-opus-5-5` (Claude), `gpt-4o-mini` (OpenAI-compatible) | Model name |
 | `DM_AI_BASE_URL` | — | OpenAI-compatible base URL; falls back to `OPENAI_BASE_URL` |
@@ -169,6 +181,7 @@ of to Anthropic. Unset it when using a real Anthropic key.
 | Narration never appears | Check the game logs for `AI narrator`. A `finish_reason=length` means raise `DM_AI_MAX_TOKENS`; an authentication/permission error disables narration for the process |
 | Very slow turns | Use a smaller model, enable GPU offload, or raise `DM_AI_TIMEOUT`. The game waits for the narration before showing the prompt |
 | Empty narration from a reasoning model | Some models spend the token budget on hidden reasoning; use a non-reasoning instruct model or raise `DM_AI_MAX_TOKENS` |
+| Hints show engine wording | AI hints need `DM_AI_NARRATION=1`; a failure or refusal also falls back to the engine hint |
 | Engine menus or numbers changed | They cannot be changed by the narrator; it only appends text. If you see this, report it as a bug |
 
 ## Tests

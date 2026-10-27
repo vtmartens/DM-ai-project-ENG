@@ -67,6 +67,67 @@ def test_root_catalogue_mentions_the_web_client(client):
     data = client.get("/").get_json()
 
     assert "GET /app" in data["endpoints"]
+    assert "POST /hint" in data["endpoints"]
+
+
+def test_hint_returns_an_engine_hint_without_changing_state(client):
+    session_id = _start(client)
+    before = client.get(
+        "/state", query_string={"session_id": session_id}
+    ).get_json()
+
+    response = client.post("/hint", json={"session_id": session_id})
+    data = response.get_json()
+    after = client.get(
+        "/state", query_string={"session_id": session_id}
+    ).get_json()
+
+    assert response.status_code == 200
+    assert data["source"] == "engine"
+    assert data["hint"]
+    assert after["hp"] == before["hp"]
+    assert after["position"] == before["position"]
+    assert after["inventory"] == before["inventory"]
+
+
+def test_hint_uses_the_session_narrator(client):
+    import server
+
+    session_id = _start(client)
+    session = server.active_sessions[session_id]
+
+    class FakeHintNarrator:
+        def hint(self, hint, context):
+            return f"AI: {hint}"
+
+    session.io_buffer.narrator = FakeHintNarrator()
+
+    data = client.post("/hint", json={"session_id": session_id}).get_json()
+
+    assert data["source"] == "ai"
+    assert data["hint"].startswith("AI: ")
+
+
+def test_hint_is_added_to_the_log(client):
+    session_id = _start(client)
+    data = client.post("/hint", json={"session_id": session_id}).get_json()
+
+    events = client.get(
+        "/log", query_string={"session_id": session_id, "max": 200}
+    ).get_json()["events"]
+
+    assert any(
+        event["type"] == "hint" and event["text"] == data["hint"]
+        for event in events
+    )
+
+
+def test_hint_requires_a_session(client):
+    assert client.post("/hint", json={}).status_code == 400
+    assert (
+        client.post("/hint", json={"session_id": "no-such-session"}).status_code
+        == 404
+    )
 
 
 @pytest.mark.parametrize("path", SESSION_ENDPOINTS)

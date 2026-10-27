@@ -465,6 +465,27 @@ entirely. The doors that existed were also misaligned with the map exits.
   test and a 390×844 mobile test (no horizontal scroll, command input above the fold,
   44px targets, theme label, modal bounds). 290 tests pass. Client assets are at `?v=20`.
 
+## Dungeon Master hints (2026-10-26)
+
+- `core/hints.py` builds a deterministic hint from the current state, in priority order:
+  combat target (and low HP), active dialogue, quest ready to turn in, a locked door within
+  two steps (naming a held key when possible), active quest objective, low HP with/without a
+  healing item, a nearby NPC, a nearby object, then a generic exploration fallback.
+- `ai/hints.py` optionally asks the narrator to rephrase the engine hint. `Narrator` gained a
+  `hint` method; `NullNarrator` returns `None`. The Claude and OpenAI-compatible adapters
+  share a `_complete` helper, use a dedicated hint system prompt, and cap hint output at 256
+  tokens. Any error, refusal, `max_tokens`/`length` or empty response falls back to the
+  engine hint.
+- `POST /hint` returns `{"hint", "source": "engine"|"ai"}` and appends the hint to the
+  session's event log (`type: "hint"`). It never changes game state. AI hints reuse the
+  existing `DM_AI_NARRATION` narrator/provider configuration; without it the endpoint still
+  works with engine wording.
+- The web client gained a **Hint** button in the log actions and a blue `hint` log style.
+- Tests: `tests/test_hints.py` covers quests, locked doors/keys, low HP, combat, dialogue,
+  determinism, no state changes and AI fallbacks; provider tests cover the new `hint`
+  request shape and failures; API tests cover engine/AI sources, logging and errors; the
+  browser smoke test clicks Hint and asserts the log entry. 318 tests pass.
+
 ## Deliberate translation choices worth knowing
 
 - **`hp_base` / `mana_base` were left as-is.** They are consistent between code and JSON
@@ -493,7 +514,7 @@ entirely. The doors that existed were also misaligned with the map exits.
 | Residual Italian (glossary-derived denylist + accented characters) | 0 hits |
 | **Original Italian vs translated, identical input** | **46/46 placements, identical sequence** |
 | Flask API in-process (test client, no socket) | 31 × 200, 0 raised |
-| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, achievements, utility spells, locks, accessibility, web client routes, browser smoke/mobile) | 290 passed |
+| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, hints, achievements, utility spells, locks, accessibility, web client routes, browser smoke/mobile) | 318 passed |
 | Live smoke test (Flask server, `/app`, start/state/abilities/inventory/actions/command/save/load) | passed |
 
 The last comparison is the strongest evidence: the pristine Italian code and the finished

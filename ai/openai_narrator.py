@@ -5,7 +5,12 @@ from typing import Any
 
 from ai import config
 from ai.narrator import Narrator
-from ai.prompts import SYSTEM_PROMPT, build_user_prompt
+from ai.prompts import (
+    HINT_SYSTEM_PROMPT,
+    SYSTEM_PROMPT,
+    build_hint_prompt,
+    build_user_prompt,
+)
 
 logger = logging.getLogger("game_rpg.ai")
 
@@ -47,19 +52,37 @@ class OpenAINarrator(Narrator):
     ) -> str | None:
         if self._disabled or not events:
             return None
+        return self._complete(
+            SYSTEM_PROMPT,
+            build_user_prompt(events, context),
+            self.max_tokens,
+        )
+
+    def hint(self, hint: str, context: dict[str, Any]) -> str | None:
+        if self._disabled or not hint:
+            return None
+        return self._complete(
+            HINT_SYSTEM_PROMPT,
+            build_hint_prompt(hint, context),
+            min(self.max_tokens, 256),
+        )
+
+    def _complete(self, system_prompt: str, prompt: str, max_tokens: int) -> str | None:
+        if self._disabled:
+            return None
 
         try:
             response = self.client.chat.completions.create(
                 model=self.model,
-                max_tokens=self.max_tokens,
+                max_tokens=max_tokens,
                 messages=[
-                    {"role": "system", "content": SYSTEM_PROMPT},
-                    {"role": "user", "content": build_user_prompt(events, context)},
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": prompt},
                 ],
             )
         except Exception as exc:
-            # Narration is optional: never let it break a turn.
-            logger.warning("AI narrator unavailable; using engine text only: %s", exc)
+            # AI output is optional: never let it break a turn or a hint.
+            logger.warning("AI request unavailable; using engine text only: %s", exc)
             self._disable_if_permanent(exc)
             return None
 
@@ -70,9 +93,7 @@ class OpenAINarrator(Narrator):
         choice = choices[0]
         finish_reason = getattr(choice, "finish_reason", None)
         if finish_reason in ("length", "content_filter"):
-            logger.info(
-                "AI narrator stopped with %s; dropping narration", finish_reason
-            )
+            logger.info("AI request stopped with %s; dropping output", finish_reason)
             return None
 
         content = getattr(getattr(choice, "message", None), "content", None)

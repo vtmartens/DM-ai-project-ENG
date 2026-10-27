@@ -118,6 +118,18 @@ def test_web_client_smoke(live_server):
             driver.find_element(By.ID, "achievements-count").text.strip(),
         )
 
+        # Ask the Dungeon Master for a hint.
+        driver.find_element(By.ID, "ask-hint").click()
+        wait.until(
+            lambda d: len(d.find_elements(By.CSS_SELECTOR, "#log .log-entry.hint"))
+            > 0
+        )
+        hint_text = driver.find_element(
+            By.CSS_SELECTOR, "#log .log-entry.hint"
+        ).text
+        assert hint_text.strip()
+        assert "hint" in hint_text.lower()
+
         # Locked travel reports a message and leaves the player in the tavern.
         driver.find_element(By.ID, "command-input").send_keys("go to warehouse")
         driver.find_element(By.ID, "send-button").click()

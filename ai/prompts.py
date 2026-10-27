@@ -30,3 +30,27 @@ def build_user_prompt(events: list[dict[str, Any]], context: dict[str, Any]) -> 
         indent=2,
     )
     return f"Turn data:\n{payload}"
+
+
+HINT_SYSTEM_PROMPT = (
+    "You are the Dungeon Master of a text-based fantasy RPG.\n"
+    "You receive JSON with two fields:\n"
+    '- "hint": a deterministic suggestion written by the game engine.\n'
+    '- "context": a small snapshot of the player, location and active state.\n\n'
+    "Rewrite the hint as ONE short, atmospheric sentence or two in second person,\n"
+    "present tense. Keep it practical, as a suggestion rather than an order.\n\n"
+    "Hard rules:\n"
+    "- Keep every fact in the hint. Never add a location, item, NPC, number, or outcome.\n"
+    "- Never contradict the hint or reveal hidden information.\n"
+    "- Do not decide the player's actions for them; suggest, do not command.\n"
+    "- Return prose only: no headings, JSON, bullet points, or commentary."
+)
+
+
+def build_hint_prompt(hint: str, context: dict[str, Any]) -> str:
+    payload = json.dumps(
+        {"hint": hint, "context": context},
+        ensure_ascii=False,
+        indent=2,
+    )
+    return f"Hint data:\n{payload}"

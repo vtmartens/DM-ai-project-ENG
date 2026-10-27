@@ -70,6 +70,7 @@ const el = {
   combatCard: document.getElementById("combat-card"),
   dialogueCard: document.getElementById("dialogue-card"),
   showMap: document.getElementById("show-map"),
+  askHint: document.getElementById("ask-hint"),
   mapModal: document.getElementById("map-modal"),
   closeMapModal: document.getElementById("close-map-modal"),
   mapModalTitle: document.getElementById("map-modal-title"),
@@ -893,6 +894,11 @@ function appendMessage(text, type = "narrative") {
     kind.className = "log-kind";
     kind.textContent = "Error";
     entry.appendChild(kind);
+  } else if (type === "hint") {
+    const kind = document.createElement("span");
+    kind.className = "log-kind";
+    kind.textContent = "Hint";
+    entry.appendChild(kind);
   }
 
   const body = document.createElement("span");
@@ -987,6 +993,7 @@ function setBusy(busy, status = "") {
   el.saveGame.disabled = busy;
   el.loadGame.disabled = busy;
   el.newGame.disabled = busy;
+  if (el.askHint) el.askHint.disabled = busy;
   el.commandStatus.textContent = status;
 }
 
@@ -1276,6 +1283,36 @@ function closeLoadModal() {
   closeModal(el.loadModal);
 }
 
+async function askHint() {
+  if (!store.sessionId || store.busy) return;
+
+  store.busy = true;
+  el.askHint.disabled = true;
+  el.commandStatus.textContent = "Asking the Dungeon Master…";
+
+  try {
+    const data = await api("/hint", {
+      method: "POST",
+      body: { session_id: store.sessionId },
+    });
+    if (data && data.hint) {
+      appendMessage(data.hint, "hint");
+      scrollLogToBottom();
+    }
+  } catch (error) {
+    appendMessage(error.message, "error");
+    scrollLogToBottom();
+    if (error.status === 404) {
+      clearSession();
+      showToast("Session expired. Start a new game.", "error");
+    }
+  } finally {
+    store.busy = false;
+    el.askHint.disabled = false;
+    el.commandStatus.textContent = "";
+  }
+}
+
 async function showMapView() {
   if (!store.sessionId) return;
   try {
@@ -1354,6 +1391,7 @@ function bindEvents() {
   el.newGame.addEventListener("click", newGame);
   el.refreshInventory.addEventListener("click", () => refreshSidePanels(store.state));
   el.showMap.addEventListener("click", showMapView);
+  el.askHint.addEventListener("click", askHint);
   el.closeLoadModal.addEventListener("click", closeLoadModal);
   el.closeMapModal.addEventListener("click", closeMapModal);
   el.loadModal.addEventListener("click", (event) => {

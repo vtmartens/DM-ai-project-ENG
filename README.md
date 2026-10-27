@@ -53,6 +53,7 @@ Each game phase (map exploration, combat, dialogues, inventory management) is ha
 - Specific keys and locks: keyed doors on the map block travel until opened with a matching key, Knock, or (where wired) a lever; direct “go to <map>” travel obeys the same locks and auto-uses a matching key. The warehouse needs the key Violet gives you when you accept her quest, while the market→cellar route is open and the tavern cellar door is an optional locked shortcut. Poison works over several turns; antidotes clear poison; initiative accessories affect who acts first in combat
 - Save/load integrity preserves equipped weapon, armor and accessory bonuses, level-up defense, initiative, conditions and recruited allies across round trips
 - Achievements: movement, combat wins (including clean streaks), item collection, map exploration, gold, legendary equipment and quests completed without fighting unlock the eight achievements in `data/achievements/achievements.json`; progress and unlock times survive save/load
+- Ask the Dungeon Master for a hint: deterministic hints point at the active quest, a locked door and matching key, low HP, a nearby NPC/object or the current combat target; `POST /hint` and the web client's Hint button optionally have the configured AI narrator rephrase them, with no state changes and an engine fallback
 - Direct approach with pathfinding: “go to Durnan” or “walk to barrel” moves next to the target in one command; “go to exit” or “leave” walks to the nearest map exit and steps through it (works from the tavern and the market)
 - Fully testable backend (no Pygame dependencies in this repo)
 - Centralized data loading system via data_manager.py using JSON format
@@ -81,7 +82,7 @@ Each game phase (map exploration, combat, dialogues, inventory management) is ha
    - Alternative positioning system when main positions are occupied  
 ✅ Add modular I/O interfaces (text, GUI, AI)  
 🟡 Web client (dependency-free SPA in `frontend/`; React/Vite optional later)  
-🟡 Implement Dungeon Master AI (Claude narration slice; decisions remain deterministic)  
+🟡 Implement Dungeon Master AI (narration and hint rephrasing slices; decisions remain deterministic)
 ⬜ D&D rules improvement and adherence to official system  
 🟡 Class abilities, mana and level-based unlocks; utility spells (Knock, Mage Hand, Guidance) added, broader non-combat spell utility remains future work\
 🟡 Multiple enemies, target selection and allies in combat; encounter design and balancing remain future work\
@@ -94,7 +95,7 @@ Each game phase (map exploration, combat, dialogues, inventory management) is ha
 
 This project will serve as the backend foundation for an AI-driven narrative experience. Planned integrations include:
 
-- LLM-powered Dungeon Master (Claude by default) that reacts to in-game events and generates dynamic descriptions or dialogues — the first slice, narration, is in `ai/`
+- LLM-powered Dungeon Master (Claude by default) that reacts to in-game events and generates dynamic descriptions or dialogues — narration and optional hint rephrasing are in `ai/`
 - Natural language command parsing — deterministic target resolution is implemented for the tavern hub; AI interpretation is still future work
 - Decision tree to narrative generation mapping
 - Future web UI or terminal interface based on abstracted `IOInterface`

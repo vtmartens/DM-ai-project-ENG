@@ -121,6 +121,7 @@ def home():
             "GET /assets_info": "Get information about the available assets",
             "GET /tutorial": "Get information about the tutorials",
             "GET /achievements": "Get the player's achievements",
+            "POST /hint": "Ask the Dungeon Master for a hint",
             "GET /item_details": "Get details about a specific item",
             "GET /abilities": "Get the player's abilities",
             "POST /use_ability": "Use a player ability",
@@ -693,6 +694,40 @@ def get_log():
     return jsonify({
         "events": log
     })
+
+@app.route("/hint", methods=["POST"])
+def dungeon_master_hint():
+    """Return a hint, optionally rephrased by the configured AI narrator."""
+    data = request.json or {}
+    session_id = data.get("session_id")
+
+    if not session_id:
+        return jsonify({"error": "Session ID not provided"}), 400
+
+    session = active_sessions.get(session_id)
+    if not session:
+        session = load_session(session_id)
+        if session:
+            active_sessions[session_id] = session
+
+    if not session:
+        return jsonify({"error": "Session not found"}), 404
+
+    from ai.hints import generate_hint
+
+    narrator = getattr(getattr(session, "io_buffer", None), "narrator", None)
+    result = generate_hint(session.game, narrator=narrator)
+
+    # Keep the hint in the session log so a reload shows it too.
+    if isinstance(getattr(session, "event_log", None), list):
+        session.event_log.append(
+            {"type": "hint", "text": result["hint"], "time": time.time()}
+        )
+        if len(session.event_log) > 500:
+            del session.event_log[:-500]
+
+    return jsonify({"session_id": session_id, **result})
+
 
 @app.route("/equipment", methods=["POST"])
 def manage_equipment():

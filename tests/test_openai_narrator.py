@@ -109,3 +109,33 @@ def test_api_failure_falls_back_silently():
     narrator, _ = _narrator(error=RuntimeError("connection refused"))
 
     assert narrator.narrate(EVENTS, CONTEXT) is None
+
+
+def test_hint_uses_the_hint_prompt_and_a_small_token_budget():
+    narrator, client = _narrator(FakeResponse("The lock sighs open."))
+
+    assert narrator.hint("Use the Cellar Key.", CONTEXT) == "The lock sighs open."
+
+    call = client.chat.completions.calls[0]
+    assert call["max_tokens"] == 256
+    assert "hint" in call["messages"][0]["content"].lower()
+    assert "Cellar Key" in call["messages"][1]["content"]
+
+
+def test_hint_truncation_falls_back():
+    narrator, _ = _narrator(FakeResponse("Cut off", finish_reason="length"))
+
+    assert narrator.hint("Use the Cellar Key.", CONTEXT) is None
+
+
+def test_hint_content_filter_falls_back():
+    narrator, _ = _narrator(FakeResponse("Blocked", finish_reason="content_filter"))
+
+    assert narrator.hint("Use the Cellar Key.", CONTEXT) is None
+
+
+def test_no_hint_skips_the_client():
+    narrator, client = _narrator(FakeResponse())
+
+    assert narrator.hint("", CONTEXT) is None
+    assert client.chat.completions.calls == []

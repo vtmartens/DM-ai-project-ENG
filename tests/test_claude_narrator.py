@@ -100,3 +100,33 @@ def test_model_and_token_limit_can_be_overridden():
     call = client.messages.calls[0]
     assert call["model"] == "claude-sonnet-5-5"
     assert call["max_tokens"] == 256
+
+
+def test_hint_uses_the_hint_prompt_and_a_small_token_budget():
+    narrator, client = _narrator(FakeResponse("The lock sighs open."))
+
+    assert narrator.hint("Use the Cellar Key.", CONTEXT) == "The lock sighs open."
+
+    call = client.messages.calls[0]
+    assert call["max_tokens"] == 256
+    assert "hint" in call["system"].lower()
+    assert "Cellar Key" in call["messages"][0]["content"]
+
+
+def test_hint_refusal_falls_back():
+    narrator, _ = _narrator(FakeResponse("Ignored", stop_reason="refusal"))
+
+    assert narrator.hint("Use the Cellar Key.", CONTEXT) is None
+
+
+def test_hint_api_failure_falls_back_silently():
+    narrator, _ = _narrator(error=RuntimeError("network down"))
+
+    assert narrator.hint("Use the Cellar Key.", CONTEXT) is None
+
+
+def test_no_hint_skips_the_client():
+    narrator, client = _narrator(FakeResponse())
+
+    assert narrator.hint("", CONTEXT) is None
+    assert client.messages.calls == []
