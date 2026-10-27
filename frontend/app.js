@@ -637,7 +637,16 @@ function conditionLabel(name, value) {
     return `Guidance +${Number(value.bonus ?? 2)}`;
   }
   if (
-    ["burning", "frightened", "weakened", "prone", "staggered"].includes(key) &&
+    [
+      "burning",
+      "frightened",
+      "weakened",
+      "prone",
+      "staggered",
+      "blinded",
+      "restrained",
+      "charmed",
+    ].includes(key) &&
     value &&
     typeof value === "object"
   ) {
@@ -656,15 +665,24 @@ function conditionLabel(name, value) {
   return value === true ? String(name) : `${name} ${value}`;
 }
 
+const CONDITION_HELP = {
+  blinded:
+    "Attacks and checks have disadvantage; attacks against you have advantage. A CON save ends it.",
+  restrained:
+    "Attacks and checks have disadvantage; you cannot flee. Use Break Free or wait for the STR save.",
+  charmed:
+    "You cannot attack the charmer. Use Resist the Charm, target another enemy, or wait for the WIS save.",
+};
+
 function conditionTitle(name, value) {
-  if (value && typeof value === "object") {
-    return (
-      Object.entries(value)
-        .map(([stat, amount]) => `${stat}: ${amount}`)
-        .join(", ") || String(name)
-    );
-  }
-  return `${name}: ${value}`;
+  const help = CONDITION_HELP[String(name).toLowerCase()];
+  const details =
+    value && typeof value === "object"
+      ? Object.entries(value)
+          .map(([stat, amount]) => `${stat}: ${amount}`)
+          .join(", ")
+      : `${name}: ${value}`;
+  return [help, details].filter(Boolean).join(" · ");
 }
 
 function renderDialogue(dialogue) {

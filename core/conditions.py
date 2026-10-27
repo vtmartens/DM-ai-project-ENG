@@ -228,3 +228,64 @@ def condition_damage_modifier(entity) -> int:
         if isinstance(definition, dict):
             total += int(definition.get("damage_modifier", 0) or 0)
     return total
+
+
+def condition_blocks_escape(entity) -> str | None:
+    """Returns the first active condition that prevents fleeing."""
+    conditions = getattr(entity, "conditions", None)
+    if not isinstance(conditions, dict):
+        return None
+    catalogue = condition_catalogue()
+    for condition_id in conditions:
+        definition = catalogue.get(condition_id)
+        if isinstance(definition, dict) and definition.get("blocks_escape"):
+            return condition_id
+    return None
+
+
+def condition_escape_action(entity) -> tuple[str, dict] | None:
+    """Returns the first active condition with an action that clears it."""
+    conditions = getattr(entity, "conditions", None)
+    if not isinstance(conditions, dict):
+        return None
+    catalogue = condition_catalogue()
+    for condition_id in conditions:
+        definition = catalogue.get(condition_id)
+        if not isinstance(definition, dict):
+            continue
+        action = definition.get("escape_action")
+        if isinstance(action, dict) and action:
+            return condition_id, dict(action)
+    return None
+
+
+def condition_blocks_attack(entity, target) -> str | None:
+    """Returns a condition that forbids attacking the given target.
+
+    Charmed conditions record the charmer's name in the condition entry, so
+    the player can still attack other enemies while charmed.
+    """
+    conditions = getattr(entity, "conditions", None)
+    if not isinstance(conditions, dict):
+        return None
+
+    target_name = (
+        str(target or "") if isinstance(target, str)
+        else str(getattr(target, "name", "") or "")
+    ).strip().casefold()
+    if not target_name:
+        return None
+
+    catalogue = condition_catalogue()
+    for condition_id, entry in conditions.items():
+        definition = catalogue.get(condition_id)
+        if not isinstance(definition, dict):
+            continue
+        if not definition.get("blocks_attacks_against_source"):
+            continue
+        if not isinstance(entry, dict):
+            continue
+        source = str(entry.get("source", "") or "").strip().casefold()
+        if source and source == target_name:
+            return condition_id
+    return None

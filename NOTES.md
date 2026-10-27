@@ -1210,6 +1210,32 @@ entirely. The doors that existed were also misaligned with the map exits.
 - Tests cover offer gating, lockbox/ledger readiness, all three outcomes, achievement
   completion and repeat-offer suppression. 663 tests pass.
 
+## Broader conditions and counterplay (2026-10-27)
+
+- `data/conditions/conditions.json` now also defines **Blinded** (attack/check
+  disadvantage, incoming attacks have advantage, CON 12 save), **Restrained** (the same
+  penalties, cannot flee, STR 13 save) and **Charmed** (cannot attack the charmer, WIS 13
+  save).
+- Conditions can declare `blocks_escape`, `blocks_attacks_against_source` and an
+  `escape_action` with either a skill check or a saving throw. Charmed entries record the
+  charmer in `source`; the enemy ability data uses `"source": "attacker"`.
+- `CombatState` gained dynamic **Stand up**, **Break Free** and **Resist the Charm** menu
+  entries after the maneuvers, with matching aliases and `available_actions` entries.
+  Escape actions cost the turn on success or failure. Charmed weapon attacks and damaging
+  class abilities against the charmer are refused without consuming the turn, while other
+  targets remain attackable.
+- Restrained blocks `flee` outright; the attempt does not roll. The hints system now calls
+  out Blinded, Restrained and Charmed with their counterplay.
+- Sources: bandits gained **Blinding Powder**, giant spiders **Sticky Web**, the Smuggler
+  Lord **Silver Tongue**, and the Underroad gained a hidden **Blinding Dust Trap** at
+  `(12, 2)`. The Conditions card labels and tooltips were extended and assets bumped to
+  `?v=42`.
+- Tests: `tests/test_extended_conditions.py` covers both-way roll flags, the trap source,
+  blocked fleeing, successful/failed Break Free, quick-action discovery, source-specific
+  Charmed attacks and abilities, the Wisdom escape save, Silver Tongue source recording,
+  and the spider/bandit sources. Data integrity validates the new condition flags and
+  escape actions. 675 tests pass.
+
 ## Deliberate translation choices worth knowing
 
 - **`hp_base` / `mana_base` were left as-is.** They are consistent between code and JSON

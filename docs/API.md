@@ -948,7 +948,12 @@ than one enemy is alive; clients can also send `target <name>` as a command. `co
 the player's active condition map (same shape as `state.conditions`); each enemy also carries
 its own `conditions` map. `guard` is the enemy's remaining physical guard, and `cooldowns`
 lists ability names and rounds until reuse. Timed conditions (burning, frightened, weakened,
-prone, staggered) include a `turns` counter and tick at the end of each combat round.
+prone, staggered, blinded, restrained, charmed) include a `turns` counter and tick at the end
+of each combat round. Blinded and Restrained give the player's attacks and checks
+disadvantage while attacks against them have advantage; Restrained also sets
+`blocks_escape`, so `flee` is refused. Charmed records the charmer's name in the condition
+entry's `source` and prevents weapon attacks and damaging class abilities against that
+enemy only.
 `effects.defending` is true while Defend adds +4 AC through the enemy phase;
 `effects.aiming` is true until the next weapon attack consumes the advantage.
 `effects.covering` grants +2 AC and advantage on Dexterity saves through the enemy phase;
@@ -977,6 +982,17 @@ after using one. A prone player can use the `stand up` action from the combat me
 actions or `/combat_action`; it costs the turn and clears Prone. Staggered prevents the player
 from using class abilities, matching the enemy rule.
 
+Conditions can declare an `escape_action`. Restrained offers **Break Free** (Athletics vs
+DC 13) and Charmed offers **Resist the Charm** (Wisdom save vs DC 13); the action's label is
+added to `available_actions`, shown after Stand Up in the menu, and costs the turn whether it
+succeeds or fails. A successful action removes the condition; otherwise the normal
+end-of-round save can still end it. Enemy abilities that apply Charmed use
+`"source": "attacker"`, which the engine resolves to the enemy's name.
+
+Blinding Powder, Sticky Web and Silver Tongue are enemy abilities in
+`data/monsters/abilities.json`; bandits, giant spiders and the Smuggler Lord reference them.
+The Underroad's hidden Blinding Dust Trap applies Blinded when its save fails.
+
 Outside combat: `{"in_combat": false}`.
 
 #### `POST /combat_action`
@@ -994,6 +1010,8 @@ nearby cover exists. All three are also available as normal commands via `POST /
 resolve contested skill checks and apply their condition to the selected target; they are
 also available as normal commands, menu options 10 and 11, and quick actions. `"stand up"`
 spends the turn to clear the player's Prone condition and is advertised only while prone.
+`"break free"` and `"resist the charm"` likewise spend the turn on the active condition's
+escape action and are advertised only while that condition is present.
 
 Enemies also act on data-driven abilities with cooldowns. Their telegraphs and effects appear
 in `output`; `combat.enemies` reflects the resulting HP. Abilities may deal damage, poison,

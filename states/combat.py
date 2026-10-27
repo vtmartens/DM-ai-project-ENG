@@ -1,8 +1,11 @@
 from states.base_state import BaseState
-from core.checks import contested_check, contested_skill_check
+from core.checks import contested_check, contested_skill_check, skill_check
 from core.conditions import (
     apply_condition,
     condition_blocks_abilities,
+    condition_blocks_attack,
+    condition_blocks_escape,
+    condition_escape_action,
     condition_incoming_roll_flags,
     condition_stand_up,
     remove_condition,
@@ -273,13 +276,68 @@ class CombatState(BaseState):
         text = str(command or "").strip().casefold()
         return text in {"9", "cover", "take cover", "take_cover"}
 
-    def _parse_stand_command(self, command):
-        """Matches the dynamic Stand Up menu option or its text aliases."""
+    def _dynamic_actions(self, player):
+        """Returns the condition-driven actions shown after the maneuvers."""
+        actions = []
+        number = 10 + len(self._maneuvers())
+
+        stand = condition_stand_up(player)
+        if stand:
+            actions.append(
+                {
+                    "kind": "stand",
+                    "number": number,
+                    "condition": stand,
+                    "label": "Stand up",
+                    "aliases": {"stand", "stand up", "rise"},
+                }
+            )
+            number += 1
+
+        escape = condition_escape_action(player)
+        if escape:
+            condition_id, action = escape
+            label = str(action.get("label", "Break free"))
+            aliases = {
+                label.casefold(),
+                condition_id.casefold().replace("_", " "),
+            }
+            aliases.update(
+                str(alias).casefold()
+                for alias in action.get("aliases", [])
+                if isinstance(alias, str)
+            )
+            actions.append(
+                {
+                    "kind": "escape",
+                    "number": number,
+                    "condition": condition_id,
+                    "label": label,
+                    "action": action,
+                    "aliases": aliases,
+                }
+            )
+        return actions
+
+    def _parse_dynamic_action(self, player, command, kind):
+        """Matches a Stand Up / Break Free menu entry or one of its aliases."""
         text = str(command or "").strip().casefold()
         if not text:
-            return False
-        stand_number = str(10 + len(self._maneuvers()))
-        return text in {stand_number, "stand", "stand up", "rise"}
+            return None
+        for entry in self._dynamic_actions(player):
+            if entry["kind"] != kind:
+                continue
+            if text == str(entry["number"]) or text in entry["aliases"]:
+                return entry
+        return None
+
+    def _parse_stand_command(self, player, command):
+        """Matches the dynamic Stand Up menu option or its text aliases."""
+        return self._parse_dynamic_action(player, command, "stand") is not None
+
+    def _parse_escape_command(self, player, command):
+        """Matches a condition's Break Free / Resist action."""
+        return self._parse_dynamic_action(player, command, "escape")
 
     def _parse_maneuver_command(self, command):
         """Matches a maneuver id/name or its menu number (10 onward)."""
@@ -394,9 +452,8 @@ class CombatState(BaseState):
                 f"{offset}. {maneuver.get('name', 'Maneuver')} — "
                 f"{maneuver.get('description', '')}"
             )
-        if condition_stand_up(player):
-            stand_number = 10 + len(maneuver_definitions())
-            game.io.show_message(f"{stand_number}. Stand up")
+        for action in self._dynamic_actions(player):
+            game.io.show_message(f"{action['number']}. {action['label']}")
 
         # Get the command from the input (already set by the web system)
         game.io.request_input("Choice: ")
@@ -437,10 +494,12 @@ class CombatState(BaseState):
             if self.select_target(target_name):
                 game.io.show_message(f"Target: {self.opponent.name}.")
                 if attack_target:
-                    self._manage_attack(player, game)
-                    self.phase = (
-                        "enemy_attack" if self._alive_enemies() else "end_turn"
-                    )
+                    if self._manage_attack(player, game):
+                        self.phase = (
+                            "enemy_attack"
+                            if self._alive_enemies()
+                            else "end_turn"
+                        )
                 else:
                     self.phase = "selection"
             else:
@@ -498,9 +557,19 @@ class CombatState(BaseState):
             return
 
         if condition_stand_up(player) and self._parse_stand_command(
-            selection_input
+            player, selection_input
         ):
             self._manage_stand(player, game)
+            return
+
+        escape = self._parse_escape_command(player, selection_input)
+        if escape is not None:
+            self._manage_escape(
+                player,
+                game,
+                escape["condition"],
+                escape["action"],
+            )
             return
 
         maneuver = self._parse_maneuver_command(selection_input)
@@ -524,12 +593,12 @@ class CombatState(BaseState):
             selection = process_command_combat(selection_input)
 
         if selection == "1":
-            self._manage_attack(player, game)
-            # Move to the enemy attack phase if the opponent is still alive
-            if self._alive_enemies():
-                self.phase = "enemy_attack"
-            else:
-                self.phase = "end_turn"
+            if self._manage_attack(player, game):
+                # Move to the enemy attack phase if the opponent is alive
+                if self._alive_enemies():
+                    self.phase = "enemy_attack"
+                else:
+                    self.phase = "end_turn"
         elif selection == "2":
             self.phase = "use_item"
             self.temporary_data.clear()
@@ -1011,6 +1080,20 @@ class CombatState(BaseState):
         name, definition = resolve_ability(player, ability_name)
         if not name:
             game.io.show_message(f"You don't know an ability called {ability_name}.")
+            self.phase = "selection"
+            return
+
+        effect = definition.get("effect", {})
+        if (
+            isinstance(effect, dict)
+            and effect.get("type") == "damage"
+            and condition_blocks_attack(player, self.opponent)
+        ):
+            game.io.show_message(
+                "\nThe charm prevents you from turning hostile magic on "
+                f"{self.opponent.name}."
+            )
+            self.last_ability_used = False
             self.phase = "selection"
             return
 
@@ -1615,9 +1698,16 @@ class CombatState(BaseState):
         return hit, critical
 
     def _manage_attack(self, player, game):
-        """Handle the player's attack."""
+        """Handle the player's attack. Returns False if the action was refused."""
         if self.opponent is None:
-            return
+            return False
+        if condition_blocks_attack(player, self.opponent):
+            game.io.show_message(
+                f"\nThe charm stays your hand. You cannot attack "
+                f"{self.opponent.name}."
+            )
+            self.phase = "selection"
+            return False
         if not isinstance(getattr(self, "effects", None), dict):
             self.effects = {}
 
@@ -1635,7 +1725,7 @@ class CombatState(BaseState):
         )
         if not hit:
             game.io.show_message("Your attack misses.")
-            return
+            return True
 
         # Use the player's effective strength, which includes weapon and accessory bonuses
         blessing = int(self.effects.pop("bless_attack", 0) or 0)
@@ -1682,6 +1772,7 @@ class CombatState(BaseState):
                 game.io.show_message(f"\nCRITICAL HIT! You attack {self.opponent.name} and deal {damage} damage!")
             else:
                 game.io.show_message(f"\nYou attack {self.opponent.name} and deal {damage} damage!")
+        return True
 
     def _manage_defend(self, player, game):
         """Spends the turn defending: +4 AC until the end of the round."""
@@ -1729,6 +1820,43 @@ class CombatState(BaseState):
             return
         remove_condition(player, condition_id)
         game.io.show_message("\nYou climb back to your feet.")
+        self.phase = "enemy_attack" if self._alive_enemies() else "end_turn"
+
+    def _manage_escape(self, player, game, condition_id, action):
+        """Spends the turn trying a condition's data-driven escape action."""
+        name = condition_id.replace("_", " ").title()
+        action = action if isinstance(action, dict) else {}
+        difficulty = int(action.get("dc", 12) or 12)
+
+        if action.get("skill"):
+            passed = skill_check(
+                player, str(action["skill"]), difficulty, game
+            )
+        elif action.get("save"):
+            passed = player.saving_throw(
+                str(action["save"]), difficulty, game
+            )
+        else:
+            game.io.show_message(f"\nYou cannot escape {name} that way.")
+            self.phase = "selection"
+            return
+
+        if passed:
+            remove_condition(player, condition_id)
+            game.io.show_message(
+                "\n"
+                + str(
+                    action.get(
+                        "success", f"You break free of {name}."
+                    )
+                )
+            )
+        else:
+            game.io.show_message(
+                "\n"
+                + str(action.get("failure", f"You remain affected by {name}."))
+            )
+
         self.phase = "enemy_attack" if self._alive_enemies() else "end_turn"
 
     def _manage_maneuver(self, player, game, maneuver):
@@ -2112,11 +2240,15 @@ class CombatState(BaseState):
             ):
                 from core.conditions import apply_condition
 
+                params = {}
+                if condition.get("source") == "attacker":
+                    params["source"] = getattr(enemy, "name", "")
                 apply_condition(
                     player,
                     condition["id"],
                     turns=condition.get("turns"),
                     game=game,
+                    **params,
                 )
 
             self_heal = int(effect.get("self_heal", 0) or 0)
@@ -2177,6 +2309,14 @@ class CombatState(BaseState):
             game: The game instance
             bonus (int): Modifier added to the d20 roll (e.g. from a smoke bomb)
         """
+        blocked = condition_blocks_escape(getattr(game, "player", None))
+        if blocked:
+            name = blocked.replace("_", " ").title()
+            game.io.show_message(
+                f"\nYou are {name.lower()} and cannot flee."
+            )
+            return
+
         # Roll a d20 with DC 10 to escape
         roll_result = self.dice_d20.roll() + bonus
         if roll_result >= 10:

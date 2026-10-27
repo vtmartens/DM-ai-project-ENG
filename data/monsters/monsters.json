@@ -157,7 +157,8 @@
     "gold": 25,
     "experience": 120,
     "token": "R",
-    "difficulty": "medium"
+    "difficulty": "medium",
+    "abilities": ["web_shot"]
   },
   "zombie": {
     "name": "zombie",
@@ -200,7 +201,7 @@
     "experience": 60,
     "token": "b",
     "difficulty": "easy",
-    "abilities": ["cheap_shot"],
+    "abilities": ["cheap_shot", "blinding_powder"],
     "maneuvers": ["shove"],
     "maneuver_chance": 35
   },
@@ -274,7 +275,7 @@
     "experience": 300,
     "token": "L",
     "difficulty": "hard",
-    "abilities": ["dirty_trick"],
+    "abilities": ["silver_tongue", "dirty_trick"],
     "maneuvers": ["shove"],
     "maneuver_chance": 35
   },

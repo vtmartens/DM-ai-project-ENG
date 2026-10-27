@@ -180,6 +180,8 @@ def test_spider_poison_ticks_on_the_player_and_antidote_clears_it(recording_io):
     game = Game(player, None, recording_io, temporary=True)
     combat = CombatState(enemy=enemy)
     game.push_state(combat)
+    # Force the basic bite so its attack_effect poison is what lands.
+    combat.ability_cooldowns["0"] = {"web_shot": 2}
 
     combat.dice_d20.roll = lambda: 15  # hit, no critical
     combat._attack_enemy(player, game)

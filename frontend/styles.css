@@ -366,9 +366,18 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
   border-color: var(--border-strong);
 }
 .tag.condition-prone,
-.tag.condition-staggered {
+.tag.condition-staggered,
+.tag.condition-restrained {
   color: var(--accent-strong);
   border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+}
+.tag.condition-blinded {
+  color: var(--text-muted);
+  border-color: var(--border-strong);
+}
+.tag.condition-charmed {
+  color: var(--info);
+  border-color: color-mix(in srgb, var(--info) 45%, var(--border));
 }
 .condition-list .empty-note { padding: 0; background: none; border: 0; }
 

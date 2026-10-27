@@ -77,10 +77,12 @@ You can also set `localStorage["dm_api_base"]`.
   explains the recovery and the session returns to the tavern.
   Recruited allies appear below the enemies. Enemy abilities and their telegraphs appear in
   the adventure log, and the card reflects HP changes. Status tags show each enemy's physical
-  guard, ability cooldowns and conditions such as Prone or Staggered. Trip and Shove are
-  available as quick actions; their contested Athletics checks and outcomes appear in the log.
-  Enemies can also Trip/Shove the player. A prone player gets a **Stand up** quick action, and
-  Staggered disables ability use, matching the enemy rules. **Take cover** grants +2 AC and
+  guard, ability cooldowns and conditions such as Prone, Staggered, Blinded, Restrained or
+  Charmed. Trip and Shove are available as quick actions; their contested Athletics checks
+  and outcomes appear in the log. Enemies can also Trip/Shove the player. A prone player gets
+  a **Stand up** quick action, a restrained player gets **Break Free**, and a charmed player
+  gets **Resist the Charm**. Staggered disables ability use, matching the enemy rules.
+  **Take cover** grants +2 AC and
   advantage on Dexterity saves until the next turn when the player is beside a wall or
   cover-tagged object; a living ally grants **+2 attack** through Flanking. Both appear as
   status tags. Recruited allies show their stance in the combat card, and a **Party** panel
@@ -88,8 +90,9 @@ You can also set `localStorage["dm_api_base"]`.
   loyalty and exposes ally abilities during combat, such as Violet’s Field Dressing,
   Antidote and Calming Word.
 - Conditions panel driven by `state.conditions`: poisoned duration/damage, Guidance,
-  advantage/disadvantage, timed burning/frightened/weakened effects, plus Hidden and
-  Disguised status tags, are rendered as colour-coded tags and update after each action.
+  advantage/disadvantage, timed burning/frightened/weakened/blinded/restrained/charmed
+  effects, plus Hidden and Disguised status tags, are rendered as colour-coded tags with
+  effect tooltips and update after each action.
 - Quests panel driven by `GET /missions`, showing each active quest and its objective.
   Completed objectives change to “Ready to turn in — speak to …” until rewards are collected.
 - **Campaign** panel driven by `state.campaign` / `GET /campaign`, with seven chapter rows,

@@ -39,5 +39,48 @@
     "blocks_abilities": true,
     "rolls": {"disadvantage": ["attack"]},
     "message": "You are staggered!"
+  },
+  "blinded": {
+    "name": "Blinded",
+    "description": "Dust and darkness blur everything beyond arm's reach.",
+    "duration": 2,
+    "save": {"ability": "constitution", "dc": 12},
+    "rolls": {"disadvantage": ["attack", "check"]},
+    "incoming_rolls": {"advantage": ["attack"]},
+    "message": "You are blinded!"
+  },
+  "restrained": {
+    "name": "Restrained",
+    "description": "Webbing or bonds pin you in place and leave you unable to flee.",
+    "duration": 3,
+    "save": {"ability": "strength", "dc": 13},
+    "rolls": {"disadvantage": ["attack", "check"]},
+    "incoming_rolls": {"advantage": ["attack"]},
+    "blocks_escape": true,
+    "escape_action": {
+      "label": "Break Free",
+      "aliases": ["break free", "struggle"],
+      "skill": "athletics",
+      "dc": 13,
+      "success": "You tear free of the bonds.",
+      "failure": "You struggle, but the bonds still hold."
+    },
+    "message": "You are restrained!"
+  },
+  "charmed": {
+    "name": "Charmed",
+    "description": "A honeyed voice makes it hard to raise your hand against its owner.",
+    "duration": 2,
+    "save": {"ability": "wisdom", "dc": 13},
+    "blocks_attacks_against_source": true,
+    "escape_action": {
+      "label": "Resist the Charm",
+      "aliases": ["resist", "resist charm", "shake it off"],
+      "save": "wisdom",
+      "dc": 13,
+      "success": "You shake off the charming voice.",
+      "failure": "The charming voice tightens its hold."
+    },
+    "message": "You are charmed!"
   }
 }

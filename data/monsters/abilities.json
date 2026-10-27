@@ -86,6 +86,61 @@
       "damage": 5
     }
   },
+  "blinding_powder": {
+    "id": "blinding_powder",
+    "name": "Blinding Powder",
+    "description": "A fistful of caustic dust thrown into the eyes.",
+    "cooldown": 3,
+    "telegraph": "The bandit reaches into a pouch and hurls a handful of dust.",
+    "save": {
+      "ability": "dexterity",
+      "dc": 12,
+      "success": "half"
+    },
+    "condition": {"id": "blinded", "turns": 2},
+    "effect": {
+      "type": "attack",
+      "damage": 3
+    }
+  },
+  "web_shot": {
+    "id": "web_shot",
+    "name": "Sticky Web",
+    "description": "A mass of silk pins the target in place.",
+    "cooldown": 3,
+    "telegraph": "The giant spider gathers a bundle of webbing under its abdomen.",
+    "save": {
+      "ability": "dexterity",
+      "dc": 12,
+      "success": "half"
+    },
+    "condition": {"id": "restrained", "turns": 2},
+    "effect": {
+      "type": "attack",
+      "damage": 4
+    }
+  },
+  "silver_tongue": {
+    "id": "silver_tongue",
+    "name": "Silver Tongue",
+    "description": "A honeyed command that makes the target reluctant to strike back.",
+    "cooldown": 4,
+    "telegraph": "The Smuggler Lord smiles and speaks a few soft, measured words.",
+    "save": {
+      "ability": "wisdom",
+      "dc": 13,
+      "success": "half"
+    },
+    "condition": {
+      "id": "charmed",
+      "turns": 2,
+      "source": "attacker"
+    },
+    "effect": {
+      "type": "attack",
+      "damage": 4
+    }
+  },
   "shield_bash": {
     "id": "shield_bash",
     "name": "Shield Bash",

@@ -704,5 +704,22 @@
         "description": "A merchant's private ledger listing cursed relics sold under the table"
       }
     ]
+  },
+  {
+    "name": "Blinding Dust Trap",
+    "type": "trap",
+    "description": "A pressure plate rigged to burst a cloud of caustic dust.",
+    "state": "active",
+    "damage": 3,
+    "saving_throw_difficulty": 12,
+    "saving_throw_ability": "constitution",
+    "hidden": true,
+    "detection_dc": 13,
+    "disarm_dc": 13,
+    "disarm_skill": "investigation",
+    "trigger_on_failure": true,
+    "magical": false,
+    "condition": {"id": "blinded", "turns": 2},
+    "token": "T"
   }
 ]

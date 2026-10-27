@@ -227,6 +227,8 @@ def test_enemy_ability_definitions_are_well_formed():
             assert condition.get("id") in conditions, ability_id
             assert int(condition.get("turns", 1)) >= 1, ability_id
             assert effect.get("type") == "attack", ability_id
+            if "source" in condition:
+                assert condition["source"] == "attacker", ability_id
 
         if effect["type"] == "attack":
             assert int(effect.get("damage", 0)) > 0, ability_id
@@ -240,6 +242,14 @@ def test_enemy_ability_definitions_are_well_formed():
 
 def test_condition_definitions_are_well_formed():
     conditions = _load(ROOT / "data" / "conditions" / "conditions.json")
+    abilities = {
+        "strength",
+        "dexterity",
+        "constitution",
+        "intelligence",
+        "wisdom",
+        "charisma",
+    }
     assert conditions
 
     for condition_id, condition in conditions.items():
@@ -258,15 +268,23 @@ def test_condition_definitions_are_well_formed():
         save = condition.get("save")
         if save is not None:
             assert isinstance(save, dict), condition_id
-            assert save.get("ability") in {
-                "strength",
-                "dexterity",
-                "constitution",
-                "intelligence",
-                "wisdom",
-                "charisma",
-            }, condition_id
+            assert save.get("ability") in abilities, condition_id
             assert 5 <= int(save.get("dc", 0)) <= 30, condition_id
+
+        escape = condition.get("escape_action")
+        if escape is not None:
+            from entities.entity import ASSOCIATED_SKILLS
+
+            assert isinstance(escape, dict), condition_id
+            assert escape.get("label"), condition_id
+            assert 5 <= int(escape.get("dc", 0)) <= 30, condition_id
+            check = escape.get("skill")
+            saving_ability = escape.get("save")
+            assert bool(check) != bool(saving_ability), condition_id
+            if check:
+                assert check in ASSOCIATED_SKILLS, condition_id
+            if saving_ability:
+                assert saving_ability in abilities, condition_id
 
         for field in ("rolls", "incoming_rolls"):
             rolls = condition.get(field)
@@ -284,7 +302,12 @@ def test_condition_definitions_are_well_formed():
                         "all",
                     }, condition_id
 
-        for flag in ("stand_up", "blocks_abilities"):
+        for flag in (
+            "stand_up",
+            "blocks_abilities",
+            "blocks_escape",
+            "blocks_attacks_against_source",
+        ):
             if flag in condition:
                 assert isinstance(condition[flag], bool), condition_id
 

@@ -83,6 +83,10 @@
     {
       "name": "Spike Trap",
       "position": [8, 6]
+    },
+    {
+      "name": "Blinding Dust Trap",
+      "position": [12, 2]
     }
   ],
   "warehouse": [

@@ -659,7 +659,10 @@ class GameState:
 
         current = self.game.current_state()
         if isinstance(current, CombatState) and getattr(current, "enemies", None):
-            from core.conditions import condition_stand_up
+            from core.conditions import (
+                condition_escape_action,
+                condition_stand_up,
+            )
             from core.enemy_abilities import load_abilities
             from core.maneuvers import maneuver_actions
             from core.party import (
@@ -690,6 +693,14 @@ class GameState:
                 actions.append("take cover")
             if condition_stand_up(self.game.player):
                 actions.append("stand up")
+            escape = condition_escape_action(self.game.player)
+            if escape:
+                _, escape_action = escape
+                label = str(
+                    escape_action.get("label", "Break free")
+                ).strip().casefold()
+                if label and label not in actions:
+                    actions.append(label)
             for ally in getattr(current, "allies", []) or []:
                 if getattr(ally, "hp", 0) <= 0:
                     continue

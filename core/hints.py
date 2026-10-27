@@ -113,6 +113,21 @@ def _health_hint(player, suffix: str = "") -> str | None:
 def _combat_hint(game, player, state):
     conditions = getattr(player, "conditions", None)
     if isinstance(conditions, dict):
+        if "charmed" in conditions:
+            return (
+                "You are charmed and cannot attack the charmer. "
+                "Use Resist the Charm or target another enemy."
+            )
+        if "restrained" in conditions:
+            return (
+                "You are restrained: attacks have disadvantage and you "
+                "cannot flee. Use Break Free."
+            )
+        if "blinded" in conditions:
+            return (
+                "You are blinded: your attacks have disadvantage and "
+                "incoming attacks have advantage. Use your save or an item."
+            )
         if "prone" in conditions:
             return "You are prone. Use Stand up before attacking."
         if "staggered" in conditions:
