@@ -1182,6 +1182,22 @@ entirely. The doors that existed were also misaligned with the map exits.
 - Tests cover offer gating, cache/ledger readiness, all three outcomes, achievement
   completion and repeat-offer suppression. 650 tests pass.
 
+## Ally abilities and loyalty (2026-10-27)
+
+- Added `data/party/ally_abilities.json` and Violet's data-driven Field Dressing, Antidote
+  and Calming Word. NPC data now carries `ally_abilities`, and ally ability definitions are
+  loaded by `core.party`.
+- Support stance selects the most useful ready ability for the player's condition/health.
+  Abilities use round cooldowns, with friendly/trusted Violet's Watch loyalty reducing them;
+  explicit commands such as `Violet: antidote` also work as free combat orders.
+- Added loyalty derived from faction standing. Hostile allies refuse to act; party entries
+  expose loyalty, `will_act` and ability details. Combat snapshots expose stances, loyalty,
+  abilities and active cooldowns.
+- Party panel now shows loyalty and ability buttons during combat. AI context/recap include
+  ally loyalty. Assets are at `v=41`.
+- Tests cover ability data, support selection, explicit orders, cooldowns, loyalty refusal,
+  party/API exposure and persistence. 656 tests pass.
+
 ## Deliberate translation choices worth knowing
 
 - **`hp_base` / `mana_base` were left as-is.** They are consistent between code and JSON

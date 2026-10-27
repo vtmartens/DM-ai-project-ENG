@@ -4,7 +4,7 @@ from typing import Any
 
 from core.conditions import condition_catalogue
 from core.factions import reputation_entries, shop_discount
-from core.party import ally_stance
+from core.party import ally_loyalty, ally_stance
 
 
 def _names(objects) -> list[str]:
@@ -113,6 +113,9 @@ def _combat_context(game) -> dict | None:
                 "stance": ally_stance(
                     game.player, getattr(ally, "name", "Unknown")
                 ),
+                "loyalty": ally_loyalty(
+                    game.player, getattr(ally, "name", "Unknown")
+                ),
             }
             for ally in (getattr(state, "allies", []) or [])
             if getattr(ally, "hp", 0) > 0
@@ -177,6 +180,7 @@ def build_context(game, memory=None) -> dict[str, Any]:
         {
             "name": name,
             "stance": ally_stance(player, name),
+            "loyalty": ally_loyalty(player, name),
         }
         for name in (getattr(player, "allies", []) or [])
         if isinstance(name, str)

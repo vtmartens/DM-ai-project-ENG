@@ -6,7 +6,12 @@ import pytest
 
 from core.conditions import apply_condition
 from core.game import Game
-from core.party import ally_stance, party_entries, set_ally_stance
+from core.party import (
+    ally_stance,
+    get_ally_ability,
+    party_entries,
+    set_ally_stance,
+)
 from entities.enemy import Enemy
 from entities.player import Player
 from states.combat import CombatState
@@ -38,6 +43,11 @@ def _combat(player, game, enemy):
         attack_bonus=2,
         armor_class=12,
         dexterity=1,
+        ally_ability_ids=[
+            "field_dressing",
+            "antidote",
+            "calming_word",
+        ],
     )
     combat = CombatState(enemy=enemy, allies=[ally])
     game.push_state(combat)
@@ -85,7 +95,7 @@ def test_support_stance_heals_once_per_fight(recording_io):
 
     assert player.hp == 20
     assert enemy.hp == enemy_before
-    assert "Violet supports you and restores 10 HP." in recording_io.text
+    assert "Violet uses Field Dressing and restores 10 HP." in recording_io.text
 
     combat.dice_d20.roll = lambda: 20
     combat._allies_attack(player, game)
@@ -104,6 +114,84 @@ def test_support_clears_a_condition_when_health_is_full(recording_io):
 
     assert "weakened" not in player.conditions
     assert "clears Weakened" in recording_io.text
+
+
+def test_support_uses_antidote_for_poison(recording_io):
+    player, game = _game(recording_io, stance="support")
+    apply_condition(player, "poison", turns=2, game=game)
+    player.conditions["poison"] = {"damage": 2, "turns": 2}
+    enemy = Enemy("Brute", hp=30)
+    combat = _combat(player, game, enemy)
+
+    combat._allies_attack(player, game)
+
+    assert "poison" not in player.conditions
+    assert "Violet uses Antidote and clears Poison." in recording_io.text
+    assert enemy.hp == enemy.hp_max
+
+
+def test_support_uses_calming_word_for_fear(recording_io):
+    player, game = _game(recording_io, stance="support")
+    apply_condition(player, "frightened", turns=2, game=game)
+    enemy = Enemy("Brute", hp=30)
+    combat = _combat(player, game, enemy)
+
+    combat._allies_attack(player, game)
+
+    assert "frightened" not in player.conditions
+    assert "Violet uses Calming Word and clears Frightened." in recording_io.text
+
+
+def test_explicit_ally_ability_command(recording_io):
+    player, game = _game(recording_io, stance="attack")
+    player.hp = 10
+    enemy = Enemy("Brute", hp=30)
+    combat = _combat(player, game, enemy)
+    ally = combat.allies[0]
+    ability = get_ally_ability(ally.ally_ability_ids, "field_dressing")
+
+    assert combat._parse_ally_command(player, "Violet: antidote") == (
+        "Violet",
+        "antidote",
+    )
+    assert combat._use_ally_ability(player, ally, ability, game) is True
+
+    assert player.hp == player.hp_max
+    assert "uses Field Dressing" in recording_io.text
+
+
+def test_hostile_ally_refuses_to_act(recording_io):
+    player, game = _game(recording_io)
+    player.reputation["violet_watch"] = -10
+    enemy = Enemy("Brute", hp=30)
+    combat = _combat(player, game, enemy)
+    before = enemy.hp
+
+    combat._allies_attack(player, game)
+
+    assert enemy.hp == before
+    assert "refuses to follow your orders" in recording_io.text
+    assert party_entries(player)[0]["will_act"] is False
+
+
+def test_ally_ability_cooldown_ticks_down(recording_io):
+    player, game = _game(recording_io, stance="attack")
+    player.hp = 10
+    player.reputation["violet_watch"] = 10
+    enemy = Enemy("Brute", hp=30)
+    combat = _combat(player, game, enemy)
+    ally = combat.allies[0]
+    ability = get_ally_ability(ally.ally_ability_ids, "field_dressing")
+
+    combat._use_ally_ability(player, ally, ability, game)
+
+    assert combat.ally_ability_cooldowns["Violet:field_dressing"] == 2
+
+    combat._phase_end_turn(player, game)
+    assert combat.ally_ability_cooldowns["Violet:field_dressing"] == 1
+
+    combat._phase_end_turn(player, game)
+    assert "Violet:field_dressing" not in combat.ally_ability_cooldowns
 
 
 def test_ally_commands_parse_and_change_stance(recording_io):

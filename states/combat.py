@@ -52,7 +52,7 @@ class CombatState(BaseState):
 
         self._target_index = 0
         self.allies = list(allies or [])
-        self.ally_support_used = set()
+        self.ally_ability_cooldowns = {}
         self.rewarded_enemies = set()
         self.enemy = self.enemies[0] if self.enemies else enemy
         self.hostile_npc = self.enemies[0] if self.enemies else hostile_npc
@@ -237,8 +237,8 @@ class CombatState(BaseState):
         return maneuver_definitions()
 
     def _parse_ally_command(self, player, command):
-        """Returns (ally_name, stance) for commands like 'Violet: guard'."""
-        from core.party import STANCES
+        """Returns (ally_name, action) for stances or known ally abilities."""
+        from core.party import STANCES, get_ally_ability
 
         text = str(command or "").strip().casefold().replace(":", " ")
         text = " ".join(text.split())
@@ -251,9 +251,21 @@ class CombatState(BaseState):
             prefix = name.casefold()
             if not text.startswith(prefix + " "):
                 continue
-            stance = text[len(prefix) + 1 :].strip()
-            if stance in STANCES:
-                return name, stance
+            action = text[len(prefix) + 1 :].strip()
+            if action in STANCES:
+                return name, action
+            ally = next(
+                (
+                    candidate
+                    for candidate in self.allies
+                    if getattr(candidate, "name", "") == name
+                ),
+                None,
+            )
+            if ally is not None and get_ally_ability(
+                getattr(ally, "ally_ability_ids", []), action
+            ):
+                return name, action
         return None
 
     def _parse_cover_command(self, command):
@@ -443,9 +455,41 @@ class CombatState(BaseState):
 
         ally_command = self._parse_ally_command(player, selection_input)
         if ally_command is not None:
-            from core.party import set_ally_stance
+            from core.party import (
+                STANCES,
+                get_ally_ability,
+                set_ally_stance,
+            )
 
-            set_ally_stance(player, ally_command[0], ally_command[1], game)
+            ally_name, action = ally_command
+            if action in STANCES:
+                set_ally_stance(player, ally_name, action, game)
+            else:
+                ally = next(
+                    (
+                        candidate
+                        for candidate in self.allies
+                        if getattr(candidate, "name", "") == ally_name
+                    ),
+                    None,
+                )
+                ability = (
+                    get_ally_ability(
+                        getattr(ally, "ally_ability_ids", []),
+                        action,
+                    )
+                    if ally is not None
+                    else None
+                )
+                if ability is None:
+                    game.io.show_message(
+                        f"{ally_name} does not know an ability called "
+                        f"{action}."
+                    )
+                else:
+                    self._use_ally_ability(
+                        player, ally, ability, game
+                    )
             self.phase = "selection"
             return
 
@@ -543,7 +587,7 @@ class CombatState(BaseState):
 
     def _allies_attack(self, player, game):
         """Each living ally acts according to its stance."""
-        from core.party import ally_stance
+        from core.party import ally_stance, ally_will_act
 
         for ally in self.allies:
             if getattr(ally, "hp", 0) <= 0:
@@ -552,6 +596,11 @@ class CombatState(BaseState):
             if not living:
                 break
             ally_name = getattr(ally, "name", "Your ally")
+            if not ally_will_act(player, ally_name):
+                game.io.show_message(
+                    f"{ally_name} refuses to follow your orders."
+                )
+                continue
             stance = ally_stance(player, ally_name)
             if stance == "guard":
                 continue
@@ -586,39 +635,143 @@ class CombatState(BaseState):
             else 0
         )
 
-    def _ally_support(self, player, ally, game=None):
-        """Uses a support ally's once-per-fight heal or cleanse."""
-        from core.party import support_heal_amount
+    def _ally_ability_ready(self, name, ability_id):
+        return not int(
+            self.ally_ability_cooldowns.get(
+                f"{name}:{ability_id}", 0
+            )
+            or 0
+        )
+
+    def _set_ally_ability_cooldown(self, player, name, ability):
+        from core.party import ally_loyalty
+
+        cooldown = max(1, int(ability.get("cooldown", 3) or 3))
+        loyalty = ally_loyalty(player, name)
+        if loyalty == "friendly":
+            cooldown = max(1, cooldown - 1)
+        elif loyalty in {"trusted", "allied"}:
+            cooldown = max(1, cooldown - 2)
+        self.ally_ability_cooldowns[
+            f"{name}:{ability.get('id', ability.get('name', 'support'))}"
+        ] = cooldown
+
+    def _tick_ally_ability_cooldowns(self):
+        for key, remaining in list(self.ally_ability_cooldowns.items()):
+            if int(remaining or 0) <= 1:
+                self.ally_ability_cooldowns.pop(key, None)
+            else:
+                self.ally_ability_cooldowns[key] = int(remaining) - 1
+
+    def _use_ally_ability(self, player, ally, ability, game=None):
+        from core.party import (
+            ally_will_act,
+            support_heal_amount,
+        )
 
         name = getattr(ally, "name", "Your ally")
-        if name in self.ally_support_used:
+        if not ally_will_act(player, name):
+            if game:
+                game.io.show_message(f"{name} refuses to help you.")
+            return False
+        if ability is None:
+            return False
+        ability_id = str(ability.get("id", ability.get("name", "support")))
+        if not self._ally_ability_ready(name, ability_id):
             return False
 
+        effect = ability.get("effect", {})
+        kind = effect.get("type")
+        if kind == "heal":
+            amount = support_heal_amount(
+                player, name, effect.get("amount", 8)
+            )
+            before = int(getattr(player, "hp", 0) or 0)
+            player.hp = min(
+                int(getattr(player, "hp_max", before) or before),
+                before + amount,
+            )
+            if player.hp <= before:
+                return False
+            if game:
+                game.io.show_message(
+                    f"{name} uses {ability.get('name', 'support')} and "
+                    f"restores {player.hp - before} HP."
+                )
+        elif kind == "clear_condition":
+            condition_id = effect.get("condition")
+            conditions = getattr(player, "conditions", None)
+            if not isinstance(conditions, dict) or condition_id not in conditions:
+                return False
+            conditions.pop(condition_id, None)
+            if game:
+                game.io.show_message(
+                    f"{name} uses {ability.get('name', 'support')} and "
+                    f"clears {str(condition_id).replace('_', ' ').title()}."
+                )
+        else:
+            return False
+
+        self._set_ally_ability_cooldown(player, name, ability)
+        return True
+
+    def _ally_support(self, player, ally, game=None):
+        """Uses the most useful support ability available to the ally."""
+        from core.party import load_ally_abilities
+
+        name = getattr(ally, "name", "Your ally")
+        abilities = load_ally_abilities(
+            getattr(ally, "ally_ability_ids", [])
+        )
         conditions = getattr(player, "conditions", None)
         conditions = conditions if isinstance(conditions, dict) else {}
-        if int(getattr(player, "hp", 0) or 0) < int(
+        hurt = int(getattr(player, "hp", 0) or 0) < int(
             getattr(player, "hp_max", 0) or 0
+        )
+
+        for ability in abilities:
+            effect = ability.get("effect", {})
+            kind = effect.get("type")
+            condition_id = effect.get("condition")
+            if kind == "heal" and hurt:
+                if self._use_ally_ability(player, ally, ability, game):
+                    return True
+            if (
+                kind == "clear_condition"
+                and condition_id in conditions
+            ):
+                if self._use_ally_ability(player, ally, ability, game):
+                    return True
+
+        if hurt and not any(
+            ability.get("effect", {}).get("type") == "heal"
+            for ability in abilities
         ):
-            amount = support_heal_amount(player, name)
-            before = player.hp
-            player.hp = min(player.hp_max, player.hp + amount)
-            self.ally_support_used.add(name)
-            if game:
-                game.io.show_message(
-                    f"{name} supports you and restores "
-                    f"{player.hp - before} HP."
-                )
-            return True
-        if conditions:
-            condition_id = next(iter(conditions))
-            conditions.pop(condition_id, None)
-            self.ally_support_used.add(name)
-            if game:
-                game.io.show_message(
-                    f"{name} steadies you and clears "
-                    f"{str(condition_id).replace('_', ' ').title()}."
-                )
-            return True
+            fallback = {
+                "id": "support",
+                "name": "Support",
+                "cooldown": 3,
+                "effect": {"type": "heal", "amount": 8},
+            }
+            return self._use_ally_ability(player, ally, fallback, game)
+
+        matching_condition_ability = any(
+            ability.get("effect", {}).get("type") == "clear_condition"
+            and ability.get("effect", {}).get("condition") in conditions
+            for ability in abilities
+        )
+        if conditions and not matching_condition_ability:
+            fallback = {
+                "id": "support",
+                "name": "Support",
+                "cooldown": 3,
+                "effect": {
+                    "type": "clear_condition",
+                    "condition": next(iter(conditions)),
+                },
+            }
+            return self._use_ally_ability(player, ally, fallback, game)
+
         return False
 
     def _phase_end_turn(self, player, game):
@@ -629,6 +782,7 @@ class CombatState(BaseState):
         tick_conditions(player, game)
         for enemy in self._alive_enemies():
             tick_conditions(enemy, game)
+        self._tick_ally_ability_cooldowns()
 
         # Defending lasts through the enemy phase of this round. Aim persists
         # until the next weapon attack consumes it.
@@ -2072,10 +2226,10 @@ class CombatState(BaseState):
             self._target_index = 0
         if not hasattr(self, "allies"):
             self.allies = []
-        if not isinstance(getattr(self, "ally_support_used", None), set):
-            self.ally_support_used = set(
-                getattr(self, "ally_support_used", []) or []
-            )
+        if not isinstance(
+            getattr(self, "ally_ability_cooldowns", None), dict
+        ):
+            self.ally_ability_cooldowns = {}
         if not hasattr(self, "rewarded_enemies"):
             self.rewarded_enemies = set()
         if not hasattr(self, "poison_target_index"):
@@ -2145,9 +2299,12 @@ class CombatState(BaseState):
             if ally is not None
         ]
         state.rewarded_enemies = set(data.get("rewarded_enemies", []) or [])
-        state.ally_support_used = set(
-            data.get("ally_support_used", []) or []
-        )
+        state.ally_ability_cooldowns = {
+            str(key): int(value or 0)
+            for key, value in (
+                data.get("ally_ability_cooldowns", {}) or {}
+            ).items()
+        }
         state.poison_target_index = data.get("poison_target_index")
         state.enemy = state.enemies[0] if state.enemies else None
         state.hostile_npc = (
@@ -2250,9 +2407,12 @@ class CombatState(BaseState):
         data["rewarded_enemies"] = sorted(
             getattr(self, "rewarded_enemies", set())
         )
-        data["ally_support_used"] = sorted(
-            getattr(self, "ally_support_used", set())
-        )
+        data["ally_ability_cooldowns"] = {
+            str(key): int(value or 0)
+            for key, value in getattr(
+                self, "ally_ability_cooldowns", {}
+            ).items()
+        }
         data["poison_target_index"] = getattr(
             self, "poison_target_index", None
         )

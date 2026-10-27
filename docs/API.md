@@ -1098,8 +1098,20 @@ Returns recruited allies, their base HP and persistent stance:
       "hp_max": 14,
       "stance": "guard",
       "stance_label": "Guard",
+      "loyalty": "friendly",
+      "loyalty_label": "Friendly",
+      "will_act": true,
       "faction": "violet_watch",
-      "description": "..."
+      "description": "...",
+      "abilities": [
+        {
+          "id": "field_dressing",
+          "name": "Field Dressing",
+          "description": "Bind a wound and restore health.",
+          "cooldown": 3,
+          "effect": {"type": "heal", "amount": 8}
+        }
+      ]
     }
   ]
 }
@@ -1113,9 +1125,11 @@ Returns recruited allies, their base HP and persistent stance:
 
 Set `attack`, `guard` or `support`. Returns `output`, `state`, `changed` and the refreshed
 `party` object. The same object is included in `GET /state`. Combat quick actions include
-`Violet: attack`, `Violet: guard` and `Violet: support`, and `/combat` ally rows include
-`stance`/`stance_label`. Guard adds +1 AC to the player while the guarding ally lives;
-Support heals or clears one condition once per fight.
+`Violet: attack`, `Violet: guard`, `Violet: support` and her ability commands; `/combat`
+ally rows include `stance`, `loyalty`, `will_act`, abilities and active cooldowns. Guard
+adds +1 AC to the player while the guarding ally lives; Support selects the most useful
+available heal/condition-clearing ability. Ally abilities have round cooldowns, improve
+with friendly loyalty and are refused by hostile allies.
 
 #### `GET /landmark?session_id=...`
 

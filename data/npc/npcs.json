@@ -198,7 +198,12 @@
       }
     ],
     "gold": 300,
-    "friendly": true
+    "friendly": true,
+    "ally_abilities": [
+      "field_dressing",
+      "antidote",
+      "calming_word"
+    ]
   },
   "Herald": {
     "name": "Herald",

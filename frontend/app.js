@@ -912,7 +912,9 @@ function renderParty(data) {
     name.textContent = ally.name || "Ally";
     const hp = document.createElement("span");
     hp.className = "muted";
-    hp.textContent = `${ally.hp} / ${ally.hp_max} HP`;
+    hp.textContent = `${ally.hp} / ${ally.hp_max} HP · ${
+      ally.loyalty_label || "Neutral"
+    }`;
     head.append(name, hp);
     item.appendChild(head);
 
@@ -932,6 +934,26 @@ function renderParty(data) {
       stances.appendChild(button);
     }
     item.appendChild(stances);
+
+    if (ally.abilities?.length) {
+      const abilities = document.createElement("div");
+      abilities.className = "party-stances";
+      const inCombat = Boolean(store.state?.combat?.in_combat);
+      for (const ability of ally.abilities) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "ghost small";
+        button.textContent = ability.name || ability.id;
+        button.title = ability.description || "";
+        button.disabled =
+          store.busy || !inCombat || ally.will_act === false;
+        button.addEventListener("click", () =>
+          sendCommand(`${ally.name}: ${ability.id}`)
+        );
+        abilities.appendChild(button);
+      }
+      item.appendChild(abilities);
+    }
     el.partyList.appendChild(item);
   }
 }

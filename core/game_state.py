@@ -662,7 +662,13 @@ class GameState:
             from core.conditions import condition_stand_up
             from core.enemy_abilities import load_abilities
             from core.maneuvers import maneuver_actions
-            from core.party import STANCES, ally_stance
+            from core.party import (
+                STANCES,
+                ally_loyalty,
+                ally_stance,
+                ally_will_act,
+                load_ally_abilities,
+            )
 
             target = getattr(current, "opponent", None)
             living = [
@@ -691,6 +697,12 @@ class GameState:
                 actions.extend(
                     f"{ally_name}: {stance}" for stance in STANCES
                 )
+                for ability in load_ally_abilities(
+                    getattr(ally, "ally_ability_ids", [])
+                ):
+                    actions.append(
+                        f"{ally_name}: {ability.get('id')}"
+                    )
             if len(living) > 1:
                 actions.append("choose target")
 
@@ -788,6 +800,37 @@ class GameState:
                                 getattr(ally, "name", "Unknown"),
                             )
                         ],
+                        "loyalty": ally_loyalty(
+                            self.game.player,
+                            getattr(ally, "name", "Unknown"),
+                        ),
+                        "loyalty_label": ally_loyalty(
+                            self.game.player,
+                            getattr(ally, "name", "Unknown"),
+                        ).title(),
+                        "will_act": ally_will_act(
+                            self.game.player,
+                            getattr(ally, "name", "Unknown"),
+                        ),
+                        "abilities": [
+                            ability.get("name")
+                            for ability in load_ally_abilities(
+                                getattr(ally, "ally_ability_ids", [])
+                            )
+                        ],
+                        "cooldowns": {
+                            key.split(":", 1)[1]: int(value or 0)
+                            for key, value in (
+                                getattr(
+                                    current, "ally_ability_cooldowns", {}
+                                )
+                                or {}
+                            ).items()
+                            if key.startswith(
+                                f"{getattr(ally, 'name', 'Unknown')}:"
+                            )
+                            and int(value or 0) > 0
+                        },
                     }
                     for ally in getattr(current, "allies", [])
                 ],

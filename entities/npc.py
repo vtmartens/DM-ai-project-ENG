@@ -24,7 +24,8 @@ class NPC(Entity):
         self.friendly = True
         self.ability_ids = []
         self.abilities = []
-        
+        self.ally_ability_ids = []
+
         # NPC-specific initializations
         self._initialize_attributes()
         
@@ -72,6 +73,9 @@ class NPC(Entity):
         self.friendly = bool(self.npc_data.get("friendly", True))
         self.ability_ids = list(self.npc_data.get("abilities", []))
         self.abilities = load_abilities(self.ability_ids)
+        self.ally_ability_ids = list(
+            self.npc_data.get("ally_abilities", [])
+        )
         
         # Load the inventory
         self.inventory = []
@@ -211,6 +215,9 @@ class NPC(Entity):
             "background": self.background,
             "profession": self.profession,
             "group": getattr(self, "group", None),
+            "ally_ability_ids": list(
+                getattr(self, "ally_ability_ids", [])
+            ),
             # Conversations are not serialized because they are loaded dynamically
         })
         
@@ -269,5 +276,8 @@ class NPC(Entity):
         npc.profession = data.get("profession", "")
         npc.group = data.get("group")
         npc.conditions = dict(data.get("conditions", {}) or {})
+        npc.ally_ability_ids = list(
+            data.get("ally_ability_ids", npc.ally_ability_ids) or []
+        )
 
         return npc

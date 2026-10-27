@@ -558,6 +558,28 @@ def test_crafting_recipes_are_well_formed():
         assert isinstance(recipe.get("unique", False), bool)
 
 
+def test_ally_ability_definitions_and_references_are_well_formed():
+    abilities = _load(ROOT / "data" / "party" / "ally_abilities.json")
+    npcs = _load(ROOT / "data" / "npc" / "npcs.json")
+
+    assert abilities
+    for ability_id, ability in abilities.items():
+        assert ability.get("id") == ability_id
+        assert ability.get("name")
+        assert ability.get("description")
+        assert int(ability.get("cooldown", 0)) >= 1
+        effect = ability.get("effect", {})
+        assert effect.get("type") in {"heal", "clear_condition"}
+        if effect["type"] == "heal":
+            assert int(effect.get("amount", 0)) >= 1
+        else:
+            assert effect.get("condition")
+
+    for npc in npcs.values():
+        for ability_id in npc.get("ally_abilities", []) or []:
+            assert ability_id in abilities, npc.get("name")
+
+
 def test_encounter_definitions_are_well_formed():
     encounters = _load(ROOT / "data" / "monsters" / "encounters.json")
     monsters = _load(ROOT / "data" / "monsters" / "monsters.json")

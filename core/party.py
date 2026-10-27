@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from core.factions import reputation_value
+from core.factions import reputation_tier, reputation_value, tier_label
+from util.data_manager import get_data_manager
 
 STANCES = {
     "attack": "Attack",
@@ -15,9 +16,56 @@ ALLY_FACTIONS = {
 }
 
 
+def ally_ability_catalogue() -> dict:
+    data = get_data_manager().load_data("party", "ally_abilities.json")
+    return data if isinstance(data, dict) else {}
+
+
+def load_ally_abilities(ability_ids) -> list[dict]:
+    catalogue = ally_ability_catalogue()
+    abilities = []
+    for ability_id in ability_ids or []:
+        definition = catalogue.get(str(ability_id))
+        if isinstance(definition, dict):
+            ability = dict(definition)
+            ability.setdefault("id", ability_id)
+            abilities.append(ability)
+    return abilities
+
+
+def get_ally_ability(ability_ids, identifier) -> dict | None:
+    wanted = str(identifier or "").strip().casefold()
+    for ability in load_ally_abilities(ability_ids):
+        if wanted in {
+            str(ability.get("id", "")).casefold(),
+            str(ability.get("name", "")).casefold(),
+        }:
+            return ability
+    return None
+
+
 def normalize_stance(stance) -> str:
     value = str(stance or "").strip().casefold()
     return value if value in STANCES else "attack"
+
+
+def ally_faction(ally_name):
+    return ALLY_FACTIONS.get(str(ally_name))
+
+
+def ally_loyalty(player, ally_name) -> str:
+    faction = ally_faction(ally_name)
+    if faction is None:
+        return "neutral"
+    return reputation_tier(reputation_value(player, faction))
+
+
+def ally_loyalty_label(player, ally_name) -> str:
+    return tier_label(ally_loyalty(player, ally_name))
+
+
+def ally_will_act(player, ally_name) -> bool:
+    return ally_loyalty(player, ally_name) != "hostile"
 
 
 def ally_stance(player, ally_name) -> str:
@@ -60,22 +108,30 @@ def party_entries(player) -> list[dict]:
         if not isinstance(name, str):
             continue
         npc = NPC(name)
+        stance = ally_stance(player, name)
+        loyalty = ally_loyalty(player, name)
         entries.append(
             {
                 "name": name,
                 "hp": getattr(npc, "hp", 0),
                 "hp_max": getattr(npc, "hp_max", 0),
-                "stance": ally_stance(player, name),
-                "stance_label": STANCES[ally_stance(player, name)],
-                "faction": ALLY_FACTIONS.get(name),
+                "stance": stance,
+                "stance_label": STANCES[stance],
+                "loyalty": loyalty,
+                "loyalty_label": tier_label(loyalty),
+                "will_act": loyalty != "hostile",
+                "faction": ally_faction(name),
                 "description": getattr(npc, "description", ""),
+                "abilities": load_ally_abilities(
+                    getattr(npc, "ally_ability_ids", [])
+                ),
             }
         )
     return entries
 
 
-def support_heal_amount(player, ally_name) -> int:
-    amount = 8
-    if ALLY_FACTIONS.get(str(ally_name)) == "violet_watch":
+def support_heal_amount(player, ally_name, base=8) -> int:
+    amount = max(1, int(base or 8))
+    if ally_faction(str(ally_name)) == "violet_watch":
         amount += min(6, max(0, reputation_value(player, "violet_watch") // 10))
     return amount

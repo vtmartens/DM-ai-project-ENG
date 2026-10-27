@@ -84,7 +84,9 @@ You can also set `localStorage["dm_api_base"]`.
   advantage on Dexterity saves until the next turn when the player is beside a wall or
   cover-tagged object; a living ally grants **+2 attack** through Flanking. Both appear as
   status tags. Recruited allies show their stance in the combat card, and a **Party** panel
-  sets Attack, Guard or Support through `GET /party` and `POST /party/stance`.
+  sets Attack, Guard or Support through `GET /party` and `POST /party/stance`. It also shows
+  loyalty and exposes ally abilities during combat, such as Violet’s Field Dressing,
+  Antidote and Calming Word.
 - Conditions panel driven by `state.conditions`: poisoned duration/damage, Guidance,
   advantage/disadvantage, timed burning/frightened/weakened effects, plus Hidden and
   Disguised status tags, are rendered as colour-coded tags and update after each action.

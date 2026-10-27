@@ -188,7 +188,11 @@ def _campaign_summary(player) -> str | None:
 
 
 def _party_summary(player) -> str | None:
-    from core.party import STANCES, ally_stance
+    from core.party import (
+        STANCES,
+        ally_loyalty_label,
+        ally_stance,
+    )
 
     allies = [
         str(name)
@@ -198,7 +202,8 @@ def _party_summary(player) -> str | None:
     if not allies:
         return None
     labels = [
-        f"{name} ({STANCES[ally_stance(player, name)].lower()})"
+        f"{name} ({STANCES[ally_stance(player, name)].lower()}, "
+        f"{ally_loyalty_label(player, name).lower()})"
         for name in allies
     ]
     return "Companions: " + ", ".join(labels) + "."

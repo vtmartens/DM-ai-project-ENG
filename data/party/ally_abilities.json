@@ -1,0 +1,23 @@
+{
+  "field_dressing": {
+    "id": "field_dressing",
+    "name": "Field Dressing",
+    "description": "Bind a wound and restore health.",
+    "cooldown": 3,
+    "effect": {"type": "heal", "amount": 8}
+  },
+  "antidote": {
+    "id": "antidote",
+    "name": "Antidote",
+    "description": "Neutralize poison.",
+    "cooldown": 3,
+    "effect": {"type": "clear_condition", "condition": "poison"}
+  },
+  "calming_word": {
+    "id": "calming_word",
+    "name": "Calming Word",
+    "description": "Steady a frightened ally.",
+    "cooldown": 4,
+    "effect": {"type": "clear_condition", "condition": "frightened"}
+  }
+}
