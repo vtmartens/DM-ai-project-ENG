@@ -187,6 +187,23 @@ def _campaign_summary(player) -> str | None:
     return " ".join(parts) or None
 
 
+def _party_summary(player) -> str | None:
+    from core.party import STANCES, ally_stance
+
+    allies = [
+        str(name)
+        for name in (getattr(player, "allies", []) or [])
+        if isinstance(name, str)
+    ]
+    if not allies:
+        return None
+    labels = [
+        f"{name} ({STANCES[ally_stance(player, name)].lower()})"
+        for name in allies
+    ]
+    return "Companions: " + ", ".join(labels) + "."
+
+
 def _rune_trials_summary(player) -> str | None:
     best = int(getattr(player, "rune_trials_best", 0) or 0)
     runs = int(getattr(player, "rune_trials_runs", 0) or 0)
@@ -239,6 +256,10 @@ def build_recap(game, memory=None, events=None) -> str:
     conditions = _condition_labels(getattr(player, "conditions", {}))
     if conditions:
         parts.append("Affected by: " + ", ".join(conditions) + ".")
+
+    party_summary = _party_summary(player)
+    if party_summary:
+        parts.append(party_summary)
 
     reputation_summary = _reputation_summary(player)
     if reputation_summary:

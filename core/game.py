@@ -234,6 +234,7 @@ class Game:
         player.conditions = {}
         player.stealthed = False
         player.allies = []
+        player.ally_stances = {}
         player.defeats = 0
         player.cycle = max(1, int(getattr(player, "cycle", 1) or 1)) + 1
         player.hp = player.hp_max

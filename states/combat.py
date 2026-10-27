@@ -52,6 +52,7 @@ class CombatState(BaseState):
 
         self._target_index = 0
         self.allies = list(allies or [])
+        self.ally_support_used = set()
         self.rewarded_enemies = set()
         self.enemy = self.enemies[0] if self.enemies else enemy
         self.hostile_npc = self.enemies[0] if self.enemies else hostile_npc
@@ -234,6 +235,26 @@ class CombatState(BaseState):
 
     def _maneuvers(self):
         return maneuver_definitions()
+
+    def _parse_ally_command(self, player, command):
+        """Returns (ally_name, stance) for commands like 'Violet: guard'."""
+        from core.party import STANCES
+
+        text = str(command or "").strip().casefold().replace(":", " ")
+        text = " ".join(text.split())
+        if not text:
+            return None
+
+        for name in getattr(player, "allies", []) or []:
+            if not isinstance(name, str):
+                continue
+            prefix = name.casefold()
+            if not text.startswith(prefix + " "):
+                continue
+            stance = text[len(prefix) + 1 :].strip()
+            if stance in STANCES:
+                return name, stance
+        return None
 
     def _parse_cover_command(self, command):
         """Matches the Take Cover combat action."""
@@ -420,6 +441,14 @@ class CombatState(BaseState):
             self._manage_ability(player, game, ability_name)
             return
 
+        ally_command = self._parse_ally_command(player, selection_input)
+        if ally_command is not None:
+            from core.party import set_ally_stance
+
+            set_ally_stance(player, ally_command[0], ally_command[1], game)
+            self.phase = "selection"
+            return
+
         if self._parse_cover_command(selection_input):
             self._manage_cover(player, game)
             return
@@ -513,15 +542,24 @@ class CombatState(BaseState):
         self.phase = "end_turn"
 
     def _allies_attack(self, player, game):
-        """Each living ally strikes one living enemy."""
+        """Each living ally acts according to its stance."""
+        from core.party import ally_stance
+
         for ally in self.allies:
             if getattr(ally, "hp", 0) <= 0:
                 continue
             living = self._alive_enemies()
             if not living:
                 break
-            target = self.opponent if self.opponent in living else living[0]
             ally_name = getattr(ally, "name", "Your ally")
+            stance = ally_stance(player, ally_name)
+            if stance == "guard":
+                continue
+            if stance == "support" and self._ally_support(
+                player, ally, game
+            ):
+                continue
+            target = self.opponent if self.opponent in living else living[0]
             hit, critical = self._roll_attack(ally, target, game)
             if not hit:
                 game.io.show_message(f"{ally_name} misses {target.name}.")
@@ -534,6 +572,55 @@ class CombatState(BaseState):
                 f"{ally_name} attacks {target.name} for {damage} damage!"
             )
     
+    def _ally_guard_bonus(self, player):
+        from core.party import ally_stance
+
+        return (
+            1
+            if any(
+                getattr(ally, "hp", 0) > 0
+                and ally_stance(player, getattr(ally, "name", ""))
+                == "guard"
+                for ally in self.allies
+            )
+            else 0
+        )
+
+    def _ally_support(self, player, ally, game=None):
+        """Uses a support ally's once-per-fight heal or cleanse."""
+        from core.party import support_heal_amount
+
+        name = getattr(ally, "name", "Your ally")
+        if name in self.ally_support_used:
+            return False
+
+        conditions = getattr(player, "conditions", None)
+        conditions = conditions if isinstance(conditions, dict) else {}
+        if int(getattr(player, "hp", 0) or 0) < int(
+            getattr(player, "hp_max", 0) or 0
+        ):
+            amount = support_heal_amount(player, name)
+            before = player.hp
+            player.hp = min(player.hp_max, player.hp + amount)
+            self.ally_support_used.add(name)
+            if game:
+                game.io.show_message(
+                    f"{name} supports you and restores "
+                    f"{player.hp - before} HP."
+                )
+            return True
+        if conditions:
+            condition_id = next(iter(conditions))
+            conditions.pop(condition_id, None)
+            self.ally_support_used.add(name)
+            if game:
+                game.io.show_message(
+                    f"{name} steadies you and clears "
+                    f"{str(condition_id).replace('_', ' ').title()}."
+                )
+            return True
+        return False
+
     def _phase_end_turn(self, player, game):
         """End turn phase"""
         self._tick_poison(game)
@@ -1341,6 +1428,11 @@ class CombatState(BaseState):
         if target_is_player and effects.get("cover"):
             target_ac += 2
             defense_notes.append("in cover")
+        if target_is_player:
+            guard_bonus = self._ally_guard_bonus(target)
+            if guard_bonus:
+                target_ac += guard_bonus
+                defense_notes.append("guarded")
         defense_note = (
             f" ({', '.join(defense_notes)})" if defense_notes else ""
         )
@@ -1980,6 +2072,10 @@ class CombatState(BaseState):
             self._target_index = 0
         if not hasattr(self, "allies"):
             self.allies = []
+        if not isinstance(getattr(self, "ally_support_used", None), set):
+            self.ally_support_used = set(
+                getattr(self, "ally_support_used", []) or []
+            )
         if not hasattr(self, "rewarded_enemies"):
             self.rewarded_enemies = set()
         if not hasattr(self, "poison_target_index"):
@@ -2049,6 +2145,9 @@ class CombatState(BaseState):
             if ally is not None
         ]
         state.rewarded_enemies = set(data.get("rewarded_enemies", []) or [])
+        state.ally_support_used = set(
+            data.get("ally_support_used", []) or []
+        )
         state.poison_target_index = data.get("poison_target_index")
         state.enemy = state.enemies[0] if state.enemies else None
         state.hostile_npc = (
@@ -2150,6 +2249,9 @@ class CombatState(BaseState):
         ]
         data["rewarded_enemies"] = sorted(
             getattr(self, "rewarded_enemies", set())
+        )
+        data["ally_support_used"] = sorted(
+            getattr(self, "ally_support_used", set())
         )
         data["poison_target_index"] = getattr(
             self, "poison_target_index", None

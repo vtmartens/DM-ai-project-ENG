@@ -1126,6 +1126,20 @@ entirely. The doors that existed were also misaligned with the map exits.
   scaling once, reward multipliers, Tavern unlock gating and the Cyclebreaker achievement.
   622 tests pass.
 
+## Ally commands and party panel (2026-10-27)
+
+- Added persistent `Player.ally_stances` with Attack, Guard and Support. Combat ally actions
+  now follow the stance: Guard contributes +1 player AC while alive, Support performs a
+  once-per-fight heal or condition cleanse, and Attack keeps the existing target focus.
+- Added `core/party.py`, combat ally command parsing (`Violet: guard`), dynamic quick actions,
+  stance data in `/combat`, and support healing scaled by Violet's Watch standing.
+- Added `GET /party`, `POST /party/stance`, and a web-client Party panel with stance buttons;
+  ally stance tags also appear in the combat card. Assets are at `v=38`.
+- AI context and recap now include recruited allies and their stances.
+- Tests cover defaults/persistence, guard AC and non-attacking behaviour, support healing and
+  cleansing, command parsing, party data, API updates and combat snapshot exposure. 631 tests
+  pass.
+
 ## Deliberate translation choices worth knowing
 
 - **`hp_base` / `mana_base` were left as-is.** They are consistent between code and JSON

@@ -150,6 +150,8 @@ def home():
             "GET /achievements": "Get the player's achievements",
             "GET /reputation": "Get faction standing and shop discounts",
             "GET /campaign": "Get main-story and endgame progress",
+            "GET /party": "Get recruited allies and stances",
+            "POST /party/stance": "Set a recruited ally's stance",
             "POST /hint": "Ask the Dungeon Master for a hint",
             "POST /recap": "Get a recap of the story so far",
             "GET /item_details": "Get details about a specific item",
@@ -1405,6 +1407,45 @@ def get_campaign():
         return error
 
     return jsonify(session.get_campaign_state())
+
+
+@app.route("/party", methods=["GET"])
+def get_party():
+    """Get recruited allies and their stances."""
+    session_id = request.args.get("session_id")
+
+    session, error = get_session_or_error(session_id)
+    if error:
+        return error
+
+    return jsonify(session.get_party_state())
+
+
+@app.route("/party/stance", methods=["POST"])
+def set_party_stance():
+    """Set one recruited ally's combat stance."""
+    data = request.json or {}
+    session_id = data.get("session_id")
+    ally_name = data.get("ally")
+    stance = data.get("stance")
+    if not ally_name or not stance:
+        return jsonify({"error": "Ally and stance are required"}), 400
+
+    session, error = get_session_or_error(session_id)
+    if error:
+        return error
+
+    changed = session.set_ally_stance(str(ally_name), str(stance))
+    save_session(session_id, session)
+    output = session.io_buffer.get_structured_output()
+    session.io_buffer.clear()
+
+    return jsonify({
+        "output": output,
+        "state": session.get_current_state(),
+        "changed": bool(changed),
+        "party": session.get_party_state(),
+    })
 
 @app.route("/item_details", methods=["GET"])
 def get_item_details():

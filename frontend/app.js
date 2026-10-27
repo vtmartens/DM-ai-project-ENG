@@ -51,6 +51,7 @@ const el = {
   campaignProgress: document.getElementById("campaign-progress"),
   campaignSummary: document.getElementById("campaign-summary"),
   campaignList: document.getElementById("campaign-list"),
+  partyList: document.getElementById("party-list"),
   achievementsList: document.getElementById("achievements-list"),
   achievementsCount: document.getElementById("achievements-count"),
   reputationList: document.getElementById("reputation-list"),
@@ -411,6 +412,7 @@ function renderState(state) {
   renderStats(state.stats || {});
   renderConditions(state.conditions || {}, Boolean(state.stealthed));
   renderReputation(state.reputation || {});
+  renderParty(state.party || {});
   renderCampaign(state.campaign || {});
 
   if (state.preferences?.theme && !localStorage.getItem(THEME_KEY)) {
@@ -561,6 +563,12 @@ function renderCombat(combat) {
     hp.textContent = `${ally.hp} / ${ally.max_hp} HP`;
     row.append(name, hp);
     el.combatCard.appendChild(row);
+    if (ally.stance_label) {
+      const statuses = document.createElement("div");
+      statuses.className = "enemy-status";
+      addStatusTag(statuses, ally.stance_label, "condition");
+      el.combatCard.appendChild(statuses);
+    }
   }
 }
 
@@ -869,6 +877,66 @@ function renderQuests(data) {
     objective.textContent = objectiveText;
     item.append(title, objective);
     el.questList.appendChild(item);
+  }
+}
+
+function renderParty(data) {
+  el.partyList.innerHTML = "";
+  const allies = Array.isArray(data?.allies) ? data.allies : [];
+  if (!allies.length) {
+    const note = document.createElement("li");
+    note.className = "empty-note";
+    note.textContent = "No allies have joined you yet.";
+    el.partyList.appendChild(note);
+    return;
+  }
+
+  for (const ally of allies) {
+    const item = document.createElement("li");
+    const head = document.createElement("div");
+    head.className = "party-head";
+    const name = document.createElement("strong");
+    name.textContent = ally.name || "Ally";
+    const hp = document.createElement("span");
+    hp.className = "muted";
+    hp.textContent = `${ally.hp} / ${ally.hp_max} HP`;
+    head.append(name, hp);
+    item.appendChild(head);
+
+    const stances = document.createElement("div");
+    stances.className = "party-stances";
+    for (const [stance, label] of [
+      ["attack", "Attack"],
+      ["guard", "Guard"],
+      ["support", "Support"],
+    ]) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "ghost small";
+      button.textContent = label;
+      button.disabled = store.busy || ally.stance === stance;
+      button.addEventListener("click", () => setPartyStance(ally.name, stance));
+      stances.appendChild(button);
+    }
+    item.appendChild(stances);
+    el.partyList.appendChild(item);
+  }
+}
+
+async function setPartyStance(allyName, stance) {
+  if (!store.sessionId || store.busy) return;
+  try {
+    const data = await api("/party/stance", {
+      method: "POST",
+      body: { session_id: store.sessionId, ally: allyName, stance },
+    });
+    appendOutput(data.output);
+    if (data.state) applyState(data.state);
+    if (data.party) renderParty(data.party);
+    if (!data.changed) showToast("That stance could not be set.", "error");
+    refreshSidePanels(data.state);
+  } catch (error) {
+    showToast(error.message, "error");
   }
 }
 

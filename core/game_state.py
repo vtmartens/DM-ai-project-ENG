@@ -272,6 +272,24 @@ class GameState:
         self._record_output()
         return used
 
+    def get_party_state(self):
+        """Returns recruited allies and their current stances."""
+        from core.party import party_entries
+
+        return {"allies": party_entries(self.game.player)}
+
+    def set_ally_stance(self, ally_name, stance):
+        """Changes one recruited ally's stance and records the output."""
+        from core.party import set_ally_stance
+
+        self.io_buffer.clear()
+        changed = set_ally_stance(
+            self.game.player, ally_name, stance, self.game
+        )
+        self.io_buffer.flush()
+        self._record_output()
+        return changed
+
     def get_campaign_state(self):
         """Returns main-story progress plus endgame progression."""
         from core.abilities import player_abilities
@@ -506,6 +524,7 @@ class GameState:
             from core.conditions import condition_stand_up
             from core.enemy_abilities import load_abilities
             from core.maneuvers import maneuver_actions
+            from core.party import STANCES, ally_stance
 
             target = getattr(current, "opponent", None)
             living = [
@@ -527,6 +546,13 @@ class GameState:
                 actions.append("take cover")
             if condition_stand_up(self.game.player):
                 actions.append("stand up")
+            for ally in getattr(current, "allies", []) or []:
+                if getattr(ally, "hp", 0) <= 0:
+                    continue
+                ally_name = getattr(ally, "name", "Ally")
+                actions.extend(
+                    f"{ally_name}: {stance}" for stance in STANCES
+                )
             if len(living) > 1:
                 actions.append("choose target")
 
@@ -614,6 +640,16 @@ class GameState:
                         "name": getattr(ally, "name", "Unknown"),
                         "hp": getattr(ally, "hp", 0),
                         "max_hp": getattr(ally, "hp_max", 0),
+                        "stance": ally_stance(
+                            self.game.player,
+                            getattr(ally, "name", "Unknown"),
+                        ),
+                        "stance_label": STANCES[
+                            ally_stance(
+                                self.game.player,
+                                getattr(ally, "name", "Unknown"),
+                            )
+                        ],
                     }
                     for ally in getattr(current, "allies", [])
                 ],
@@ -833,6 +869,7 @@ class GameState:
                 getattr(self.game.player, "stealthed", False)
             ),
             "reputation": self.get_reputation_state(),
+            "party": self.get_party_state(),
             "campaign": self.get_campaign_state(),
             "rune_trials": {
                 "best": int(

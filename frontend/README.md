@@ -82,7 +82,8 @@ You can also set `localStorage["dm_api_base"]`.
   Staggered disables ability use, matching the enemy rules. **Take cover** grants +2 AC and
   advantage on Dexterity saves until the next turn when the player is beside a wall or
   cover-tagged object; a living ally grants **+2 attack** through Flanking. Both appear as
-  status tags.
+  status tags. Recruited allies show their stance in the combat card, and a **Party** panel
+  sets Attack, Guard or Support through `GET /party` and `POST /party/stance`.
 - Conditions panel driven by `state.conditions`: poisoned duration/damage, Guidance,
   advantage/disadvantage, and timed burning/frightened/weakened effects are rendered as
   colour-coded tags and update after each action.

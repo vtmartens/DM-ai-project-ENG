@@ -121,6 +121,7 @@ a server restart. A stale `session_id` returns `404`.
   "rune_trials": {"best": 0, "runs": 0},
   "rune_shards": 0,
   "cycle": 1,
+  "party": {"allies": []},
   "preferences": {},
   "combat": {"in_combat": false},
   "dialogue": {"active": false}
@@ -1079,6 +1080,38 @@ in `GET /state`.
 Chapters use the seven main story quests and report `not_started`, `active`, `ready` or
 `completed`. The same campaign object is included in `GET /state`; the web client renders it
 as the Campaign panel.
+
+#### `GET /party?session_id=...`
+
+Returns recruited allies, their base HP and persistent stance:
+
+```json
+{
+  "allies": [
+    {
+      "name": "Violet",
+      "hp": 14,
+      "hp_max": 14,
+      "stance": "guard",
+      "stance_label": "Guard",
+      "faction": "violet_watch",
+      "description": "..."
+    }
+  ]
+}
+```
+
+#### `POST /party/stance`
+
+```json
+{"session_id": "uuid", "ally": "Violet", "stance": "support"}
+```
+
+Set `attack`, `guard` or `support`. Returns `output`, `state`, `changed` and the refreshed
+`party` object. The same object is included in `GET /state`. Combat quick actions include
+`Violet: attack`, `Violet: guard` and `Violet: support`, and `/combat` ally rows include
+`stance`/`stance_label`. Guard adds +1 AC to the player while the guarding ally lives;
+Support heals or clears one condition once per fight.
 
 #### New Cycle
 

@@ -371,6 +371,14 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
 }
 .condition-list .empty-note { padding: 0; background: none; border: 0; }
 
+.party-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
+.party-list li { display: grid; gap: 5px; padding: 7px 8px; border-radius: 8px; background: var(--bg-input); border: 1px solid var(--border); }
+.party-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.party-list strong { font-size: 13px; color: var(--accent-strong); }
+.party-list .muted { font-size: 12px; }
+.party-stances { display: flex; flex-wrap: wrap; gap: 5px; }
+.party-list .empty-note { padding: 0; background: none; border: 0; }
+
 .reputation-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
 .reputation-list li { display: grid; gap: 3px; padding: 7px 8px; border-radius: 8px; background: var(--bg-input); border: 1px solid var(--border); }
 .reputation-list .reputation-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
