@@ -8,6 +8,7 @@ from typing import Any
 
 from ai.context import build_context
 from core.conditions import condition_catalogue
+from core.factions import reputation_entries, shop_discount
 
 logger = logging.getLogger("game_rpg.ai")
 
@@ -141,6 +142,62 @@ def _active_quest_summary(player) -> str | None:
     return summary + "."
 
 
+def _reputation_summary(player) -> str | None:
+    entries = [
+        entry
+        for entry in reputation_entries(player)
+        if entry.get("value")
+    ]
+    if not entries:
+        return None
+    standing = ", ".join(
+        f"{entry['name']} {entry['value']:+d} ({entry['tier_label']})"
+        for entry in entries
+    )
+    summary = "Faction standing: " + standing + "."
+    discount = shop_discount(player)
+    if discount:
+        summary += f" Mirt's Network discount: {discount}%."
+    return summary
+
+
+def _campaign_summary(player) -> str | None:
+    claimed = {
+        str(flag)
+        for flag in (getattr(player, "claimed_rewards", []) or [])
+        if isinstance(flag, str)
+    }
+    completed = {
+        str(quest.get("id"))
+        for quest in (getattr(player, "completed_quests", []) or [])
+        if isinstance(quest, dict) and quest.get("id")
+    }
+    parts = []
+    choices = {
+        "runeheart_kept": "you kept the Runeheart Amulet",
+        "runeheart_mirt": "you gave the Runeheart to Mirt",
+        "runeheart_violet": "you gave the Runeheart to Violet",
+    }
+    for flag, text in choices.items():
+        if flag in claimed:
+            parts.append("Runeheart choice: " + text + ".")
+            break
+    if "sanctum_chapter" in completed:
+        parts.append("The Sealed Sanctum is complete.")
+    return " ".join(parts) or None
+
+
+def _rune_trials_summary(player) -> str | None:
+    best = int(getattr(player, "rune_trials_best", 0) or 0)
+    runs = int(getattr(player, "rune_trials_runs", 0) or 0)
+    if not best and not runs:
+        return None
+    summary = f"Best Rune Trial depth: wave {best}"
+    if runs:
+        summary += f" ({runs} completed {'run' if runs == 1 else 'runs'})"
+    return summary + "."
+
+
 def build_recap(game, memory=None, events=None) -> str:
     """Builds a short factual recap from the player's current state."""
     player = getattr(game, "player", None)
@@ -178,6 +235,21 @@ def build_recap(game, memory=None, events=None) -> str:
     conditions = _condition_labels(getattr(player, "conditions", {}))
     if conditions:
         parts.append("Affected by: " + ", ".join(conditions) + ".")
+
+    reputation_summary = _reputation_summary(player)
+    if reputation_summary:
+        parts.append(reputation_summary)
+
+    campaign_summary = _campaign_summary(player)
+    if campaign_summary:
+        parts.append(campaign_summary)
+
+    trials_summary = _rune_trials_summary(player)
+    if trials_summary:
+        parts.append(trials_summary)
+
+    if level >= 10:
+        parts.append("Class capstone unlocked.")
 
     defeats = int(getattr(player, "defeats", 0) or 0)
     if defeats:

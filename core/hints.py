@@ -111,6 +111,13 @@ def _health_hint(player, suffix: str = "") -> str | None:
 
 
 def _combat_hint(game, player, state):
+    conditions = getattr(player, "conditions", None)
+    if isinstance(conditions, dict):
+        if "prone" in conditions:
+            return "You are prone. Use Stand up before attacking."
+        if "staggered" in conditions:
+            return "You are staggered. Special abilities are unavailable; use a weapon or item."
+
     living = [
         enemy
         for enemy in (getattr(state, "enemies", None) or [])

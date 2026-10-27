@@ -1068,6 +1068,21 @@ entirely. The doors that existed were also misaligned with the map exits.
   cover-enhanced Dexterity saves, flanking hit/miss comparisons and combat snapshot exposure.
 - Full suite: 599 tests pass.
 
+## AI Dungeon Master awareness (2026-10-27)
+
+- Expanded the shared narrator context in `ai/context.py` with player level, conditions,
+  active quests and completed count, faction standing/shop discount, campaign flags
+  (Sanctum, Runeheart choice, completion), Rune Trials best/runs, and active combat details
+  (round, target, enemies, allies, Cover, Flanking). The context remains compact and excludes
+  the inventory, full stats and hidden map contents.
+- Deterministic recaps now include faction standing, merchant discount, Runeheart choice,
+  Sanctum completion, Rune Trials depth/runs and capstone status. Combat hints now warn when
+  the player is Prone or Staggered.
+- Narration, hint and recap prompts document the richer context while retaining the existing
+  no-state-authority, no-hidden-information and fallback rules.
+- Tests cover context fields, faction/campaign/trial recap text, combat condition hints and
+  the existing no-AI fallback paths. 602 tests pass.
+
 ## Deliberate translation choices worth knowing
 
 - **`hp_base` / `mana_base` were left as-is.** They are consistent between code and JSON

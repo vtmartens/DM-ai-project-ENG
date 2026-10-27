@@ -8,7 +8,8 @@ SYSTEM_PROMPT = (
     "You receive JSON with two fields:\n"
     '- "events": the exact messages the game engine emitted this turn, in order.\n'
     '- "context": a small snapshot of the player, location and active state.\n'
-    '  It may include "recent", a short list of earlier engine events.\n\n'
+    '  It may include "recent", "conditions", "quests", "factions", "campaign",\n'
+    '  "rune_trials", "combat" and "nearby".\n\n'
     "Write ONE short atmospheric paragraph (2-4 sentences) in second person, present\n"
     "tense, that accompanies the events.\n"
     "The engine's own text is shown to the player unchanged, so do not repeat menu\n"
@@ -40,7 +41,8 @@ HINT_SYSTEM_PROMPT = (
     "You receive JSON with two fields:\n"
     '- "hint": a deterministic suggestion written by the game engine.\n'
     '- "context": a small snapshot of the player, location and active state.\n'
-    '  It may include "recent", a short list of earlier engine events.\n\n'
+    '  It may include "recent", "conditions", "quests", "factions", "campaign",\n'
+    '  "rune_trials", "combat" and "nearby".\n\n'
     "Rewrite the hint as ONE short, atmospheric sentence or two in second person,\n"
     "present tense. Keep it practical, as a suggestion rather than an order.\n\n"
     "Hard rules:\n"
@@ -66,7 +68,8 @@ RECAP_SYSTEM_PROMPT = (
     "You receive JSON with two fields:\n"
     '- "summary": a factual recap written by the game engine.\n'
     '- "context": a small snapshot of the player, location and active state.\n'
-    '  It may include "recent", a short list of earlier engine events.\n\n'
+    '  It may include "recent", "conditions", "quests", "factions", "campaign",\n'
+    '  "rune_trials", "combat" and "nearby".\n\n'
     "Rewrite the summary as a short previously-on recap (2-4 sentences) in second\n"
     "person, past tense.\n\n"
     "Hard rules:\n"

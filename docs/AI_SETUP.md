@@ -154,10 +154,10 @@ of to Anthropic. Unset it when using a real Anthropic key.
 ## Hints
 
 The web client's **Hint** button calls `POST /hint`. The engine always produces a
-deterministic hint (quest objective, locked door, low HP, nearby NPC/object, combat target).
-When a narrator is configured, it is asked to rewrite that hint in one or two sentences. The
-model cannot add facts or change state; on failure or refusal the engine hint is returned
-with `source: "engine"`.
+deterministic hint (quest objective, locked door, low HP, nearby NPC/object, combat target,
+or a prone/staggered combat warning). When a narrator is configured, it is asked to rewrite
+that hint in one or two sentences. The model cannot add facts or change state; on failure or
+refusal the engine hint is returned with `source: "engine"`.
 
 AI hints use the same configuration as narration: set `DM_AI_NARRATION=1` (and the provider
 variables below). Without it, the Hint button still works with engine wording.
@@ -165,11 +165,27 @@ variables below). Without it, the Hint button still works with engine wording.
 ## Recaps
 
 The web client's **Recap** button calls `POST /recap`. The engine builds a deterministic
-summary of the player, location, resources, quests, conditions, defeats and recent events.
-When a narrator is configured, it is asked to rewrite that summary in two to four sentences;
-the model cannot add facts or change state. On failure, refusal or disabled narration, the
-engine recap is returned with `source: "engine"`. Recaps use the same configuration as hints
-and narration.
+summary of the player, location, resources, quests, conditions, faction standing, Runeheart
+choice, Rune Trials progress, capstone status, defeats and recent events. When a narrator is
+configured, it is asked to rewrite that summary in two to four sentences; the model cannot
+add facts or change state. On failure, refusal or disabled narration, the engine recap is
+returned with `source: "engine"`. Recaps use the same configuration as hints and narration.
+
+## Narrator context
+
+Narration, hints and recaps share one compact serializable context:
+
+- player name, class, level, HP and position
+- active quests and completed-quest count
+- conditions
+- faction standing and the current merchant discount, when nonzero
+- campaign flags such as the Sanctum clear, Runeheart choice and quest completion
+- Rune Trials best depth and completed runs
+- active combat round, target, enemies, allies, Cover and Flanking
+- nearby item/NPC names and bounded recent-event memory
+
+The context contains no inventory dump, full stat block or hidden map contents. The engine
+remains authoritative; model prose never changes state.
 
 ## Memory
 

@@ -80,8 +80,9 @@ Each game phase (map exploration, combat, dialogues, inventory management) is ha
 - The Sentinel's Sigil: Mirt offers a quest to recover Sentinel's Edge from the vault; picking up the relic marks the objective ready, and turning it in grants gold, experience and the Vault Warden's Signet accessory
 - Save/load integrity preserves equipped weapon, armor and accessory bonuses, level-up defense, initiative, conditions and recruited allies across round trips
 - Achievements: movement, combat wins (including clean streaks), item collection, map exploration, gold, legendary equipment and quests completed without fighting, plus bounty claims, road victories, clearing the Waystation and Underroad, equipment purchases, defeat recovery and defeating the Iron Sentinel unlock the nineteen achievements in `data/achievements/achievements.json`; progress and unlock times survive save/load
-- Ask the Dungeon Master for a hint: deterministic hints point at the active quest, a locked door and matching key, low HP, a nearby NPC/object or the current combat target; `POST /hint` and the web client's Hint button optionally have the configured AI narrator rephrase them, with no state changes and an engine fallback
-- Session recap: the web client's Recap button and `POST /recap` summarize the player, location, HP/mana, gold, active and completed quests, conditions, defeats and recent events. The engine text is always available; the configured narrator may rephrase it, with the same fallback and no state changes
+- Ask the Dungeon Master for a hint: deterministic hints point at the active quest, a locked door and matching key, low HP, a nearby NPC/object, the current combat target, or a prone/staggered combat warning; `POST /hint` and the web client's Hint button optionally have the configured AI narrator rephrase them, with no state changes and an engine fallback
+- Session recap: the web client's Recap button and `POST /recap` summarize the player, location, HP/mana, gold, active and completed quests, conditions, faction standing, Runeheart/Sanctum choices, Rune Trials progress, capstone status, defeats and recent events. The engine text is always available; the configured narrator may rephrase it, with the same fallback and no state changes
+- AI world awareness: narration, hints and recaps receive a compact context covering quests, conditions, faction standing and shop discounts, campaign choices, Rune Trials depth, combat target/round/cover/flanking, nearby names and recent memory. The AI never changes state or reveals hidden information
 - Direct approach with pathfinding: “go to Durnan” or “walk to barrel” moves next to the target in one command; “go to exit” or “leave” walks to the nearest map exit and steps through it (works from the tavern and the market)
 - Fully testable backend (no Pygame dependencies in this repo)
 - Centralized data loading system via data_manager.py using JSON format
@@ -175,7 +176,9 @@ deterministic engine text is always shown unchanged; the model only adds prose. 
 feature is off, credentials are missing, the request times out, or the model refuses,
 the game simply continues without the extra paragraph. The DM also keeps a small bounded
 memory of recent engine events (default 8) so narration, hints and recaps can refer back to
-what just happened.
+what just happened. Narration, hints and recaps share a compact world context covering
+quests, conditions, faction standing, campaign choices, Rune Trials and combat — without
+giving the model authority over game state.
 
 For a step-by-step **free/local setup** (Ollama, LM Studio, free cloud tiers), see
 [`docs/AI_SETUP.md`](docs/AI_SETUP.md).

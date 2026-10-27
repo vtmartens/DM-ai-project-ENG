@@ -283,11 +283,16 @@ Returns a short summary of the story so far:
 ```
 
 The deterministic recap covers the player, location, HP/mana, gold, active and completed
-quests, conditions, defeat count and the freshest recent events. It is available even when
-AI narration is off. With a narrator configured, `source` is `"ai"` and the model rephrases
-the same facts; any failure or refusal returns the engine recap with `source: "engine"`.
-Recaps never change game state. The result is appended to `/log` with `type: "recap"`, and
-previous recaps are excluded from the next recap's recent events.
+quests, conditions, faction standing and shop discount, Runeheart/Sanctum campaign state,
+Rune Trials depth/runs, capstone status, defeat count and the freshest recent events. It is
+available even when AI narration is off. With a narrator configured, `source` is `"ai"` and
+the model rephrases the same facts; any failure or refusal returns the engine recap with
+`source: "engine"`. Recaps never change game state. The result is appended to `/log` with
+`type: "recap"`, and previous recaps are excluded from the next recap's recent events.
+
+The same opt-in narrator receives a compact context containing conditions, active quests,
+faction standing, campaign flags, Rune Trials progress, combat target/round/cover/flanking,
+nearby names and recent memory. See [`AI_SETUP.md`](AI_SETUP.md#narrator-context).
 
 #### `POST /save`
 
