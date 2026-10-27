@@ -773,6 +773,10 @@ Runs `look` and returns `output`, `state`, plus nearby `items`, `exits`, and `np
 }
 ```
 
+Enemy attacks use data-driven `attack_stat` and `damage_bonus` values from the monster's
+stats, so archers can roll with Dexterity while brutes use Strength; the combat log labels
+the stat (`STR`/`DEX`/`INT`).
+
 `target` is the enemy attacks and abilities currently affect. `choose target` appears when more
 than one enemy is alive; clients can also send `target <name>` as a command. `conditions` is
 the player's active condition map (same shape as `state.conditions`); `guard` is the enemy's

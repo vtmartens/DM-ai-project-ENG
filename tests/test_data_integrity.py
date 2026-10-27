@@ -294,6 +294,28 @@ def test_shop_stock_references_existing_items():
             referenced.add(name)
 
 
+def test_monster_attack_profiles_are_well_formed():
+    monsters = _load(ROOT / "data" / "monsters" / "monsters.json")
+    abilities = {
+        "strength",
+        "dexterity",
+        "constitution",
+        "intelligence",
+        "wisdom",
+        "charisma",
+    }
+
+    for monster_id, monster in monsters.items():
+        stats = monster.get("stats", {})
+        attack_stat = stats.get("attack_stat")
+        if attack_stat is not None:
+            assert attack_stat in abilities, monster_id
+        damage_bonus = stats.get("damage_bonus")
+        if damage_bonus is not None:
+            assert isinstance(damage_bonus, int), monster_id
+            assert damage_bonus >= 0, monster_id
+
+
 def test_monster_armor_classes_are_well_formed():
     monsters = _load(ROOT / "data" / "monsters" / "monsters.json")
 

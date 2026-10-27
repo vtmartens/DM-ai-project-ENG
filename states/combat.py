@@ -1359,10 +1359,7 @@ class CombatState(BaseState):
             self._use_enemy_ability(player, game, enemy, ability, index)
             return
 
-        strength = getattr(enemy, "strength", None)
-        if strength is None:
-            strength = getattr(enemy, "damage", 1)
-        damage = max(1, int(strength))
+        damage = max(1, int(enemy.attack_damage_modifier))
 
         # Attack description
         if hasattr(enemy, 'weapons') and enemy.weapons:
@@ -1441,11 +1438,11 @@ class CombatState(BaseState):
             if "multiplier" in effect:
                 damage = max(
                     1,
-                    int(getattr(enemy, "strength", 1))
+                    int(getattr(enemy, "attack_damage_modifier", 1))
                     * int(effect.get("multiplier", 1) or 1),
                 )
             elif damage is None:
-                damage = getattr(enemy, "strength", 1)
+                damage = getattr(enemy, "attack_damage_modifier", 1)
             damage = max(1, int(damage)) + int(effect.get("bonus", 0) or 0)
 
             if attack_critical:

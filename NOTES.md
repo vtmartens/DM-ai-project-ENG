@@ -829,6 +829,17 @@ entirely. The doors that existed were also misaligned with the map exits.
   damage; item/player round trips; shop property exposure; weapon data integrity. 475 tests
   pass.
 
+## Enemy attack profiles (2026-10-27)
+
+- `Enemy` now reads `attack_stat` and `damage_bonus` from monster stats, exposes them on
+  save round trips, and uses them for basic attacks and non-save abilities through
+  `Entity.attack_ability()` and `attack_damage_modifier`.
+- Goblin archers, skeletons, wolves, spiders, bandits and smugglers use Dexterity; orcs,
+  trolls, dragons and chiefs use Strength. Damage bonuses are data-driven and modest.
+  Enemy attack logs now label `(STR)`/`(DEX)`.
+- Tests cover profile selection, Dexterity-based basic damage and log labels, generic enemy
+  round trips and monster attack-profile data integrity. 498 tests pass.
+
 ## Rune Pillar vault challenge (2026-10-27)
 
 - Changed the vault Rune Pillar data type to `rune_pillar` and added a `RunePillar`
@@ -918,7 +929,7 @@ entirely. The doors that existed were also misaligned with the map exits.
 | Residual Italian (glossary-derived denylist + accented characters) | 0 hits |
 | **Original Italian vs translated, identical input** | **46/46 placements, identical sequence** |
 | Flask API in-process (test client, no socket) | 31 × 200, 0 raised |
-| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, AI memory, hints, achievements, utility spells, locks, vault, quests, enemy abilities, encounters, saving throws, conditions, combat status, attack rolls/AC, Defend/Aim, defeat recovery, session recap, equipment economy, road/wilderness/loot, Broken Waystation, Underroad, bounty board, bounty web panel, progression achievements, weapon properties, Rune Pillar, hardening, rest, accessibility, web client routes, browser smoke/mobile) | 494 passed |
+| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, AI memory, hints, achievements, utility spells, locks, vault, quests, enemy abilities, encounters, saving throws, conditions, combat status, attack rolls/AC, Defend/Aim, defeat recovery, session recap, equipment economy, road/wilderness/loot, Broken Waystation, Underroad, bounty board, bounty web panel, progression achievements, weapon properties, enemy attack profiles, Rune Pillar, hardening, rest, accessibility, web client routes, browser smoke/mobile) | 498 passed |
 | Live smoke test (Flask server, `/app`, start/state/abilities/inventory/actions/command/save/load) | passed |
 
 The last comparison is the strongest evidence: the pristine Italian code and the finished

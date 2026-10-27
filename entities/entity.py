@@ -349,17 +349,22 @@ class Entity:
         return properties if isinstance(properties, dict) else {}
 
     def attack_ability(self) -> str:
-        """Returns the ability used for the equipped weapon's attack."""
-        properties = self._weapon_properties(getattr(self, "weapon", None))
-        attack_stat = properties.get("attack_stat")
-        if attack_stat in {
+        """Returns the ability used for the equipped weapon or enemy profile."""
+        abilities = {
             "strength",
             "dexterity",
             "constitution",
             "intelligence",
             "wisdom",
             "charisma",
-        }:
+        }
+        explicit = getattr(self, "attack_stat", None)
+        if explicit in abilities:
+            return explicit
+
+        properties = self._weapon_properties(getattr(self, "weapon", None))
+        attack_stat = properties.get("attack_stat")
+        if attack_stat in abilities:
             return attack_stat
         if properties.get("ranged"):
             return "dexterity"
@@ -377,10 +382,12 @@ class Entity:
 
     @property
     def attack_damage_modifier(self) -> int:
-        """Damage modifier for the equipped weapon, including weapon bonuses."""
+        """Damage modifier for the equipped weapon or enemy attack profile."""
         properties = self._weapon_properties(getattr(self, "weapon", None))
-        return self.attack_modifier + int(
-            properties.get("damage_bonus", 0) or 0
+        return (
+            self.attack_modifier
+            + int(getattr(self, "damage_bonus", 0) or 0)
+            + int(properties.get("damage_bonus", 0) or 0)
         )
 
     @property
