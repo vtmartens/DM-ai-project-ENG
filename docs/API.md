@@ -856,8 +856,9 @@ pending surprise state is serialized with the combat state.
 The `road` map is reachable from the market at `(33, 7)` and starts at `(2, 7)`. Moving on
 the road (via `POST /move`, direction commands, or the map menu) can start a wandering
 encounter after a two-step grace period, with a three-step cooldown after each encounter.
-At level 1–2 the encounter table uses Goblin Scouts and Wolf Pack; Orc Patrol is added from
-level 3. Victories use the curated encounter reward and can additionally roll loot from
+At level 1–2 the encounter table uses Goblin Scouts and Wolf Pack; Orc Patrol and Goblin
+Warband are added from level 3, Smugglers' Enforcers from level 4 and Orc Raiders from level
+5. Victories use the curated encounter reward and can additionally roll loot from
 `data/monsters/loot_tables.json` into the player's inventory.
 
 A triggered road step can instead open a data-driven `RoadEventState`: a traveling merchant
@@ -1029,11 +1030,11 @@ Runs `look` and returns `output`, `state`, plus nearby `items`, `exits`, and `np
   "conditions": {"poison": {"damage": 2, "turns": 3}},
   "effects": {"defending": false, "aiming": true},
   "enemies": [
-    {"name": "Goblin A", "hp": 10, "max_hp": 10, "ac": 13, "guard": 0,
-     "conditions": {"prone": {"turns": 2}}, "surprised": false,
-     "cooldowns": [{"id": "poison_arrow", "name": "Poison Arrow", "remaining": 2}]},
-    {"name": "Goblin B", "hp": 10, "max_hp": 10, "ac": 13, "guard": 0,
-     "conditions": {}, "surprised": false, "cooldowns": []}
+    {"name": "Goblin Hexer", "hp": 16, "max_hp": 16, "ac": 13, "elite": true,
+     "guard": 0, "conditions": {"prone": {"turns": 2}}, "surprised": false,
+     "cooldowns": [{"id": "hex_bolt", "name": "Hex Bolt", "remaining": 2}]},
+    {"name": "Goblin B", "hp": 10, "max_hp": 10, "ac": 13, "elite": false,
+     "guard": 0, "conditions": {}, "surprised": false, "cooldowns": []}
   ],
   "allies": [],
   "available_actions": [
@@ -1061,9 +1062,10 @@ the stat (`STR`/`DEX`/`INT`).
 than one enemy is alive; clients can also send `target <name>` as a command. `conditions` is
 the player's active condition map (same shape as `state.conditions`); each enemy also carries
 its own `conditions` map. `guard` is the enemy's remaining physical guard, and `cooldowns`
-lists ability names and rounds until reuse. Timed conditions (burning, frightened, weakened,
-prone, staggered, blinded, restrained, charmed) include a `turns` counter and tick at the end
-of each combat round. Blinded and Restrained give the player's attacks and checks
+lists ability names and rounds until reuse. `elite` marks Goblin Hexers, Orc Berserkers,
+Risen Champions and Smuggler Enforcers; the combat card renders an **Elite** tag. Timed
+conditions (burning, frightened, weakened, prone, staggered, blinded, restrained, charmed)
+include a `turns` counter and tick at the end of each combat round. Blinded and Restrained give the player's attacks and checks
 disadvantage while attacks against them have advantage; Restrained also sets
 `blocks_escape`, so `flee` is refused. Charmed records the charmer's name in the condition
 entry's `source` and prevents weapon attacks and damaging class abilities against that

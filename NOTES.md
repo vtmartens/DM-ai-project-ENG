@@ -1340,6 +1340,28 @@ entirely. The doors that existed were also misaligned with the map exits.
   test also selects Hard on the start screen and verifies the created session.
   **728 tests pass.**
 
+## Elite enemies and encounter variety (2026-10-27)
+
+- Added four elite monsters with `"elite": true` in `data/monsters/monsters.json`:
+  **Goblin Hexer**, **Orc Berserker**, **Risen Champion** and **Smuggler Enforcer**. Their
+  stats, weapons, armor, rewards and abilities are data-driven.
+- Added three abilities in `data/monsters/abilities.json`: **Hex Bolt** (WIS save, blinded),
+  **Reckless Cleave** (DEX save, weakened) and **Grave Guard** (WIS save, frightened, enemy
+  guard). Smuggler Enforcers reuse Dirty Trick and Shield Bash.
+- Added four curated encounters: **Goblin Warband**, **Orc Raiders**, **The Restless Dead**
+  and **Smugglers' Enforcers**. They appear at the end of the tavern encounter list, so the
+  existing numbered choices keep their order. The road table adds Goblin Warband at level
+  3, Smugglers' Enforcers at 4 and Orc Raiders at 5; the list now uses a min-level map
+  instead of one-off filtering.
+- `Enemy.elite` survives save/load. Encounter objects expose `elite`, `/combat` exposes it
+  per enemy, the web card renders an **Elite** tag, and AI context includes it.
+- Fixed a latent input-consumption bug exposed by having more than seven curated
+  encounters: the command that opened the encounter list could be reread as an encounter
+  index. The list now clears that pending command and waits for a fresh choice.
+- Tests: `tests/test_elite_enemies.py` covers elite load/round-trip, encounter flags and
+  rewards, combat snapshots, Hex Bolt/Reckless Cleave/Grave Guard, road level gates and the
+  tavern catalogue. The browser test now asserts the Elite tag. **736 tests pass.**
+
 ## Deliberate translation choices worth knowing
 
 - **`hp_base` / `mana_base` were left as-is.** They are consistent between code and JSON

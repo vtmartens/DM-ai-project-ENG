@@ -141,6 +141,58 @@
       "damage": 4
     }
   },
+  "hex_bolt": {
+    "id": "hex_bolt",
+    "name": "Hex Bolt",
+    "description": "A knot of cursing light that bursts across the eyes.",
+    "cooldown": 3,
+    "telegraph": "The goblin hexer traces a jagged sign in the air.",
+    "save": {
+      "ability": "wisdom",
+      "dc": 13,
+      "success": "half"
+    },
+    "condition": {"id": "blinded", "turns": 2},
+    "effect": {
+      "type": "attack",
+      "damage": 5
+    }
+  },
+  "reckless_cleave": {
+    "id": "reckless_cleave",
+    "name": "Reckless Cleave",
+    "description": "A wild two-handed cut that leaves both fighter and target off balance.",
+    "cooldown": 3,
+    "telegraph": "The berserker drags both axes back for a wide, reckless swing.",
+    "save": {
+      "ability": "dexterity",
+      "dc": 13,
+      "success": "half"
+    },
+    "condition": {"id": "weakened", "turns": 2},
+    "effect": {
+      "type": "attack",
+      "damage": 12
+    }
+  },
+  "grave_guard": {
+    "id": "grave_guard",
+    "name": "Grave Guard",
+    "description": "The champion raises a dead shield, warding itself as the grave-chill bites.",
+    "cooldown": 3,
+    "telegraph": "The Risen Champion plants its rusted blade and raises a dead shield.",
+    "save": {
+      "ability": "wisdom",
+      "dc": 13,
+      "success": "half"
+    },
+    "condition": {"id": "frightened", "turns": 2},
+    "effect": {
+      "type": "attack",
+      "damage": 8,
+      "guard": 5
+    }
+  },
   "shield_bash": {
     "id": "shield_bash",
     "name": "Shield Bash",

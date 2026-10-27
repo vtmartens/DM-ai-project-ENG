@@ -381,13 +381,14 @@ def test_combat_status_and_conditions_ui(live_server):
         combat_text = driver.execute_script(
             "renderCombat({in_combat: true, round: 1, turn_of: 'player', "
             "target: 'Goblin', effects: {defending: true, aiming: true}, "
-            "enemies: [{name: 'Goblin', hp: 5, "
+            "enemies: [{name: 'Goblin', hp: 5, elite: true, "
             "max_hp: 10, ac: 13, guard: 4, cooldowns: [{id: 'poison_arrow', "
             "name: 'Poison Arrow', remaining: 2}]}], allies: []});"
             "return document.getElementById('combat-card').textContent;"
         )
         assert "Defending · +4 AC" in combat_text
         assert "Aiming · advantage" in combat_text
+        assert "Elite" in combat_text
         assert "AC 13" in combat_text
         assert "Guard 4" in combat_text
         assert "Poison Arrow: 2" in combat_text

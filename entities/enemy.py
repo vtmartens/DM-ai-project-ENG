@@ -29,6 +29,7 @@ class Enemy(Entity):
                 self.maneuver_chance = int(
                     monster_data.get("maneuver_chance", 35) or 0
                 )
+                self.elite = bool(monster_data.get("elite", False))
                 stats = monster_data.get("stats", {})
                 ac = stats.get("ac")
                 self.armor_class_value = int(ac) if ac is not None else None
@@ -75,6 +76,7 @@ class Enemy(Entity):
         self.abilities = []
         self.maneuvers = []
         self.maneuver_chance = 35
+        self.elite = False
         self.armor_class_value = None
         self.attack_stat = None
         self.damage_bonus = 0
@@ -173,6 +175,7 @@ class Enemy(Entity):
             "maneuver_chance": int(
                 getattr(self, "maneuver_chance", 35) or 0
             ),
+            "elite": bool(getattr(self, "elite", False)),
             "armor_class_value": getattr(self, "armor_class_value", None),
             "attack_stat": getattr(self, "attack_stat", None),
             "damage_bonus": int(getattr(self, "damage_bonus", 0) or 0),
@@ -206,6 +209,7 @@ class Enemy(Entity):
                 enemy.maneuver_chance = int(
                     data.get("maneuver_chance", 35) or 0
                 )
+            enemy.elite = bool(data.get("elite", enemy.elite))
 
             return enemy
         
@@ -231,6 +235,7 @@ class Enemy(Entity):
         enemy.maneuver_chance = int(
             data.get("maneuver_chance", 35) or 0
         )
+        enemy.elite = bool(data.get("elite", False))
         enemy.armor_class_value = data.get("armor_class_value")
         enemy.attack_stat = data.get("attack_stat")
         enemy.damage_bonus = int(data.get("damage_bonus", 0) or 0)

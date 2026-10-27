@@ -425,6 +425,8 @@ def test_monster_attack_profiles_are_well_formed():
         if damage_bonus is not None:
             assert isinstance(damage_bonus, int), monster_id
             assert damage_bonus >= 0, monster_id
+        if "elite" in monster:
+            assert isinstance(monster["elite"], bool), monster_id
 
 
 def test_monster_armor_classes_are_well_formed():
@@ -655,6 +657,8 @@ def test_encounter_definitions_are_well_formed():
         assert encounter.get("title"), encounter_id
         assert encounter.get("description"), encounter_id
         assert encounter.get("difficulty") in {"easy", "medium", "hard"}, encounter_id
+        if "elite" in encounter:
+            assert isinstance(encounter["elite"], bool), encounter_id
 
         specs = encounter.get("enemies") or []
         assert 1 <= len(specs) <= 4, encounter_id

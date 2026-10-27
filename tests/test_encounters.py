@@ -133,6 +133,8 @@ def test_tavern_lists_and_starts_a_curated_encounter(client):
     texts = [message["text"] for message in listing["output"]]
     assert any("Goblin Scouts" in text for text in texts)
     assert any("Orc Patrol" in text for text in texts)
+    assert any("Goblin Warband (hard, elite)" in text for text in texts)
+    assert any("Smugglers' Enforcers (medium, elite)" in text for text in texts)
 
     started = client.post(
         "/command", json={"session_id": session_id, "command": "1"}

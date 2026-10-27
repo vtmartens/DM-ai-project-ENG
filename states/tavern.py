@@ -973,12 +973,26 @@ class TavernState(BaseGameState):
                         if isinstance(data, dict)
                         else "medium"
                     )
-                    game.io.show_message(f"{index}. {title} ({difficulty})")
+                    elite = (
+                        data.get("elite", False)
+                        if isinstance(data, dict)
+                        else False
+                    )
+                    suffix = ", elite" if elite else ""
+                    game.io.show_message(
+                        f"{index}. {title} ({difficulty}{suffix})"
+                    )
                 game.io.show_message(f"{len(catalogue) + 1}. Go back")
 
                 self.contextual_data["phase_selection"] = "encounters"
                 self.contextual_data["encounter_ids"] = list(catalogue)
                 game.io.request_input("Choice: ")
+                # If the current command was still pending, request_input
+                # returned it above. Clear it so the next loop waits for a
+                # fresh choice instead of re-reading that command as an
+                # encounter index.
+                game.io.last_input = ""
+                self.last_input = ""
                 return
 
             else:
@@ -988,6 +1002,9 @@ class TavernState(BaseGameState):
                 return
 
         elif self.contextual_data["phase_selection"] == "encounters":
+            if not str(game.io.last_input or "").strip():
+                game.io.request_input("Choice: ")
+                return
             try:
                 selection = int(game.io.last_input)
                 encounter_ids = self.contextual_data.get("encounter_ids", [])

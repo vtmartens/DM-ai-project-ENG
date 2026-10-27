@@ -14,16 +14,28 @@ ROAD_ENCOUNTER_IDS = (
     "goblin_scouts",
     "wolf_pack",
     "orc_patrol",
+    "goblin_warband",
+    "underroad_enforcers",
+    "orc_raiders",
 )
+
+ROAD_ENCOUNTER_MIN_LEVEL = {
+    "orc_patrol": 3,
+    "goblin_warband": 3,
+    "underroad_enforcers": 4,
+    "orc_raiders": 5,
+}
 
 
 def _candidates(player=None) -> list[str]:
     catalogue = encounter_catalogue()
-    candidates = [entry for entry in ROAD_ENCOUNTER_IDS if entry in catalogue]
     level = int(getattr(player, "level", 1) or 1)
-    if level < 3:
-        candidates = [entry for entry in candidates if entry != "orc_patrol"]
-    return candidates
+    return [
+        entry
+        for entry in ROAD_ENCOUNTER_IDS
+        if entry in catalogue
+        and level >= int(ROAD_ENCOUNTER_MIN_LEVEL.get(entry, 1) or 1)
+    ]
 
 
 def should_trigger_encounter(rng=None) -> bool:

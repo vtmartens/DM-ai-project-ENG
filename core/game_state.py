@@ -780,6 +780,10 @@ class GameState:
                         "hp": getattr(enemy, "hp", 0),
                         "max_hp": getattr(enemy, "hp_max", 0),
                         "ac": getattr(enemy, "armor_class", 10),
+                        "elite": bool(
+                            getattr(enemy, "elite", False)
+                        )
+                        and alive,
                         "conditions": (
                             dict(getattr(enemy, "conditions", {}) or {})
                             if alive

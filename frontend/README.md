@@ -78,8 +78,8 @@ You can also set `localStorage["dm_api_base"]`.
   explains the recovery and the session returns to the tavern.
   Recruited allies appear below the enemies. Enemy abilities and their telegraphs appear in
   the adventure log, and the card reflects HP changes. Status tags show each enemy's physical
-  guard, ability cooldowns and conditions such as Prone, Staggered, Blinded, Restrained or
-  Charmed. Trip and Shove are available as quick actions; their contested Athletics checks
+  guard, ability cooldowns, **Elite** status and conditions such as Prone, Staggered,
+  Blinded, Restrained or Charmed. Trip and Shove are available as quick actions; their contested Athletics checks
   and outcomes appear in the log. Enemies can also Trip/Shove the player. A prone player gets
   a **Stand up** quick action, a restrained player gets **Break Free**, and a charmed player
   gets **Resist the Charm**. Staggered disables ability use, matching the enemy rules.

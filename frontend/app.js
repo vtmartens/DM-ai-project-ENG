@@ -586,6 +586,9 @@ function renderCombat(combat) {
 
     const statuses = document.createElement("div");
     statuses.className = "enemy-status";
+    if (enemy.elite) {
+      addStatusTag(statuses, "Elite", "elite");
+    }
     if (enemy.surprised) {
       addStatusTag(statuses, "Surprised", "condition");
     }

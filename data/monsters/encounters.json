@@ -77,5 +77,53 @@
       {"monster_type": "rune_sentinel", "name": "Rune Sentinel A"},
       {"monster_type": "rune_sentinel", "name": "Rune Sentinel B"}
     ]
+  },
+  "goblin_warband": {
+    "title": "Goblin Warband",
+    "description": "A bone-charmed goblin hexer drives two scouts forward, cursing the air ahead of them.",
+    "difficulty": "hard",
+    "elite": true,
+    "reward": {"gold": 30, "experience": 80},
+    "enemies": [
+      {"monster_type": "goblin_hexer", "name": "Goblin Hexer"},
+      {"monster_type": "goblin", "name": "Goblin Scout A"},
+      {"monster_type": "goblin", "name": "Goblin Scout B"}
+    ]
+  },
+  "orc_raiders": {
+    "title": "Orc Raiders",
+    "description": "An orc berserker leads a raiding party down the road, axes already bloodied.",
+    "difficulty": "hard",
+    "elite": true,
+    "reward": {"gold": 60, "experience": 180},
+    "enemies": [
+      {"monster_type": "orc_berserker", "name": "Orc Berserker"},
+      {"monster_type": "orc", "name": "Orc Raider"},
+      {"monster_type": "goblin", "name": "Goblin Archer"}
+    ]
+  },
+  "restless_dead": {
+    "title": "The Restless Dead",
+    "description": "A risen champion in broken plate holds the cellar dark, two skeletons at its back.",
+    "difficulty": "hard",
+    "elite": true,
+    "reward": {"gold": 45, "experience": 160},
+    "enemies": [
+      {"monster_type": "risen_champion", "name": "Risen Champion"},
+      {"monster_type": "skeleton", "name": "Skeleton A"},
+      {"monster_type": "skeleton", "name": "Skeleton B"}
+    ]
+  },
+  "underroad_enforcers": {
+    "title": "Smugglers' Enforcers",
+    "description": "A tunnel enforcer and two runners bar the way, cudgels and knives drawn.",
+    "difficulty": "medium",
+    "elite": true,
+    "reward": {"gold": 55, "experience": 170},
+    "enemies": [
+      {"monster_type": "smuggler_enforcer", "name": "Smuggler Enforcer"},
+      {"monster_type": "smuggler", "name": "Underroad Runner A"},
+      {"monster_type": "smuggler", "name": "Underroad Runner B"}
+    ]
   }
 }

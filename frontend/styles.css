@@ -538,6 +538,11 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
   color: var(--accent-strong);
   border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
 }
+.status-tag.elite {
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 55%, var(--border));
+  font-weight: 600;
+}
 .status-tag.condition {
   color: var(--accent-strong);
   border-color: color-mix(in srgb, var(--accent) 45%, var(--border));

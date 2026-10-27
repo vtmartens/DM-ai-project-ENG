@@ -65,6 +65,9 @@ def build_encounter(encounter_id):
         "title": data.get("title", encounter_id),
         "description": data.get("description", ""),
         "difficulty": data.get("difficulty", "medium"),
+        "elite": any(
+            bool(getattr(enemy, "elite", False)) for enemy in enemies
+        ),
         "reward": dict(reward) if isinstance(reward, dict) else {},
         "enemies": enemies,
     }
