@@ -19,6 +19,7 @@ def test_new_states_are_registered():
         "WaystationState",
         "UnderroadState",
         "SanctumState",
+        "RuneheartGateState",
         "RuneTrialsState",
         "ForgeState",
         "BlackMarketState",

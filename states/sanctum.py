@@ -24,7 +24,11 @@ class SanctumState(BaseGameState):
         if not self._ward_passed(game.player):
             return ["amulet", "force", "leave"]
         if self._cleared(game.player):
-            return ["vault", "trials", "forge", "leave"]
+            actions = ["vault", "trials", "forge"]
+            if self._looted(game.player):
+                actions.append("gate")
+            actions.append("leave")
+            return actions
         return ["confront", "vault", "leave"]
 
     def run(self, game):
@@ -217,6 +221,8 @@ class SanctumState(BaseGameState):
         if cleared:
             game.io.show_message("4. Enter the Rune Trials")
             game.io.show_message("5. Use the Rune Forge")
+            if self._looted(player):
+                game.io.show_message("6. Enter the Runeheart Gate")
 
         choice = str(
             game.io.request_input("\nChoice: ") or ""
@@ -236,6 +242,15 @@ class SanctumState(BaseGameState):
                 return
         elif choice in {"5", "forge", "craft", "rune forge"}:
             if self._enter_forge(game):
+                return
+        elif choice in {
+            "6",
+            "gate",
+            "runeheart gate",
+            "runeheart",
+            "epilogue",
+        }:
+            if self._enter_runeheart_gate(game):
                 return
         else:
             game.io.show_message("Invalid choice.")
@@ -387,6 +402,28 @@ class SanctumState(BaseGameState):
         from states.forge import ForgeState
 
         game.change_state(ForgeState(game))
+        return True
+
+    def _enter_runeheart_gate(self, game):
+        if not self._cleared(game.player):
+            game.io.show_message(
+                "The gate is dark. Defeat the Rune Warden first."
+            )
+            return False
+        if not self._looted(game.player):
+            game.io.show_message(
+                "The Runeheart must be claimed or given before the lower "
+                "gate will answer."
+            )
+            return False
+
+        game.io.show_message(
+            "The Runeheart's light sinks into the floor. A spiral stair opens "
+            "beneath the empty vault, descending toward a slower heartbeat."
+        )
+        from states.runeheart_gate import RuneheartGateState
+
+        game.change_state(RuneheartGateState(game))
         return True
 
     def _leave(self, game):

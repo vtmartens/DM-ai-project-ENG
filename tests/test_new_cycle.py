@@ -30,7 +30,8 @@ def _game(recording_io):
     ]
     player.active_quests = [{"id": "vargas_debt", "title": "A Debt"}]
     player.completed_quests = [
-        {"id": "sanctum_chapter", "title": "The Sealed Sanctum"}
+        {"id": "sanctum_chapter", "title": "The Sealed Sanctum"},
+        {"id": "runeheart_gate", "title": "The Runeheart Gate"},
     ]
     player.cleared_areas = ["waystation", "underroad", "sanctum"]
     player.conditions = {"poison": {"damage": 1, "turns": 1}}
@@ -90,6 +91,11 @@ def test_tavern_only_offers_cycle_after_campaign_completion(recording_io):
     player.completed_quests = [
         {"id": "sanctum_chapter", "title": "The Sealed Sanctum"}
     ]
+    assert TavernState._campaign_complete(player) is False
+
+    player.completed_quests.append(
+        {"id": "runeheart_gate", "title": "The Runeheart Gate"}
+    )
     assert TavernState._campaign_complete(player) is True
 
 

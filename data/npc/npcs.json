@@ -337,6 +337,59 @@
     "gold": 40,
     "friendly": true
   },
+  "Mirt's Factor": {
+    "name": "Mirt's Factor",
+    "description": "A sharp-eyed fixer in a good coat, carrying Mirt's authority and a very practical knife.",
+    "profession": "Fixer",
+    "level": 6,
+    "hp": 30,
+    "hp_max": 30,
+    "strength_base": 14,
+    "dexterity_base": 14,
+    "constitution_base": 12,
+    "intelligence_base": 14,
+    "wisdom_base": 12,
+    "charisma_base": 14,
+    "token": "F",
+    "inventory": [
+      {
+        "name": "dagger",
+        "type": "weapon",
+        "effect": {"strength": 2, "dexterity": 2},
+        "value": 15,
+        "description": "A small, well-kept knife"
+      }
+    ],
+    "gold": 80,
+    "friendly": true
+  },
+  "Watch Medic": {
+    "name": "Watch Medic",
+    "description": "A watch healer in a grey coat, satchel full of bandages and bitter-smelling vials.",
+    "profession": "Healer",
+    "level": 4,
+    "hp": 22,
+    "hp_max": 22,
+    "strength_base": 10,
+    "dexterity_base": 12,
+    "constitution_base": 12,
+    "intelligence_base": 13,
+    "wisdom_base": 16,
+    "charisma_base": 12,
+    "token": "W",
+    "inventory": [
+      {
+        "name": "Healing Potion",
+        "type": "heal",
+        "effect": {"heal": 10},
+        "value": 25,
+        "description": "A potion that restores 10 hit points"
+      }
+    ],
+    "gold": 20,
+    "friendly": true,
+    "ally_abilities": ["field_dressing", "antidote"]
+  },
   "Vargas": {
     "name": "Vargas",
     "description": "A sharp-faced man in a dark coat, with the hungry look of someone who has sold too many promises.",

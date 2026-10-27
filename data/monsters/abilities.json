@@ -314,5 +314,22 @@
       "type": "attack",
       "damage": 10
     }
+  },
+  "heart_seal": {
+    "id": "heart_seal",
+    "name": "Heart Seal",
+    "description": "A ring of white runes closes around the target and pins them in place.",
+    "cooldown": 4,
+    "telegraph": "The Runeheart Sovereign presses one hand to the heart-shaped floor.",
+    "save": {
+      "ability": "strength",
+      "dc": 14,
+      "success": "half"
+    },
+    "condition": {"id": "restrained", "turns": 2},
+    "effect": {
+      "type": "attack",
+      "damage": 8
+    }
   }
 }

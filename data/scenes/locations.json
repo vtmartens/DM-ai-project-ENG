@@ -34,5 +34,9 @@
   "sanctum": {
     "title": "The Sealed Sanctum",
     "description": "Rune-light coils through the sealed sanctum. Black stone pillars rise around a silent hall where the air itself seems to hold its breath."
+  },
+  "runeheart_gate": {
+    "title": "The Runeheart Gate",
+    "description": "The Runeheart Gate descends in a spiral of black stone and white fire. Broken wards hang above a floor etched with the shape of a heart, and something below it is still beating."
   }
 }

@@ -892,7 +892,8 @@ def get_available_actions():
             "leave",
         ],
         "underroad": ["confront", "cache", "sanctum", "talk to Nessa", "leave"],
-        "sanctum": ["amulet", "force", "confront", "vault", "trials", "forge", "leave"],
+        "sanctum": ["amulet", "force", "confront", "vault", "trials", "forge", "gate", "leave"],
+        "runeheart_gate": ["wardens", "sovereign", "leave"],
         "rune_trials": ["begin", "leave"],
         "forge": ["rune_draught", "rune_forged_blade", "rune_ward_plate", "leave"],
         "black_market": ["leave"],
@@ -931,6 +932,14 @@ def get_available_actions():
         sanctum = session.game.current_state()
         chooser = getattr(sanctum, "available_actions", None)
         actions = chooser() if callable(chooser) else actions_context["sanctum"]
+    elif state_name == "RuneheartGateState":
+        gate = session.game.current_state()
+        chooser = getattr(gate, "available_actions", None)
+        actions = (
+            chooser()
+            if callable(chooser)
+            else actions_context["runeheart_gate"]
+        )
     elif state_name == "RuneTrialsState":
         trials = session.game.current_state()
         chooser = getattr(trials, "available_actions", None)

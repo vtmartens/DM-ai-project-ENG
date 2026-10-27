@@ -30,7 +30,12 @@ def _session(recording_io):
             "id": "sanctum_chapter",
             "title": "The Sealed Sanctum",
             "status": "completed",
-        }
+        },
+        {
+            "id": "runeheart_gate",
+            "title": "The Runeheart Gate",
+            "status": "completed",
+        },
     ]
     game = Game(player, None, recording_io, temporary=True)
     game.set_initial_map("tavern")
@@ -45,13 +50,14 @@ def test_campaign_state_summarizes_story_and_endgame(recording_io):
 
     campaign = session.get_campaign_state()
 
-    assert campaign["total_chapters"] == 7
-    assert campaign["completed_chapters"] == 1
+    assert campaign["total_chapters"] == 8
+    assert campaign["completed_chapters"] == 2
     assert campaign["campaign_complete"] is True
     assert campaign["runeheart_choice"] == "mirt"
     chapters = {chapter["id"]: chapter for chapter in campaign["chapters"]}
     assert chapters["vargas_debt"]["status"] == "active"
     assert chapters["sanctum_chapter"]["status"] == "completed"
+    assert chapters["runeheart_gate"]["status"] == "completed"
     assert chapters["shadows_of_the_market"]["status"] == "not_started"
     assert campaign["rune_trials"] == {"best": 4, "runs": 1}
     assert campaign["rune_shards"] == 6
@@ -80,7 +86,7 @@ def test_campaign_is_exposed_in_state_and_api(client):
         "/campaign", query_string={"session_id": session_id}
     ).get_json()
 
-    assert state["campaign"]["total_chapters"] == 7
+    assert state["campaign"]["total_chapters"] == 8
     assert campaign["chapters"][0]["status"] == "not_started"
     assert campaign["rune_shards"] == 3
     assert campaign["landmark"]["location"] == "tavern"

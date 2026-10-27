@@ -281,6 +281,9 @@ def test_sanctum_quick_actions_follow_the_current_phase(recording_io):
         "leave",
     ]
 
+    player.claimed_rewards.append("sanctum_vault")
+    assert "gate" in state.available_actions(game)
+
 
 def test_sanctum_state_and_ward_survive_a_round_trip(recording_io):
     player, game, state = _sanctum(recording_io)

@@ -706,6 +706,8 @@ def test_quest_targets_are_known_combatants():
             )
         if quest.get("bounty"):
             assert quest.get("turn_in") == "Bounty Board", quest_id
+        elif quest.get("completion") == "auto":
+            assert not quest.get("turn_in"), quest_id
         else:
             assert quest.get("turn_in") in npcs, (
                 f"{quest_id}: unknown turn-in NPC {quest.get('turn_in')!r}"

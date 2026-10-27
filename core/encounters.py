@@ -71,7 +71,13 @@ def build_encounter(encounter_id):
         "reward": dict(reward) if isinstance(reward, dict) else {},
         "enemies": enemies,
     }
-    for key in ("location", "clears_area", "loot", "source"):
+    for key in (
+        "location",
+        "clears_area",
+        "grants_flag",
+        "loot",
+        "source",
+    ):
         if key in data:
             encounter[key] = data[key]
     return encounter

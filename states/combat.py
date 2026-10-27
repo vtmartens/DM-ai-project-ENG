@@ -1371,6 +1371,15 @@ class CombatState(BaseState):
                     game=game,
                     area=area,
                 )
+
+        flag = self.encounter.get("grants_flag")
+        if isinstance(flag, str) and flag:
+            claimed = getattr(game.player, "claimed_rewards", None)
+            if not isinstance(claimed, list):
+                claimed = []
+                game.player.claimed_rewards = claimed
+            if flag not in claimed:
+                claimed.append(flag)
         return True
 
     def _handle_defeat(self, game, enemy_name):

@@ -1380,6 +1380,28 @@ entirely. The doors that existed were also misaligned with the map exits.
   Provider tests cover the dialogue prompt; the browser smoke test clicks Voice and asserts
   the engine fallback toast. **748 tests pass.**
 
+## The Runeheart Gate epilogue (2026-10-27)
+
+- Added a new `runeheart_gate` dungeon map and scene description, reached from the Sanctum
+  menu option 6 / `gate` once the Sanctum is clear and the Runeheart vault choice has been
+  made.
+- `RuneheartGateState` runs two encounters: **The Gate Wardens** (two sentinels + an echo)
+  and **The Runeheart Sovereign** (boss + two echoes). The wardens encounter grants the
+  `runeheart_gate_wardens` flag via new generic `grants_flag` encounter metadata.
+- Runeheart choice branches:
+  - **kept** adds a third Runeheart Echo to the boss fight;
+  - **Mirt** adds Mirt's Factor as a temporary combat ally;
+  - **Violet** fully heals and clears conditions, then adds a Watch Medic ally.
+- Added the Runeheart Sovereign, Runeheart Echo, Heart Seal ability, Heartseal legendary
+  accessory, Heart of the Gate achievement and the auto-completing `runeheart_gate` quest.
+- Campaign completion now requires both `sanctum_chapter` and `runeheart_gate`, and New
+  Cycle uses the same condition. The Campaign dashboard now tracks eight chapters. The
+  Runeheart Gate has its own landmark panel.
+- Tests: `tests/test_runeheart_gate.py` covers map/encounter definitions, Sanctum gating,
+  quest start, all three Runeheart branches, warden progress, boss completion/rewards and
+  the return to the Sanctum. Campaign/New Cycle/state-registry tests were updated.
+  **758 tests pass.**
+
 ## Deliberate translation choices worth knowing
 
 - **`hp_base` / `mana_base` were left as-is.** They are consistent between code and JSON

@@ -102,5 +102,13 @@
     "value": 240,
     "rarity": "rare",
     "description": "A dark monocle that shows the quickest way out of a room"
+  },
+  {
+    "name": "Heartseal",
+    "type": "accessory",
+    "effect": {"defense": 2, "wisdom": 2, "charisma": 1},
+    "value": 520,
+    "rarity": "legendary",
+    "description": "A seal of white rune-stone cut in the shape of a heart, warm even in the dark"
   }
 ]

@@ -125,5 +125,33 @@
       {"monster_type": "smuggler", "name": "Underroad Runner A"},
       {"monster_type": "smuggler", "name": "Underroad Runner B"}
     ]
+  },
+  "runeheart_wardens": {
+    "title": "The Gate Wardens",
+    "description": "Two rune sentinels and a flickering echo of the Rune Warden guard the descent into the Runeheart Gate.",
+    "difficulty": "hard",
+    "location": "runeheart_gate",
+    "elite": true,
+    "grants_flag": "runeheart_gate_wardens",
+    "reward": {"gold": 80, "experience": 200},
+    "enemies": [
+      {"monster_type": "rune_sentinel", "name": "Gate Sentinel A"},
+      {"monster_type": "rune_sentinel", "name": "Gate Sentinel B"},
+      {"monster_type": "runeheart_echo", "name": "Runeheart Echo"}
+    ]
+  },
+  "runeheart_sovereign": {
+    "title": "The Runeheart Sovereign",
+    "description": "The heart of the gate unbinds itself: a white-hot sovereign of rune-stone with two echoes at its back.",
+    "difficulty": "hard",
+    "location": "runeheart_gate",
+    "clears_area": "runeheart_gate",
+    "elite": true,
+    "reward": {"gold": 200, "experience": 500},
+    "enemies": [
+      {"monster_type": "runeheart_sovereign", "name": "Runeheart Sovereign"},
+      {"monster_type": "runeheart_echo", "name": "Runeheart Echo A"},
+      {"monster_type": "runeheart_echo", "name": "Runeheart Echo B"}
+    ]
   }
 }

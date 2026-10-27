@@ -313,11 +313,12 @@ class TavernState(BaseGameState):
 
     @staticmethod
     def _campaign_complete(player):
-        return any(
-            isinstance(quest, dict)
-            and quest.get("id") == "sanctum_chapter"
+        completed = {
+            quest.get("id")
             for quest in (getattr(player, "completed_quests", []) or [])
-        )
+            if isinstance(quest, dict)
+        }
+        return {"sanctum_chapter", "runeheart_gate"} <= completed
 
     def _confirm_new_cycle(self, game):
         player = game.player

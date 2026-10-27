@@ -167,6 +167,18 @@
       "experience": 220
     }
   },
+  "runeheart_gate": {
+    "title": "The Runeheart Gate",
+    "description": "The Runeheart has opened a gate beneath the Sealed Sanctum. Something bound below it is still beating, and the gate will not close while it lives.",
+    "objective": "Descend through the Runeheart Gate and defeat the Runeheart Sovereign.",
+    "target": "Runeheart Sovereign",
+    "completion": "auto",
+    "reward": {
+      "gold": 300,
+      "experience": 800,
+      "items": ["Heartseal"]
+    }
+  },
   "quiet_cargo": {
     "title": "The Quiet Cargo",
     "description": "The Watch impounded a wagon of medicine meant for the families who live along the Underroad. Nessa, one of the surviving runners, wants the manifest back before the evidence room swallows it.",

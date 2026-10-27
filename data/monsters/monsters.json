@@ -429,5 +429,60 @@
     "abilities": ["rune_pulse", "warding_light", "gravity_well"],
     "maneuvers": ["trip", "shove"],
     "maneuver_chance": 55
+  },
+  "runeheart_echo": {
+    "name": "Runeheart Echo",
+    "description": "A flickering afterimage of the Rune Warden, its rune core cracked and burning white.",
+    "stats": {
+      "hp": 15,
+      "strength": 12,
+      "dexterity": 14,
+      "attack_stat": "intelligence",
+      "damage_bonus": 1,
+      "ac": 14,
+      "constitution": 10,
+      "intelligence": 14,
+      "wisdom": 12,
+      "charisma": 8
+    },
+    "weapons": ["Echo Blade"],
+    "armor": "Rune Afterimage",
+    "gold": 15,
+    "experience": 60,
+    "token": "e",
+    "difficulty": "medium",
+    "elite": true,
+    "abilities": ["rune_lash"]
+  },
+  "runeheart_sovereign": {
+    "name": "Runeheart Sovereign",
+    "description": "A towering figure of white-hot rune-stone, its heart-shaped core bound in black chains.",
+    "stats": {
+      "hp": 70,
+      "strength": 16,
+      "dexterity": 12,
+      "attack_stat": "intelligence",
+      "damage_bonus": 3,
+      "ac": 17,
+      "constitution": 16,
+      "intelligence": 18,
+      "wisdom": 16,
+      "charisma": 14
+    },
+    "weapons": ["Heartblade", "Force Pulse"],
+    "armor": "Runic Crown",
+    "gold": 250,
+    "experience": 700,
+    "token": "H",
+    "difficulty": "hard",
+    "elite": true,
+    "abilities": [
+      "rune_pulse",
+      "warding_light",
+      "gravity_well",
+      "heart_seal"
+    ],
+    "maneuvers": ["trip", "shove"],
+    "maneuver_chance": 45
   }
 } 

@@ -12,6 +12,7 @@ STATE_MODULES = {
     "WaystationState": "states.waystation",
     "UnderroadState": "states.underroad",
     "SanctumState": "states.sanctum",
+    "RuneheartGateState": "states.runeheart_gate",
     "RuneTrialsState": "states.rune_trials",
     "ForgeState": "states.forge",
     "BlackMarketState": "states.black_market",

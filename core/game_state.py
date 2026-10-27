@@ -277,6 +277,7 @@ class GameState:
         from core.trials import max_waves
         from states.forge import ForgeState
         from states.rune_trials import RuneTrialsState
+        from states.runeheart_gate import RuneheartGateState
         from states.sanctum import SanctumState
         from states.underroad import UnderroadState
         from states.waystation import WaystationState
@@ -364,6 +365,37 @@ class GameState:
                 "actions": actions,
             }
 
+        if isinstance(state, RuneheartGateState):
+            branch = state._branch(player)
+            wardens = state._wardens_cleared(player)
+            cleared = state._sovereign_cleared(player)
+            branch_labels = {
+                "kept": "Runeheart kept",
+                "mirt": "Mirt's factor present",
+                "violet": "Watch medic present",
+                "none": "Runeheart unclaimed",
+            }
+            status = [
+                branch_labels.get(branch, "Runeheart unclaimed"),
+                "gate wardens broken" if wardens else "gate wardens standing",
+                "sovereign defeated" if cleared else "sovereign waiting",
+            ]
+            description = (
+                "The Runeheart Gate is silent. The stair spirals back toward "
+                "the Sanctum."
+                if cleared
+                else "White rune-light coils down the spiral stair. "
+                "Something below the heart-shaped floor is still beating."
+            )
+            return {
+                "active": True,
+                "id": "runeheart_gate",
+                "title": "The Runeheart Gate",
+                "description": description,
+                "status": status,
+                "actions": actions,
+            }
+
         if isinstance(state, RuneTrialsState):
             limit = max_waves()
             status = [
@@ -443,6 +475,7 @@ class GameState:
             "waystation_trouble",
             "underroad_chapter",
             "sanctum_chapter",
+            "runeheart_gate",
         )
         active = {
             quest.get("id"): quest
@@ -524,7 +557,11 @@ class GameState:
                 1 for chapter in chapters if chapter["status"] == "completed"
             ),
             "total_chapters": len(chapters),
-            "campaign_complete": "sanctum_chapter" in completed,
+            "campaign_complete": {
+                "sanctum_chapter",
+                "runeheart_gate",
+            }
+            <= completed,
             "runeheart_choice": runeheart_choice,
             "reputation": self.get_reputation_state(),
             "rune_trials": {

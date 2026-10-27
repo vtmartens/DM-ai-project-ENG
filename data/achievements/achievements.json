@@ -275,5 +275,17 @@
       "type": "quest_completed",
       "value": "quiet_cargo"
     }
+  },
+  {
+    "id": "heart_of_the_gate",
+    "name": "Heart of the Gate",
+    "description": "Descend through the Runeheart Gate and defeat the Runeheart Sovereign",
+    "icon": "achievement_combat.png",
+    "difficulty": "hard",
+    "score": 75,
+    "condition": {
+      "type": "area_cleared",
+      "value": "runeheart_gate"
+    }
   }
 ] 

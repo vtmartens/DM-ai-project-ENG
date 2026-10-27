@@ -914,13 +914,31 @@ After the Underroad is cleared and its cache has been claimed, the Underroad men
   or give it to Violet for +12 Violet's Watch standing and an extra 100 gold.
 - `trials` opens the repeatable Rune Trials endgame.
 - `forge` opens the Rune Forge crafting state.
+- `gate` opens the Runeheart Gate epilogue after the Runeheart vault choice.
 - `leave` returns to the Underroad.
 
 `/available_actions` reflects the current phase (`amulet`/`force` before the ward, then
-`confront`/`vault`/`trials`/`leave`). Mirt offers the chapter after the Underroad is
-completed, reminds, accepts the Rune Warden turn-in and provides the epilogue dialogue. The
-`sanctum` map is hidden from the destination menu and is reachable only through the
-Underroad.
+`confront`/`vault`/`trials`/`forge`/`gate`/`leave`). Mirt offers the chapter after the
+Underroad is completed, reminds, accepts the Rune Warden turn-in and provides the epilogue
+dialogue. The `sanctum` map is hidden from the destination menu and is reachable only
+through the Underroad.
+
+#### The Runeheart Gate
+
+After clearing the Sanctum and claiming or giving the Runeheart, the Sanctum menu offers
+**Enter the Runeheart Gate** (`gate`, or menu option 6). It opens `RuneheartGateState` with
+two encounters:
+
+- `wardens`: two Gate Sentinels and a Runeheart Echo. Victory sets the
+  `runeheart_gate_wardens` reward flag.
+- `sovereign`: the Runeheart Sovereign and two echoes. The Runeheart choice changes the
+  fight: **kept** adds a third echo, **Mirt** adds Mirt's Factor as a temporary ally, and
+  **Violet** fully heals/clears the player and adds a Watch Medic ally.
+
+The Gate starts the auto-completing `runeheart_gate` quest. Victory clears `runeheart_gate`,
+completes the quest, grants the unique **Heartseal** and unlocks the Heart of the Gate
+achievement. The map has no travel door; it is entered only from the Sanctum. The state and
+its branch progress survive save/load.
 
 #### The Rune Trials
 
@@ -977,8 +995,9 @@ terminal shop. The map advertises `search`, `sneak` and its four movement direct
 advertises `confront`, `strongbox`, `rest`, `underroad` and `leave`; the Underroad advertises
 `confront`, `cache`, `sanctum`, `talk to Nessa` and `leave` after the area is cleared, adding
 `Nessa's cache` when the black market is unlocked; the Sealed
-Sanctum advertises its current `amulet`/`force` or `confront`/`vault`/`trials`/`forge`
-actions; the Rune Trials advertise `begin`/`leave`, then their current boons; the Rune Forge
+Sanctum advertises its current `amulet`/`force` or `confront`/`vault`/`trials`/`forge`/`gate`
+actions; the Runeheart Gate advertises `wardens`, `sovereign` and `leave`; the Rune Trials
+advertise `begin`/`leave`, then their current boons; the Rune Forge
 advertises its recipe ids and `leave`; Nessa's cache advertises its purchasable item names
 and `leave`; the bounty board advertises `accept`, `claim` and `leave`; the Rune Pillar
 advertises `study` and `leave`.
@@ -1232,7 +1251,7 @@ in `GET /state`.
     }
   ],
   "completed_chapters": 1,
-  "total_chapters": 7,
+  "total_chapters": 8,
   "campaign_complete": false,
   "runeheart_choice": null,
   "reputation": {"factions": [], "shop_discount": 0},
@@ -1244,9 +1263,11 @@ in `GET /state`.
 }
 ```
 
-Chapters use the seven main story quests and report `not_started`, `active`, `ready` or
-`completed`. `difficulty` reports the active preset and is also summarised in the web
-client's Campaign panel. The same campaign object is included in `GET /state`.
+Chapters use the eight main story quests, including the `runeheart_gate` epilogue, and
+report `not_started`, `active`, `ready` or `completed`. `campaign_complete` requires both
+`sanctum_chapter` and `runeheart_gate`. `difficulty` reports the active preset and is also
+summarised in the web client's Campaign panel. The same campaign object is included in
+`GET /state`.
 
 #### `GET /party?session_id=...`
 
@@ -1315,14 +1336,15 @@ Inside one:
 }
 ```
 
-Landmark IDs are `waystation`, `underroad`, `sanctum`, `rune_trials` and `forge`. Status
+Landmark IDs are `waystation`, `underroad`, `sanctum`, `runeheart_gate`, `rune_trials` and
+`forge`. Status
 entries cover clear/loot/ward/wave/boon/shard state; actions are the same commands accepted by
 the corresponding state. The object is also included in `GET /state`.
 
 #### New Cycle
 
-After completing the `sanctum_chapter` quest, the tavern menu gains **16. Begin a new
-cycle**. The same action is available as `new cycle` / `ng+`. A confirmation prompt then
+After completing both `sanctum_chapter` and the `runeheart_gate` epilogue, the tavern menu
+gains **16. Begin a new cycle**. The same action is available as `new cycle` / `ng+`. A confirmation prompt then
 calls `Game.start_new_cycle()`:
 
 - resets quests, cleared areas, campaign flags, map state, conditions, allies and defeats
