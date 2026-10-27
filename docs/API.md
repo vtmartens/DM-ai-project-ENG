@@ -93,6 +93,8 @@ a server restart. A stale `session_id` returns `404`.
     "experience": 0,
     "mana": 20,
     "mana_max": 20,
+    "ac": 13,
+    "attack_bonus": 1,
     "defense": 2,
     "initiative": 0
   },
@@ -116,6 +118,12 @@ dialogue options directly from `/state`.
 The web client renders a base score with the modifier, for example `INT 16 (+4)`; use
 `*_base` when you need the raw ability score.
 
+`ac` is the player's armor class and `attack_bonus` is the d20 bonus used by weapon
+attacks. `defense` remains the damage-reduction value applied after a hit. Weapon attacks
+roll `d20 + attack_bonus` against the target's AC; a natural 20 is a critical hit and a
+natural 1 always misses. Class abilities and save-based monster abilities resolve by their
+own rules rather than this attack roll.
+
 A compact player summary is also returned by `/start`, `/load`, and `/import_save`:
 
 ```json
@@ -130,7 +138,9 @@ A compact player summary is also returned by `/start`, `/load`, and `/import_sav
   "map": "tavern",
   "position": {"x": 5, "y": 5},
   "mana": 20,
-  "mana_max": 20
+  "mana_max": 20,
+  "ac": 13,
+  "attack_bonus": 1
 }
 ```
 
@@ -572,9 +582,9 @@ Runs `look` and returns `output`, `state`, plus nearby `items`, `exits`, and `np
   "target": "Goblin A",
   "conditions": {"poison": {"damage": 2, "turns": 3}},
   "enemies": [
-    {"name": "Goblin A", "hp": 10, "max_hp": 10, "guard": 0,
+    {"name": "Goblin A", "hp": 10, "max_hp": 10, "ac": 13, "guard": 0,
      "cooldowns": [{"id": "poison_arrow", "name": "Poison Arrow", "remaining": 2}]},
-    {"name": "Goblin B", "hp": 10, "max_hp": 10, "guard": 0, "cooldowns": []}
+    {"name": "Goblin B", "hp": 10, "max_hp": 10, "ac": 13, "guard": 0, "cooldowns": []}
   ],
   "allies": [],
   "available_actions": [

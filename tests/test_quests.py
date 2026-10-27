@@ -12,6 +12,7 @@ from core.quests import (
 from entities.npc import NPC
 from entities.player import Player
 from items.item import Item
+from states.combat import CombatState
 from states.dialogue import DialogueState
 
 
@@ -252,7 +253,9 @@ def test_warehouse_travel_requires_violets_key(client):
     assert allowed["state"]["position"]["map"] == "warehouse"
 
 
-def test_warehouse_group_fight_includes_ally_and_marks_quest_ready(client):
+def test_warehouse_group_fight_includes_ally_and_marks_quest_ready(
+    client, monkeypatch
+):
     import server
 
     session_id = _start(client)
@@ -279,6 +282,9 @@ def test_warehouse_group_fight_includes_ally_and_marks_quest_ready(client):
     active = session.game.current_state()
     vargas = next(enemy for enemy in active.enemies if enemy.name == "Vargas")
     vargas.hp = 1
+    monkeypatch.setattr(
+        CombatState, "_roll_attack", lambda self, *args, **kwargs: (True, False)
+    )
     result = client.post(
         "/command", json={"session_id": session_id, "command": "1"}
     ).get_json()

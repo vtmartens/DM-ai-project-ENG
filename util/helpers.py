@@ -37,7 +37,8 @@ def show_stats(entity, game=None):
         game_ctx.io.show_message(f"INT: {entity.intelligence_base} ({entity.modifier_intelligence:+d})")
         game_ctx.io.show_message(f"WIS: {entity.wisdom_base} ({entity.modifier_wisdom:+d})")
         game_ctx.io.show_message(f"CHA: {entity.charisma_base} ({entity.modifier_charisma:+d})")
-        game_ctx.io.show_message(f"Defense: {entity.defense}")
+        game_ctx.io.show_message(f"Armor Class: {entity.armor_class}")
+        game_ctx.io.show_message(f"Attack Bonus: {entity.attack_bonus:+d}")
         if hasattr(entity, 'level'):
             game_ctx.io.show_message(f"Level: {entity.level}")
         if hasattr(entity, 'gold'):
@@ -54,7 +55,8 @@ def show_stats(entity, game=None):
         print(f"INT: {entity.intelligence_base} ({entity.modifier_intelligence:+d})")
         print(f"WIS: {entity.wisdom_base} ({entity.modifier_wisdom:+d})")
         print(f"CHA: {entity.charisma_base} ({entity.modifier_charisma:+d})")
-        print(f"Defense: {entity.defense}")
+        print(f"Armor Class: {entity.armor_class}")
+        print(f"Attack Bonus: {entity.attack_bonus:+d}")
         if hasattr(entity, 'level'):
             print(f"Level: {entity.level}")
         if hasattr(entity, 'gold'):

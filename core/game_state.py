@@ -332,6 +332,7 @@ class GameState:
                         "name": getattr(enemy, "name", "Unknown"),
                         "hp": getattr(enemy, "hp", 0),
                         "max_hp": getattr(enemy, "hp_max", 0),
+                        "ac": getattr(enemy, "armor_class", 10),
                         "guard": (
                             int(current.enemy_guard.get(str(index), 0) or 0)
                             if alive
@@ -425,6 +426,8 @@ class GameState:
             "position": {"x": player.x, "y": player.y},
             "mana": getattr(player, "mana", 0),
             "mana_max": getattr(player, "mana_max", 0),
+            "ac": getattr(player, "armor_class", 10),
+            "attack_bonus": getattr(player, "attack_bonus", 0),
         }
 
     def get_abilities(self):
@@ -544,6 +547,8 @@ class GameState:
             "experience": self.game.player.experience,
             "mana": getattr(self.game.player, "mana", 0),
             "mana_max": getattr(self.game.player, "mana_max", 0),
+            "ac": getattr(self.game.player, "armor_class", 10),
+            "attack_bonus": getattr(self.game.player, "attack_bonus", 0),
             "defense": getattr(self.game.player, "defense", 0),
             "initiative": getattr(self.game.player, "initiative", 0),
         }

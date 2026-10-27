@@ -80,6 +80,7 @@ def test_save_load_preserves_equipment_level_and_condition_stats(
     expected = {
         "strength": player.strength,
         "dexterity": player.dexterity,
+        "ac": player.armor_class,
         "defense": player.defense,
         "defense_base": player.defense_base,
         "initiative": player.initiative,
@@ -101,6 +102,7 @@ def test_save_load_preserves_equipment_level_and_condition_stats(
 
     assert loaded.strength == expected["strength"]
     assert loaded.dexterity == expected["dexterity"]
+    assert loaded.armor_class == expected["ac"]
     assert loaded.defense == expected["defense"]
     assert loaded.defense_base == expected["defense_base"]
     assert loaded.initiative == expected["initiative"]
@@ -121,5 +123,6 @@ def test_save_load_preserves_equipment_level_and_condition_stats(
     assert second.load(str(second_path)) is True
 
     assert second.player.strength == expected["strength"]
+    assert second.player.armor_class == expected["ac"]
     assert second.player.defense == expected["defense"]
     assert second.player.initiative == expected["initiative"]

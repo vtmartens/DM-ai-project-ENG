@@ -79,7 +79,7 @@ def test_weakened_reduces_weapon_damage(recording_io):
     combat = CombatState(enemy=enemy)
     game.push_state(combat)
     apply_condition(player, "weakened", game=game)
-    combat.dice_d100.roll = lambda: 100  # no critical
+    combat.dice_d20.roll = lambda: 10  # hit, no critical
     before = enemy.hp
 
     combat._manage_attack(player, game)

@@ -327,7 +327,7 @@ class Player(Entity):
                 growth += f" and mana by {mana_gain}"
             game.io.show_message(growth + ".")
             game.io.show_message(
-                f"Your {attribute_to_increase.replace('_base', '')} and defense increased!"
+                f"Your {attribute_to_increase.replace('_base', '')} and armor class increased!"
             )
             for ability_name in unlocked:
                 game.io.show_message(f"You learned {ability_name}!")

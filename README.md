@@ -50,6 +50,7 @@ Each game phase (map exploration, combat, dialogues, inventory management) is ha
 - Class-based level progression: HP/mana growth follows the class data, and level-3/5/7 abilities unlock automatically (Fierce Attack, Fireball, Backstab, Restoration, and more)
 - Enemy abilities: goblins use Poison Arrow, orcs and the Iron Sentinel Shield Bash, cultists Dark Bolt, specters Spectral Touch, wolves/trolls Savage Bite, and the Sentinel repairs itself. Abilities have cooldowns, telegraphs in the combat log, poison/self-heal/guard effects, and fall back to basic attacks
 - Saving throws and advantage: Poison Arrow, Shield Bash, Dark Bolt, Dirty Trick and Bone Volley call for ability saves; success halves damage and prevents poison. Ability checks and saves support advantage/disadvantage from conditions, with both dice shown in the log
+- Attack rolls and armor class: player, enemy and ally weapon attacks roll d20 + attack bonus against AC. Natural 20s are critical hits, natural 1s always miss, and the log shows the roll, bonus, total and target AC. AC combines Dexterity and armor/defense, while armor still reduces damage. The stats panel shows AC and Attack, and enemy cards show their AC; class abilities and save-based monster abilities resolve by their own rules
 - Timed conditions: burning (damage each combat round), frightened (disadvantage on checks and saves) and weakened (-2 weapon damage). Dark Bolt, Shield Bash and the dragon's Flame Breath apply them; each condition saves to end and expires after its duration
 - Combat status: the web client shows each enemy's guard and ability cooldowns in the combat card, plus a Conditions panel for poison, Guidance and advantage/disadvantage
 - Tavern rest: menu option 14 (or typing `rest` / `sleep` / `recover`) buys a long rest for 10 gold, restoring HP and mana and clearing poison, Guidance, advantage/disadvantage and timed conditions. It refuses when you are already rested or cannot pay
@@ -91,7 +92,7 @@ Each game phase (map exploration, combat, dialogues, inventory management) is ha
 ✅ Add modular I/O interfaces (text, GUI, AI)  
 🟡 Web client (dependency-free SPA in `frontend/`; React/Vite optional later)  
 🟡 Implement Dungeon Master AI (narration and hint rephrasing slices; decisions remain deterministic)
-🟡 D&D rules improvement (saving throws, advantage/disadvantage); attack rolls/AC and broader conditions remain future work
+🟡 D&D rules improvement (saving throws, advantage/disadvantage, attack rolls and AC); cover, flanking and broader conditions remain future work
 🟡 Class abilities, mana and level-based unlocks; utility spells (Knock, Mage Hand, Guidance) added, broader non-combat spell utility remains future work\
 🟡 Multiple enemies, target selection, allies and curated encounters; broader encounter tuning and balancing remain future work\
 ⬜ Online multiplayer implementation  

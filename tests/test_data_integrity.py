@@ -247,6 +247,15 @@ def test_condition_definitions_are_well_formed():
             assert isinstance(modifier, int), condition_id
 
 
+def test_monster_armor_classes_are_well_formed():
+    monsters = _load(ROOT / "data" / "monsters" / "monsters.json")
+
+    for monster_id, monster in monsters.items():
+        armor_class = monster.get("stats", {}).get("ac")
+        assert armor_class is not None, monster_id
+        assert 5 <= int(armor_class) <= 30, monster_id
+
+
 def test_enemy_ability_references_are_defined():
     abilities = set(_load(ROOT / "data" / "monsters" / "abilities.json"))
     conditions = set(_load(ROOT / "data" / "conditions" / "conditions.json"))

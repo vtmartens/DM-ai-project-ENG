@@ -943,6 +943,7 @@ def test_defeated_cellar_npc_is_removed_from_the_map(client, npc_name, position)
     combat = session.game.current_state()
     assert type(combat).__name__ == "CombatState"
     combat.opponent.hp = 1
+    combat.dice_d20.roll = lambda: 10  # hit, no critical
 
     result = client.post(
         "/command", json={"session_id": session_id, "command": "1"}

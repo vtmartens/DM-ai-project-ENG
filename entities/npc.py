@@ -42,6 +42,8 @@ class NPC(Entity):
         self.gold = self.npc_data.get("gold", 0)
         self.strength_base = self.npc_data.get("strength_base", 10)
         self.defense = self.npc_data.get("defense", 1)
+        ac = self.npc_data.get("ac")
+        self.armor_class_value = int(ac) if ac is not None else None
         self.level = self.npc_data.get("level", 1)
         
         # Set optional attributes if present in the data
@@ -243,6 +245,7 @@ class NPC(Entity):
         npc.experience = data.get("experience", 0)
         npc.level = data.get("level", 1)
         npc.defense = data.get("defense", 0)
+        npc.armor_class_value = data.get("armor_class_value")
         
         # Set the base values that were serialized
         npc.strength_base = data.get("strength_base", 10)

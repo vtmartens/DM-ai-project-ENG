@@ -25,6 +25,8 @@ class Enemy(Entity):
                 self.monster_type = monster_type
                 self.ability_ids = list(monster_data.get("abilities", []))
                 self.abilities = load_abilities(self.ability_ids)
+                ac = monster_data.get("stats", {}).get("ac")
+                self.armor_class_value = int(ac) if ac is not None else None
                 
                 # DEBUG
                 print(f"DEBUG Enemy - Loading {monster_type}: experience={self.experience_value}")
@@ -62,7 +64,8 @@ class Enemy(Entity):
         self.monster_type = None
         self.ability_ids = []
         self.abilities = []
-        
+        self.armor_class_value = None
+
         # Set the base gold
         self.gold = 10
     
@@ -153,6 +156,7 @@ class Enemy(Entity):
             "experience": self.experience_value,
             "monster_type": self.monster_type,
             "ability_ids": list(getattr(self, "ability_ids", [])),
+            "armor_class_value": getattr(self, "armor_class_value", None),
         })
         return data
     
@@ -197,6 +201,7 @@ class Enemy(Entity):
         enemy.monster_type = data.get("monster_type", None)
         enemy.ability_ids = list(data.get("ability_ids", []) or [])
         enemy.abilities = load_abilities(enemy.ability_ids)
+        enemy.armor_class_value = data.get("armor_class_value")
         enemy.gold = data.get("gold", 10)
 
         return enemy

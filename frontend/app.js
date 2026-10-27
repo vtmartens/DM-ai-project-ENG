@@ -449,7 +449,7 @@ function renderCombat(combat) {
     name.textContent = enemy.name;
     const hp = document.createElement("span");
     hp.className = "muted";
-    hp.textContent = `${enemy.hp} / ${enemy.max_hp} HP`;
+    hp.textContent = `${enemy.hp} / ${enemy.max_hp} HP · AC ${enemy.ac ?? "?"}`;
     row.append(name, hp);
 
     if (livingEnemies.length > 1) {
@@ -624,7 +624,8 @@ function renderStats(stats) {
   const extras = [
     ["mana", "Mana"],
     ["mana_max", "Mana max"],
-    ["defense", "Defense"],
+    ["ac", "AC"],
+    ["attack_bonus", "Attack"],
     ["initiative", "Init"],
     ["experience", "XP"],
   ];

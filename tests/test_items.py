@@ -181,6 +181,7 @@ def test_spider_poison_ticks_on_the_player_and_antidote_clears_it(recording_io):
     combat = CombatState(enemy=enemy)
     game.push_state(combat)
 
+    combat.dice_d20.roll = lambda: 15  # hit, no critical
     combat._attack_enemy(player, game)
 
     assert "poison" in player.conditions

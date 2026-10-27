@@ -52,6 +52,7 @@ def test_ability_on_cooldown_falls_back_to_a_basic_attack(recording_io):
     recording_io.clear()
     before = player.hp
 
+    combat.dice_d20.roll = lambda: 10
     combat._attack_enemy(player, game, enemy, index=0)
 
     assert "Poison Arrow" not in recording_io.text
@@ -77,6 +78,7 @@ def test_specter_uses_spectral_touch(recording_io):
     enemy = NPC("Specter")
     player, game, combat = _combat(recording_io, enemy)
     before = player.hp
+    combat.dice_d20.roll = lambda: 10  # hit, no critical
 
     combat._attack_enemy(player, game, enemy, index=0)
 
@@ -93,7 +95,7 @@ def test_sentinel_shield_bash_raises_guard_for_the_next_hit(recording_io):
     assert "Shield Bash" in recording_io.text
     assert combat.enemy_guard["0"] == 5
 
-    combat.dice_d100.roll = lambda: 100  # no critical
+    combat.dice_d20.roll = lambda: 10  # hit, no critical
     before_hp = enemy.hp
     combat._manage_attack(player, game)
 
@@ -138,6 +140,7 @@ def test_enemy_ability_state_survives_a_round_trip(recording_io):
 def test_an_enemy_without_abilities_uses_a_basic_attack(recording_io):
     enemy = Enemy("Training Dummy", hp=20, strength_base=10)
     player, game, combat = _combat(recording_io, enemy)
+    combat.dice_d20.roll = lambda: 10  # hit, no critical
 
     combat._attack_enemy(player, game)
 

@@ -53,13 +53,14 @@ def test_ally_attacks_a_living_enemy(recording_io):
     combat = CombatState(enemies=[enemy], allies=[ally])
     game.push_state(combat)
 
+    combat.dice_d20.roll = lambda: 10  # hit, no critical
     combat._allies_attack(player, game)
 
     assert enemy.hp == 16
     assert "Ally attacks Dummy" in recording_io.text
 
 
-def test_group_goblin_encounter_supports_target_selection(client):
+def test_group_goblin_encounter_supports_target_selection(client, monkeypatch):
     session_id = _start(client)
     client.post("/command", json={"session_id": session_id, "command": "4"})
     encounter = client.post(
@@ -84,6 +85,19 @@ def test_group_goblin_encounter_supports_target_selection(client):
     ).get_json()
     assert chosen["state"]["combat"]["target"] == "Goblin B"
 
+    # The goblins act on initiative before the player's first action, so their
+    # Poison Arrow cooldown is already running by this round.
+    import server
+
+    active = server.active_sessions[session_id].game.current_state()
+    assert any(
+        cooldowns.get("poison_arrow", 0) > 0
+        for cooldowns in active.ability_cooldowns.values()
+    )
+    monkeypatch.setattr(
+        CombatState, "_roll_attack", lambda self, *args, **kwargs: (True, False)
+    )
+
     action = client.post(
         "/combat_action",
         json={
@@ -96,13 +110,3 @@ def test_group_goblin_encounter_supports_target_selection(client):
         enemy["name"]: enemy["hp"] for enemy in action["combat"]["enemies"]
     }
     assert hp_by_name["Goblin B"] < hp_by_name["Goblin A"]
-
-    # The goblins act on initiative before the player's first action, so their
-    # Poison Arrow cooldown is already running by this round.
-    import server
-
-    active = server.active_sessions[session_id].game.current_state()
-    assert any(
-        cooldowns.get("poison_arrow", 0) > 0
-        for cooldowns in active.ability_cooldowns.values()
-    )

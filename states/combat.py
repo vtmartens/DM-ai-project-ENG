@@ -330,11 +330,17 @@ class CombatState(BaseState):
             if not living:
                 break
             target = self.opponent if self.opponent in living else living[0]
+            ally_name = getattr(ally, "name", "Your ally")
+            hit, critical = self._roll_attack(ally, target, game)
+            if not hit:
+                game.io.show_message(f"{ally_name} misses {target.name}.")
+                continue
             damage = max(1, int(getattr(ally, "strength", 1) or 1))
+            if critical:
+                damage *= 2
             target.hp = max(0, target.hp - damage)
             game.io.show_message(
-                f"{getattr(ally, 'name', 'Your ally')} attacks {target.name} "
-                f"for {damage} damage!"
+                f"{ally_name} attacks {target.name} for {damage} damage!"
             )
     
     def _phase_end_turn(self, player, game):
@@ -652,7 +658,8 @@ class CombatState(BaseState):
         )
         game.io.show_message(
             f"{player.name} - Strength: {player.strength} | "
-            f"Defense: {player.defense}"
+            f"Armor Class: {player.armor_class} | "
+            f"Attack: {player.attack_bonus:+d}"
         )
 
         for enemy in shown_enemies:
@@ -664,7 +671,8 @@ class CombatState(BaseState):
             game.io.show_message(
                 f"HP {getattr(enemy, 'name', 'Unknown')}: "
                 f"{getattr(enemy, 'hp', 0)}/"
-                f"{getattr(enemy, 'hp_max', getattr(enemy, 'hp', 0))}"
+                f"{getattr(enemy, 'hp_max', getattr(enemy, 'hp', 0))} | "
+                f"AC {getattr(enemy, 'armor_class', 10)}"
                 f"{target_label}"
             )
 
@@ -951,10 +959,98 @@ class CombatState(BaseState):
                 if candidate is npc or candidate_name == name:
                     present.pop(key, None)
 
+    def _attack_bonus_for(self, attacker):
+        """Returns the attacker's d20 bonus, including SimpleNamespace allies."""
+        bonus = getattr(attacker, "attack_bonus", None)
+        if bonus is not None:
+            return int(bonus)
+        strength = int(getattr(attacker, "strength", 0) or 0)
+        proficiency = int(getattr(attacker, "proficiency_bonus", 2) or 2)
+        return strength + proficiency
+
+    @staticmethod
+    def _armor_class_for(target):
+        """Returns the target's AC, with a fallback for simple combatants."""
+        armor_class = getattr(target, "armor_class", None)
+        if armor_class is not None:
+            return int(armor_class)
+        dexterity = int(getattr(target, "dexterity", 0) or 0)
+        defense = int(getattr(target, "defense", 0) or 0)
+        return 10 + dexterity + defense
+
+    def _roll_attack(
+        self,
+        attacker,
+        target,
+        game,
+        *,
+        player_attacker=False,
+        target_is_player=False,
+        critical_allowed=True,
+    ):
+        """Rolls d20 + attack bonus against AC and logs the result."""
+        advantage_flag = False
+        disadvantage_flag = False
+        roll_flags = getattr(attacker, "roll_flags", None)
+        if callable(roll_flags):
+            advantage_flag, disadvantage_flag = roll_flags("attack")
+        if advantage_flag and disadvantage_flag:
+            advantage_flag = disadvantage_flag = False
+
+        if advantage_flag:
+            first = self.dice_d20.roll()
+            second = self.dice_d20.roll()
+            roll = max(first, second)
+            roll_text = f"{first} / {second} (advantage)"
+        elif disadvantage_flag:
+            first = self.dice_d20.roll()
+            second = self.dice_d20.roll()
+            roll = min(first, second)
+            roll_text = f"{first} / {second} (disadvantage)"
+        else:
+            roll = self.dice_d20.roll()
+            roll_text = str(roll)
+
+        bonus = self._attack_bonus_for(attacker)
+        total = roll + bonus
+        target_ac = self._armor_class_for(target)
+        critical = critical_allowed and roll == 20
+        hit = roll == 20 or (roll != 1 and total >= target_ac)
+
+        subject = (
+            "You" if player_attacker else getattr(attacker, "name", "Attacker")
+        )
+        verb = "roll" if player_attacker else "rolls"
+        target_label = (
+            "your AC"
+            if target_is_player
+            else f"{getattr(target, 'name', 'the target')}'s AC"
+        )
+        if critical:
+            result = "critical hit (natural 20)"
+        elif roll == 1:
+            result = "miss (natural 1)"
+        else:
+            result = "hit" if hit else "miss"
+        game.io.show_message(
+            f"{subject} {verb} {roll_text} + {bonus} = {total} "
+            f"vs {target_label} {target_ac}: {result}."
+        )
+        return hit, critical
+
     def _manage_attack(self, player, game):
-        """Handle the player's attack"""
+        """Handle the player's attack."""
+        if self.opponent is None:
+            return
         if not isinstance(getattr(self, "effects", None), dict):
             self.effects = {}
+
+        hit, critical = self._roll_attack(
+            player, self.opponent, game, player_attacker=True
+        )
+        if not hit:
+            game.io.show_message("Your attack misses.")
+            return
 
         # Use the player's effective strength, which includes weapon and accessory bonuses
         blessing = int(self.effects.pop("bless_attack", 0) or 0)
@@ -962,11 +1058,8 @@ class CombatState(BaseState):
         if blessing:
             game.io.show_message(f"Your blessing adds {blessing} damage.")
 
-        # Calculate criticals and special bonuses using the dice instead of direct random
-        critical = False
-        if self.dice_d100.roll() <= 10:  # 10% chance of a critical hit
+        if critical:
             damage *= 2
-            critical = True
 
         from core.conditions import condition_damage_modifier
 
@@ -991,7 +1084,7 @@ class CombatState(BaseState):
 
         # Apply the damage to the opponent
         self.opponent.wound(damage, game)
-        
+
         # Attack message
         if hasattr(player, 'weapon') and player.weapon:
             weapon_name = player.weapon.name if hasattr(player.weapon, 'name') else str(player.weapon)
@@ -1004,7 +1097,7 @@ class CombatState(BaseState):
                 game.io.show_message(f"\nCRITICAL HIT! You attack {self.opponent.name} and deal {damage} damage!")
             else:
                 game.io.show_message(f"\nYou attack {self.opponent.name} and deal {damage} damage!")
-    
+
     def _enemy_index(self, enemy):
         try:
             return self.enemies.index(enemy)
@@ -1052,12 +1145,11 @@ class CombatState(BaseState):
         )
 
     def _apply_incoming_damage(self, player, game, damage):
-        """Applies damage after defense and the player's guard effects."""
+        """Applies damage after the attack has hit and guard effects resolve."""
         if not isinstance(getattr(self, "effects", None), dict):
             self.effects = {}
         effects = self.effects
 
-        # Apply defense once here (take_damage() would subtract it again).
         effective_damage = max(1, int(damage) - int(player.defense))
 
         guard = int(effects.get("guard", 0) or 0)
@@ -1128,6 +1220,14 @@ class CombatState(BaseState):
         else:
             game.io.show_message(f"\n{enemy.name} attacks you!")
 
+        hit, critical = self._roll_attack(
+            enemy, player, game, target_is_player=True
+        )
+        if not hit:
+            return
+        if critical:
+            damage *= 2
+
         effective_damage = self._apply_incoming_damage(player, game, damage)
 
         attack_effect = getattr(enemy, "attack_effect", None)
@@ -1174,6 +1274,17 @@ class CombatState(BaseState):
                         else "You shrug off the worst of it."
                     )
 
+            attack_hit = True
+            attack_critical = False
+            if kind == "attack" and not isinstance(save_data, dict):
+                attack_hit, attack_critical = self._roll_attack(
+                    enemy,
+                    player,
+                    game,
+                    target_is_player=True,
+                    critical_allowed=False,
+                )
+
             damage = effect.get("damage")
             if "multiplier" in effect:
                 damage = max(
@@ -1185,7 +1296,11 @@ class CombatState(BaseState):
                 damage = getattr(enemy, "strength", 1)
             damage = max(1, int(damage)) + int(effect.get("bonus", 0) or 0)
 
-            if saved and save_success == "negate":
+            if attack_critical:
+                damage *= 2
+            if not attack_hit:
+                damage = 0
+            elif saved and save_success == "negate":
                 damage = 0
             elif saved:
                 damage = max(1, damage // 2)
@@ -1221,7 +1336,7 @@ class CombatState(BaseState):
                 )
 
             self_heal = int(effect.get("self_heal", 0) or 0)
-            if self_heal:
+            if attack_hit and self_heal:
                 before = getattr(enemy, "hp", 0)
                 enemy.hp = min(
                     getattr(enemy, "hp_max", before), before + self_heal
@@ -1233,7 +1348,7 @@ class CombatState(BaseState):
                     )
 
             guard = int(effect.get("guard", 0) or 0)
-            if guard:
+            if attack_hit and guard:
                 key = str(index)
                 self.enemy_guard[key] = max(
                     int(self.enemy_guard.get(key, 0) or 0), guard

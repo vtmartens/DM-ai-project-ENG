@@ -641,7 +641,27 @@ entirely. The doors that existed were also misaligned with the map exits.
 - `GET /available_actions` now has a TavernState action list led by `rest`, so the web
   client renders a Rest quick action.
 - Tests: full/partial recovery, mana restoration, condition clearing and labels, natural
-  language, insufficient gold, already-rested, and the advertised action. 396 tests pass.
+  language, insufficient gold, already-rested, and the advertised action.
+
+## Attack rolls and armor class (2026-10-27)
+
+- Player, enemy and ally weapon attacks now roll `d20 + attack bonus` against AC. The
+  combat log shows both dice when advantage/disadvantage applies, the bonus, total and
+  target AC. A natural 20 is a critical hit (double damage); a natural 1 always misses.
+- `Entity.armor_class` is `10 + Dexterity modifier + defense`. Player AC therefore includes
+  base defense, armor and levels; monsters declare an explicit `stats.ac` in
+  `data/monsters/monsters.json`. `defense` still reduces damage after a hit, preserving the
+  existing armor behaviour.
+- Enemy abilities that call for a save keep resolving through the save (and cannot crit).
+  Non-save abilities such as Spectral Touch and Savage Bite use an attack roll. Class
+  abilities and spells continue to resolve through their own effects.
+- `GET /state` exposes `stats.ac` and `stats.attack_bonus`; `GET /combat` and `/state`
+  include each enemy's `ac`. The web client's stats panel shows AC and Attack, enemy rows
+  show AC, and combat output shows the roll line. Asset version bumped to `v=24`.
+- Tests: AC calculation, player hit/miss, natural 20 criticals, natural 1 misses,
+  advantage, enemy attacks against player AC, non-save enemy ability misses, API exposure,
+  monster data integrity, and deterministic updates to the existing combat tests.
+  407 tests pass.
 
 ## Deliberate translation choices worth knowing
 
@@ -671,7 +691,7 @@ entirely. The doors that existed were also misaligned with the map exits.
 | Residual Italian (glossary-derived denylist + accented characters) | 0 hits |
 | **Original Italian vs translated, identical input** | **46/46 placements, identical sequence** |
 | Flask API in-process (test client, no socket) | 31 × 200, 0 raised |
-| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, AI memory, hints, achievements, utility spells, locks, vault, quests, enemy abilities, encounters, saving throws, conditions, combat status, rest, accessibility, web client routes, browser smoke/mobile) | 396 passed |
+| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, AI memory, hints, achievements, utility spells, locks, vault, quests, enemy abilities, encounters, saving throws, conditions, combat status, attack rolls/AC, rest, accessibility, web client routes, browser smoke/mobile) | 407 passed |
 | Live smoke test (Flask server, `/app`, start/state/abilities/inventory/actions/command/save/load) | passed |
 
 The last comparison is the strongest evidence: the pristine Italian code and the finished

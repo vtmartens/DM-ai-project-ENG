@@ -137,7 +137,7 @@ class Item:
             player.armor = self
             player.defense += self.effect.get("defense", 0)
             if game:
-                game.io.show_message(f"You put on {self.name}. Your defense increases by {self.effect.get('defense', 0)}!")
+                game.io.show_message(f"You put on {self.name}. Your armor class increases by {self.effect.get('defense', 0)}!")
         elif self.type == "accessory":
             player.accessories.append(self)
             # Apply any accessory effects

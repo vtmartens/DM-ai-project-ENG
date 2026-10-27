@@ -64,6 +64,7 @@ class Entity:
         
         # Other attributes
         self.defense = defense
+        self.armor_class_value = getattr(self, "armor_class_value", None)
         self.inventory = []
         self.gold = 0
         self.experience = 0
@@ -90,16 +91,16 @@ class Entity:
                 item.set_game_context(game)
                 
     def take_damage(self, damage, game=None):
-        """Unified method for taking damage, accounting for defense"""
+        """Unified method for taking damage, accounting for defense."""
         # Use the stored game context if none is provided
         game_ctx = game if game else getattr(self, 'game', None)
-        
-        effective_damage = max(1, damage - self.defense)
+
+        effective_damage = max(1, int(damage) - int(self.defense))
         self.hp = max(0, self.hp - effective_damage)
-        
+
         if game_ctx:
             game_ctx.io.show_message(f"{self.name} takes {effective_damage} damage!")
-            
+
         return self.hp > 0
         
     def attack(self, target, game=None):
@@ -231,7 +232,7 @@ class Entity:
         
         if game_ctx:
             game_ctx.io.show_message(f"\n*** {self.name} has reached level {self.level}! ***")
-            game_ctx.io.show_message(f"Their {attribute_to_increase.replace('_base', '')}, defense and maximum health have increased!")
+            game_ctx.io.show_message(f"Their {attribute_to_increase.replace('_base', '')}, armor class and maximum health have increased!")
 
     def roll_flags(self, kind="check"):
         """Returns (advantage, disadvantage) from active conditions."""
@@ -326,6 +327,34 @@ class Entity:
 
     def calculate_modifier(self, value):
         return (value - 10) // 2
+
+    @property
+    def armor_class(self):
+        """Armor class: explicit data value, else 10 + Dexterity + defense."""
+        explicit = getattr(self, "armor_class_value", None)
+        if explicit is not None:
+            return int(explicit)
+        return 10 + int(self.dexterity) + int(getattr(self, "defense", 0) or 0)
+
+    @property
+    def ac(self):
+        """Short alias for armor class used by API snapshots and clients."""
+        return self.armor_class
+
+    @property
+    def attack_bonus(self):
+        """Bonus added to a d20 attack roll."""
+        bonus = int(self.strength) + int(
+            getattr(self, "proficiency_bonus", 0) or 0
+        )
+        weapon = getattr(self, "weapon", None)
+        if weapon is not None and not isinstance(weapon, str):
+            bonus += int(getattr(weapon, "effect", {}).get("attack", 0) or 0)
+        for accessory in getattr(self, "accessories", []) or []:
+            bonus += int(
+                getattr(accessory, "effect", {}).get("attack", 0) or 0
+            )
+        return bonus
 
     @property
     def strength(self):
@@ -492,6 +521,7 @@ class Entity:
             "skill_proficiencies": self.skill_proficiencies,
             "proficiency_bonus": self.proficiency_bonus,
             "defense": self.defense,
+            "armor_class_value": getattr(self, "armor_class_value", None),
             "inventory": serialize_list(self.inventory),
             "gold": self.gold,
             "experience": self.experience,
@@ -547,6 +577,7 @@ class Entity:
         entity.skill_proficiencies = data.get("skill_proficiencies", {})
         entity.proficiency_bonus = data.get("proficiency_bonus", 2)
         entity.defense = data.get("defense", 0)
+        entity.armor_class_value = data.get("armor_class_value")
         entity.gold = data.get("gold", 0)
         entity.experience = data.get("experience", 0)
         entity.level = data.get("level", 1)

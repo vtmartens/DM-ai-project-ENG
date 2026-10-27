@@ -146,6 +146,7 @@ def test_parry_reduces_the_next_incoming_attack(recording_io):
     expected = max(1, enemy.strength - player.defense)
     expected_after = max(0, expected - 5)
     before_hp = player.hp
+    combat.dice_d20.roll = lambda: 10
     combat._attack_enemy(player, game)
 
     assert player.hp == before_hp - expected_after
@@ -161,6 +162,7 @@ def test_mage_shield_absorbs_damage(recording_io):
     expected = max(1, enemy.strength - player.defense)
     expected_after = max(0, expected - 6)
     before_hp = player.hp
+    combat.dice_d20.roll = lambda: 10
     combat._attack_enemy(player, game)
 
     assert player.hp == before_hp - expected_after
