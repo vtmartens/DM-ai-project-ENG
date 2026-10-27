@@ -50,9 +50,12 @@ class MapSelectionState(BaseGameState):
         available_maps = [
             name
             for name in sorted(game.map_manager.maps.keys())
-            if name != "underroad"
-            or "waystation" in (
-                getattr(game.player, "cleared_areas", []) or []
+            if name != "sanctum"
+            and (
+                name != "underroad"
+                or "waystation" in (
+                    getattr(game.player, "cleared_areas", []) or []
+                )
             )
         ]
         

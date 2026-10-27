@@ -267,5 +267,51 @@
     "token": "L",
     "difficulty": "hard",
     "abilities": ["dirty_trick"]
+  },
+  "rune_sentinel": {
+    "name": "Rune Sentinel",
+    "description": "A faceless stone guardian animated by a burning rune core.",
+    "stats": {
+      "hp": 26,
+      "strength": 14,
+      "dexterity": 10,
+      "attack_stat": "strength",
+      "damage_bonus": 1,
+      "ac": 15,
+      "constitution": 14,
+      "intelligence": 8,
+      "wisdom": 10,
+      "charisma": 6
+    },
+    "weapons": ["Rune Spear"],
+    "armor": "Runic Shell",
+    "gold": 20,
+    "experience": 90,
+    "token": "r",
+    "difficulty": "medium",
+    "abilities": ["rune_lash"]
+  },
+  "rune_warden": {
+    "name": "Rune Warden",
+    "description": "A towering construct of black stone and burning runes, the heart of the sealed sanctum.",
+    "stats": {
+      "hp": 85,
+      "strength": 16,
+      "dexterity": 12,
+      "attack_stat": "intelligence",
+      "damage_bonus": 3,
+      "ac": 18,
+      "constitution": 18,
+      "intelligence": 18,
+      "wisdom": 16,
+      "charisma": 12
+    },
+    "weapons": ["Rune Blade", "Force Pulse"],
+    "armor": "Runic Plate",
+    "gold": 100,
+    "experience": 500,
+    "token": "W",
+    "difficulty": "hard",
+    "abilities": ["rune_pulse", "warding_light", "gravity_well"]
   }
 } 

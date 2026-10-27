@@ -31,10 +31,22 @@ class DialogueState(BaseState):
                 return "completed"
         return None
 
-    def _option_visible(self, option, game=None):
-        if len(option) < 3 or not isinstance(option[2], dict):
+    def _condition_met(self, condition, game=None):
+        if not isinstance(condition, dict):
             return True
-        condition = option[2]
+
+        all_conditions = condition.get("all")
+        if isinstance(all_conditions, list):
+            return all(
+                self._condition_met(item, game) for item in all_conditions
+            )
+
+        any_conditions = condition.get("any")
+        if isinstance(any_conditions, list):
+            return any(
+                self._condition_met(item, game) for item in any_conditions
+            )
+
         quest_id = condition.get("quest")
         if not quest_id:
             return True
@@ -43,6 +55,11 @@ class DialogueState(BaseState):
         if expected in {"not_started", "none"}:
             return status is None
         return status == expected
+
+    def _option_visible(self, option, game=None):
+        if len(option) < 3 or not isinstance(option[2], dict):
+            return True
+        return self._condition_met(option[2], game)
 
     def visible_options(self, game=None, conversation_data=None):
         """Returns the options whose optional quest conditions currently hold."""

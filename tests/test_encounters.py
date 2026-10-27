@@ -112,7 +112,9 @@ def test_curated_encounters_are_balanced():
         total_hp = sum(enemy.hp for enemy in enemies)
 
         assert 1 <= len(enemies) <= 4, encounter_id
-        assert 15 <= total_hp <= 100, (encounter_id, total_hp)
+        # The capstone boss is intentionally above the normal encounter band.
+        max_hp = 160 if encounter_id == "sanctum_boss" else 100
+        assert 15 <= total_hp <= max_hp, (encounter_id, total_hp)
         assert all(enemy.ability_ids for enemy in enemies), encounter_id
 
         reward = encounter["reward"]

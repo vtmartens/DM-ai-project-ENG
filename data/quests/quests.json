@@ -113,5 +113,16 @@
       "gold": 100,
       "experience": 200
     }
+  },
+  "sanctum_chapter": {
+    "title": "The Sealed Sanctum",
+    "description": "The Underroad's signet opens a sealed sanctum older than the smugglers. Something called the Rune Warden guards its heart.",
+    "objective": "Enter the Sealed Sanctum beneath the Underroad and defeat the Rune Warden.",
+    "target": "Rune Warden",
+    "turn_in": "Mirt",
+    "reward": {
+      "gold": 250,
+      "experience": 600
+    }
   }
 }

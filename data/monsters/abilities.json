@@ -151,5 +151,61 @@
       "type": "attack",
       "damage": 12
     }
+  },
+  "rune_lash": {
+    "id": "rune_lash",
+    "name": "Rune Lash",
+    "description": "A whip of searing rune-light cuts across the hall.",
+    "cooldown": 2,
+    "telegraph": "The rune sentinel's core brightens and its spear splits the air.",
+    "effect": {
+      "type": "attack",
+      "damage": 7
+    }
+  },
+  "rune_pulse": {
+    "id": "rune_pulse",
+    "name": "Rune Pulse",
+    "description": "A wave of force erupts from the Warden's chest.",
+    "cooldown": 3,
+    "telegraph": "The Rune Warden's chest-plate opens like a furnace door.",
+    "save": {
+      "ability": "dexterity",
+      "dc": 14,
+      "success": "half"
+    },
+    "condition": {"id": "staggered", "turns": 1},
+    "effect": {
+      "type": "attack",
+      "damage": 14
+    }
+  },
+  "warding_light": {
+    "id": "warding_light",
+    "name": "Warding Light",
+    "description": "Runic light crawls over the Warden's broken plates.",
+    "cooldown": 3,
+    "telegraph": "The Rune Warden plants its blade and the runes flare.",
+    "effect": {
+      "type": "heal",
+      "amount": 12
+    }
+  },
+  "gravity_well": {
+    "id": "gravity_well",
+    "name": "Gravity Well",
+    "description": "The sanctum's ward crushes the air around you.",
+    "cooldown": 4,
+    "telegraph": "The Rune Warden raises one hand and the floor groans.",
+    "save": {
+      "ability": "strength",
+      "dc": 14,
+      "success": "half"
+    },
+    "condition": {"id": "weakened", "turns": 2},
+    "effect": {
+      "type": "attack",
+      "damage": 10
+    }
   }
 }

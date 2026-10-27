@@ -11,6 +11,7 @@ STATE_MODULES = {
     "MarketState": "states.market",
     "WaystationState": "states.waystation",
     "UnderroadState": "states.underroad",
+    "SanctumState": "states.sanctum",
     "BountyBoardState": "states.bounty_board",
     "RunePillarState": "states.rune_pillar",
     "RoadEventState": "states.road_event",

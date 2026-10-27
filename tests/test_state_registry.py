@@ -17,6 +17,8 @@ def test_new_states_are_registered():
         "TavernState",
         "MarketState",
         "WaystationState",
+        "UnderroadState",
+        "SanctumState",
         "BountyBoardState",
         "RunePillarState",
         "MapState",

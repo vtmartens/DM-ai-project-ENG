@@ -203,7 +203,11 @@
         ["What will happen to the trade road now?", "waystation_done", {"quest": "waystation_trouble", "status": "completed"}],
         ["About the Underroad...", "underroad_reminder", {"quest": "underroad_chapter", "status": "active"}],
         ["The Underroad is clear.", "underroad_turn_in", {"quest": "underroad_chapter", "status": "ready"}],
-        ["What was in the Underroad?", "underroad_done", {"quest": "underroad_chapter", "status": "completed"}]
+        ["What was in the Underroad?", "underroad_done", {"quest": "underroad_chapter", "status": "completed"}],
+        ["You mentioned a sealed sanctum beneath the Underroad.", "sanctum_offer", {"all": [{"quest": "underroad_chapter", "status": "completed"}, {"quest": "sanctum_chapter", "status": "not_started"}]}],
+        ["About the sealed sanctum...", "sanctum_reminder", {"quest": "sanctum_chapter", "status": "active"}],
+        ["The Rune Warden is destroyed.", "sanctum_turn_in", {"quest": "sanctum_chapter", "status": "ready"}],
+        ["What lies beyond the sanctum?", "sanctum_done", {"quest": "sanctum_chapter", "status": "completed"}]
       ]
     },
     "business_info": {
@@ -302,6 +306,39 @@
     },
     "underroad_done": {
       "text": "Mirt has already begun tracing the names from the ledger. 'The Underroad is quiet for now. If another buyer appears, I will know where to send you.'",
+      "options": [
+        ["Until then.", null]
+      ]
+    },
+    "sanctum_offer": {
+      "text": "Mirt sets down his cup. 'The smugglers' signet is not just a badge. It opens a sealed sanctum beyond their cache. Something old is waking down there - my sources call it the Rune Warden. End it and the eastern road is finally ours.'",
+      "options": [
+        ["I will open the sanctum.", "sanctum_accept"],
+        ["Not yet.", null]
+      ]
+    },
+    "sanctum_accept": {
+      "text": "Take the signet from the smugglers' cache if you have not already. Beyond it lies a warded hall; a Rune-Ward charm would make the threshold easier. The Rune Warden will not yield without a fight.",
+      "effect": {"type": "start_quest", "quest": "sanctum_chapter"},
+      "options": [
+        ["I will return when it is done.", null]
+      ]
+    },
+    "sanctum_reminder": {
+      "text": "The sealed sanctum is beyond the Underroad's cache. The signet wakes the door; the Rune-Ward Amulet can quiet the ward. The Rune Warden is the last thing standing between the road and a quiet season.",
+      "options": [
+        ["I am on my way.", null]
+      ]
+    },
+    "sanctum_turn_in": {
+      "text": "Mirt listens without interrupting. When you finish, he pours two cups and pushes one across the table. 'The Rune Warden is gone. The road is quiet for the first time in years. That is worth more than coin - but take this anyway.'",
+      "effect": {"type": "complete_quest", "quest": "sanctum_chapter"},
+      "options": [
+        ["A good end to a long road.", null]
+      ]
+    },
+    "sanctum_done": {
+      "text": "The sealed sanctum is silent, and Mirt's caravans no longer need an escort past the Waystation. 'If the road ever wakes again,' he says, 'I know who to call.'",
       "options": [
         ["Until then.", null]
       ]

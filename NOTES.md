@@ -968,6 +968,24 @@ entirely. The doors that existed were also misaligned with the map exits.
   attacks, skipped initiative/actions, surprise advantage, round trips and API exposure.
   541 tests pass.
 
+## The Sealed Sanctum capstone (2026-10-27)
+
+- Added the `sanctum` map (hidden from destination selection), the `SanctumState` chapter and
+  its registry/server quick-action support. The Underroad's cleared cache exposes the sealed
+  door; the Underroad Signet opens it.
+- Added the `sanctum_chapter` quest for Mirt. Dialogue conditions now support recursively
+  nested `all`/`any` groups so the offer requires both a completed Underroad and an unstarted
+  Sanctum quest.
+- The chapter has a warded threshold: the Rune-Ward Amulet bypasses it, while forcing it
+  calls for a DC 14 Constitution save, costs up to 8 HP and applies Weakened on failure. The
+  ward state persists in `claimed_rewards`.
+- Added the Rune Warden and Rune Sentinel monsters, three new abilities, the `sanctum_boss`
+  encounter and the unique legendary Runeheart Amulet vault reward. Victory clears `sanctum`,
+  readies the quest and unlocks the Sanctum Breaker achievement.
+- Added Mirt's offer, reminder, turn-in and epilogue nodes. Tests cover map/encounter data,
+  access gating, the ward paths, boss victory, reward-once behavior, dialogue visibility,
+  quick actions and state round trips. 555 tests pass.
+
 ## Deliberate translation choices worth knowing
 
 - **`hp_base` / `mana_base` were left as-is.** They are consistent between code and JSON

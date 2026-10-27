@@ -64,5 +64,18 @@
       {"monster_type": "smuggler", "name": "Underroad Runner A"},
       {"monster_type": "smuggler", "name": "Underroad Runner B"}
     ]
+  },
+  "sanctum_boss": {
+    "title": "The Sealed Sanctum",
+    "description": "The Rune Warden rises from its throne while two rune sentinels level their spears.",
+    "difficulty": "hard",
+    "location": "sanctum",
+    "clears_area": "sanctum",
+    "reward": {"gold": 150, "experience": 600},
+    "enemies": [
+      {"monster_type": "rune_warden", "name": "Rune Warden"},
+      {"monster_type": "rune_sentinel", "name": "Rune Sentinel A"},
+      {"monster_type": "rune_sentinel", "name": "Rune Sentinel B"}
+    ]
   }
 }

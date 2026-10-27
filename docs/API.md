@@ -712,6 +712,26 @@ quest and unlocks the Underroad Delver achievement. The cleared cache grants the
 Underroad Signet and 75 gold once. The Underroad map is hidden from the destination menu
 until the Waystation is cleared.
 
+#### The Sealed Sanctum
+
+After the Underroad is cleared and its cache has been claimed, the Underroad menu offers
+**Enter the Sealed Sanctum**. The Signet wakes the sealed door. `SanctumState` starts the
+`sanctum_chapter` quest and has a warded-threshold phase followed by the main menu:
+
+- `amulet` raises the Rune-Ward Amulet, bypassing the ward.
+- `force` calls for a DC 14 Constitution save; failure costs up to 8 HP and applies
+  Weakened for two turns, but the player still gets through.
+- `confront` starts the fixed `sanctum_boss` encounter against the Rune Warden and two
+  Rune Sentinels. Victory clears `sanctum`, readies the quest and unlocks the Sanctum
+  Breaker achievement.
+- `vault` opens the Runeheart vault once for the unique Runeheart Amulet and 120 gold.
+- `leave` returns to the Underroad.
+
+`/available_actions` reflects the current phase (`amulet`/`force` before the ward, then
+`confront`/`vault`/`leave`). Mirt offers the chapter after the Underroad is completed,
+reminds, accepts the Rune Warden turn-in and provides the epilogue dialogue. The `sanctum`
+map is hidden from the destination menu and is reachable only through the Underroad.
+
 #### The Rune Pillar
 
 The vault's Rune Pillar is a `RunePillar` interactive object. Interacting with it opens
@@ -746,8 +766,10 @@ restores HP and mana and clears conditions) and `bounties` opens the bounty boar
 market it includes `shop`, `buy` and `sell`, which drive the shop modal and the numbered
 terminal shop. The map advertises `search`, `sneak` and its four movement directions. The waystation
 advertises `confront`, `strongbox`, `rest`, `underroad` and `leave`; the Underroad advertises
-`confront`, `cache` and `leave`; the bounty board advertises `accept`, `claim` and `leave`;
-the Rune Pillar advertises `study` and `leave`.
+`confront`, `cache` and `leave`, adding `sanctum` after the area is cleared; the Sealed
+Sanctum advertises its current `amulet`/`force` or `confront`/`vault` actions; the bounty
+board advertises `accept`, `claim` and `leave`; the Rune Pillar advertises `study` and
+`leave`.
 Bounty contracts are ordinary quests with `bounty: true` and `repeatable: true`, so their
 progress and ready state appear in `GET /missions` and the web quest panel. Claimed bounties
 return to the available list, while only the latest completion record is kept.

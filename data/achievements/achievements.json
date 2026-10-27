@@ -179,5 +179,17 @@
       "type": "area_cleared",
       "value": "underroad"
     }
+  },
+  {
+    "id": "sanctum_breaker",
+    "name": "Sanctum Breaker",
+    "description": "Defeat the Rune Warden and clear the Sealed Sanctum",
+    "icon": "achievement_combat.png",
+    "difficulty": "hard",
+    "score": 50,
+    "condition": {
+      "type": "area_cleared",
+      "value": "sanctum"
+    }
   }
 ] 

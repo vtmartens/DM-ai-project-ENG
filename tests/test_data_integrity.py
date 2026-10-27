@@ -694,8 +694,29 @@ def test_tavern_exit_enters_market_state():
     assert (session.game.player.x, session.game.player.y) == (12, 2)
 
 
+def _assert_dialogue_condition(condition, quests, label):
+    assert isinstance(condition, dict), label
+    for key in ("all", "any"):
+        nested = condition.get(key)
+        if isinstance(nested, list):
+            assert nested, label
+            for item in nested:
+                _assert_dialogue_condition(item, quests, label)
+            return
+    quest_id = condition.get("quest")
+    assert quest_id, label
+    assert quest_id in quests, label
+    assert condition.get("status") in {
+        "active",
+        "ready",
+        "completed",
+        "not_started",
+    }, label
+
+
 def test_dialogue_option_targets_exist():
     conversations = _load(ROOT / "data" / "npc" / "conversations.json")
+    quests = _load(ROOT / "data" / "quests" / "quests.json")
 
     for npc_name, graph in conversations.items():
         for state_name, node in graph.items():
@@ -706,12 +727,8 @@ def test_dialogue_option_targets_exist():
                         f"{npc_name}.{state_name}: {text!r} points to missing state {target!r}"
                     )
                 if len(option) > 2:
-                    condition = option[2]
-                    assert isinstance(condition, dict)
-                    assert condition.get("quest")
-                    assert condition.get("status") in {
-                        "active",
-                        "ready",
-                        "completed",
-                        "not_started",
-                    }
+                    _assert_dialogue_condition(
+                        option[2],
+                        quests,
+                        f"{npc_name}.{state_name}: {text!r}",
+                    )

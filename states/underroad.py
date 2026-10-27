@@ -16,6 +16,12 @@ class UnderroadState(BaseGameState):
         self.phase = "main_menu"
         self.last_input = None
 
+    def available_actions(self, game=None):
+        game = game or getattr(self, "game", None)
+        if game is not None and self._cleared(game.player):
+            return ["confront", "cache", "sanctum", "leave"]
+        return ["confront", "cache", "leave"]
+
     def run(self, game):
         self._ensure_map(game)
         self._ensure_quest(game)
@@ -88,6 +94,8 @@ class UnderroadState(BaseGameState):
         )
         game.io.show_message("2. Open the smugglers' cache")
         game.io.show_message("3. Return to the waystation")
+        if cleared:
+            game.io.show_message("4. Enter the Sealed Sanctum")
 
         choice = str(
             game.io.request_input("\nChoice: ") or ""
@@ -109,6 +117,9 @@ class UnderroadState(BaseGameState):
             if open_cache:
                 press_enter(game)
                 self.phase = "main_menu"
+                return
+        elif choice in {"4", "sanctum", "sealed", "ward"}:
+            if self._enter_sanctum(game):
                 return
         elif choice in {"3", "leave", "return", "waystation", "exit"}:
             self._leave(game)
@@ -171,6 +182,34 @@ class UnderroadState(BaseGameState):
             player.claimed_rewards = claimed
         claimed.append("underroad_cache")
         player.add_gold(75, game)
+        return True
+
+    def _enter_sanctum(self, game):
+        player = game.player
+        if not self._cleared(player):
+            game.io.show_message(
+                "The smugglers still hold the Underroad. The sealed door "
+                "will not open while they remain."
+            )
+            return False
+        if "underroad_cache" not in (
+            getattr(player, "claimed_rewards", []) or []
+        ):
+            game.io.show_message(
+                "A signet-shaped hollow waits in the sealed door. Open the "
+                "smugglers' cache first."
+            )
+            return False
+
+        game.io.show_message(
+            "The Underroad Signet fits the hollow. Runes wake along the "
+            "sealed door and it grinds open onto the sanctum."
+        )
+        game.map_manager.set_current_map("sanctum")
+        game.player.set_position("sanctum", 2, 7)
+        from states.sanctum import SanctumState
+
+        game.change_state(SanctumState(game))
         return True
 
     def _leave(self, game):

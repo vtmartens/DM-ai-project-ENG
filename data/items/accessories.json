@@ -78,5 +78,13 @@
     "value": 180,
     "rarity": "rare",
     "description": "A discreet signet used by the Underroad's most trusted couriers"
+  },
+  {
+    "name": "Runeheart Amulet",
+    "type": "accessory",
+    "effect": {"defense": 2, "intelligence": 1, "wisdom": 1},
+    "value": 400,
+    "rarity": "legendary",
+    "description": "A heart-shaped rune of living stone, still warm with the sanctum's power"
   }
 ]
