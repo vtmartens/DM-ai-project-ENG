@@ -55,6 +55,7 @@ def test_campaign_state_summarizes_story_and_endgame(recording_io):
     assert chapters["shadows_of_the_market"]["status"] == "not_started"
     assert campaign["rune_trials"] == {"best": 4, "runs": 1}
     assert campaign["rune_shards"] == 6
+    assert campaign["cycle"] == 1
     assert campaign["capstone"] == {
         "name": "Last Stand",
         "unlocked": True,

@@ -1,0 +1,6 @@
+{
+  "enemy_hp_percent_per_cycle": 20,
+  "enemy_damage_bonus_per_cycle": 1,
+  "enemy_ac_bonus_per_cycle": 1,
+  "reward_percent_per_cycle": 25
+}

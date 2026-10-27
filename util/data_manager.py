@@ -41,6 +41,7 @@ class DataManager:
             "factions": DATA_DIR / "factions",
             "trials": DATA_DIR / "trials",
             "crafting": DATA_DIR / "crafting",
+            "cycles": DATA_DIR / "cycles",
             "road": DATA_DIR / "road",
             "assets_info": DATA_DIR / "assets_info"
         }

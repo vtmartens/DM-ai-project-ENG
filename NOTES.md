@@ -1109,6 +1109,23 @@ entirely. The doors that existed were also misaligned with the map exits.
 - Tests cover chapter status mapping, endgame fields, `/state` exposure, the API endpoint and
   missing-session errors. 616 tests pass.
 
+## New Cycle / New Game+ (2026-10-27)
+
+- Added `Player.cycle`, `data/cycles/cycles.json` and `core/cycles.py`. Enemy HP, damage and
+  AC scale by cycle, while encounter, quest and trial-completion rewards use the cycle reward
+  multiplier.
+- Added `Game.start_new_cycle()`: resets quests, cleared areas, campaign flags, conditions,
+  allies, defeats, map state and non-forged reward flags; keeps level, XP, equipment,
+  inventory, gold, achievements, faction standing, Rune Shards, Rune Trials records and
+  forged `crafted:*` gear.
+- The tavern offers option 16 / `new cycle` / `ng+` only after the Sanctum quest is completed,
+  with a confirmation prompt. A fresh MapManager and TavernState are installed.
+- Added the Cyclebreaker achievement, campaign-dashboard cycle display and AI context/recap
+  cycle awareness. Client assets are at `v=37`.
+- Tests cover retention/reset rules, map reset, cycle persistence, scaling data, combat
+  scaling once, reward multipliers, Tavern unlock gating and the Cyclebreaker achievement.
+  622 tests pass.
+
 ## Deliberate translation choices worth knowing
 
 - **`hp_base` / `mana_base` were left as-is.** They are consistent between code and JSON

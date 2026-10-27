@@ -120,6 +120,7 @@ a server restart. A stale `session_id` returns `404`.
   },
   "rune_trials": {"best": 0, "runs": 0},
   "rune_shards": 0,
+  "cycle": 1,
   "preferences": {},
   "combat": {"in_combat": false},
   "dialogue": {"active": false}
@@ -1069,6 +1070,7 @@ in `GET /state`.
   "reputation": {"factions": [], "shop_discount": 0},
   "rune_trials": {"best": 0, "runs": 0},
   "rune_shards": 0,
+  "cycle": 1,
   "capstone": {"name": "Last Stand", "unlocked": false},
   "landmark": {"state": "TavernState", "location": "tavern"}
 }
@@ -1077,6 +1079,22 @@ in `GET /state`.
 Chapters use the seven main story quests and report `not_started`, `active`, `ready` or
 `completed`. The same campaign object is included in `GET /state`; the web client renders it
 as the Campaign panel.
+
+#### New Cycle
+
+After completing the `sanctum_chapter` quest, the tavern menu gains **16. Begin a new
+cycle**. The same action is available as `new cycle` / `ng+`. A confirmation prompt then
+calls `Game.start_new_cycle()`:
+
+- resets quests, cleared areas, campaign flags, map state, conditions, allies and defeats
+- clears `claimed_rewards` except `crafted:*` forge flags
+- keeps level, XP, equipment, inventory, gold, achievements, faction standing, Rune Shards,
+  Rune Trials best/runs and forged gear
+- increments `player.cycle`, restores HP/mana and returns to the Tavern
+
+Enemy HP, damage and AC scale by `data/cycles/cycles.json`; encounter, quest and trial
+completion rewards scale by the same cycle data. `GET /state` exposes the cycle in the
+player/campaign data, and the Cyclebreaker achievement unlocks on cycle 2.
 
 #### `GET /tutorial?session_id=...&type=combat`
 

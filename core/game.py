@@ -214,6 +214,51 @@ class Game:
         self.active = True
         self.push_state(new_state)
 
+    def start_new_cycle(self):
+        """Starts a fresh story run while retaining meta-progression."""
+        player = self.player
+        if player is None:
+            return False
+
+        retained_rewards = [
+            flag
+            for flag in (getattr(player, "claimed_rewards", []) or [])
+            if isinstance(flag, str) and flag.startswith("crafted:")
+        ]
+
+        player.active_quests = []
+        player.completed_quests = []
+        player.progress_quests = {}
+        player.cleared_areas = []
+        player.claimed_rewards = retained_rewards
+        player.conditions = {}
+        player.stealthed = False
+        player.allies = []
+        player.defeats = 0
+        player.cycle = max(1, int(getattr(player, "cycle", 1) or 1)) + 1
+        player.hp = player.hp_max
+        player.mana = int(getattr(player, "mana_max", 0) or 0)
+
+        from core.achievements import record_event
+
+        record_event(player, "new_cycle", game=self)
+
+        self.map_manager = MapManager()
+        self.set_initial_map("tavern")
+
+        from states.tavern import TavernState
+
+        tavern = TavernState(self)
+        if hasattr(self.map_manager, "transfer_items_from_state"):
+            self.map_manager.transfer_items_from_state("tavern", tavern)
+        tavern.first_visit = False
+        self.io.show_message(
+            f"\nA new cycle begins. You carry your achievements, standing "
+            f"and forged gear into cycle {player.cycle}."
+        )
+        self.reset_to_state(tavern)
+        return True
+
     def change_state(self, new_state):
         """
         Replaces the current state with a new one

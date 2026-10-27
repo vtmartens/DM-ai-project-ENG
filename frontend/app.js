@@ -879,6 +879,9 @@ function renderCampaign(data) {
   el.campaignProgress.textContent = `${completed} / ${total}`;
 
   const summary = [];
+  if (Number(data?.cycle || 1) > 1) {
+    summary.push(`Cycle ${Number(data.cycle)}`);
+  }
   if (data?.campaign_complete) {
     summary.push("Campaign complete");
   }

@@ -367,6 +367,7 @@ class GameState:
                 ),
             },
             "rune_shards": int(getattr(player, "rune_shards", 0) or 0),
+            "cycle": max(1, int(getattr(player, "cycle", 1) or 1)),
             "capstone": capstone,
             "landmark": landmark,
         }

@@ -90,7 +90,8 @@ You can also set `localStorage["dm_api_base"]`.
   Completed objectives change to “Ready to turn in — speak to …” until rewards are collected.
 - **Campaign** panel driven by `state.campaign` / `GET /campaign`, with seven chapter rows,
   active/ready/complete states, campaign completion, Runeheart choice, Rune Trials progress,
-  Rune Shards and capstone status.
+  Rune Shards, cycle number and capstone status. After campaign completion, the tavern offers
+  **Begin a new cycle** in its numbered menu.
 - Achievements panel driven by `GET /achievements`, with an unlocked/total count, score,
   description and unlock date for each entry. Locked achievements stay visible as goals,
   and a toast announces new unlocks as they happen.

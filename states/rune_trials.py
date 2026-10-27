@@ -169,8 +169,13 @@ class RuneTrialsState(BaseGameState):
                 getattr(player, "rune_trials_runs", 0) or 0
             ) + 1
             reward = completion_reward()
-            gold = int(reward.get("gold", 0) or 0)
-            experience = int(reward.get("experience", 0) or 0)
+            from core.cycles import reward_multiplier
+
+            multiplier = reward_multiplier(getattr(player, "cycle", 1))
+            gold = int(int(reward.get("gold", 0) or 0) * multiplier)
+            experience = int(
+                int(reward.get("experience", 0) or 0) * multiplier
+            )
             shards = int(reward.get("rune_shards", 0) or 0)
             if gold:
                 player.add_gold(gold, game)

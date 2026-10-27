@@ -69,6 +69,8 @@ class CombatState(BaseState):
         # Set when combat ends, so enclosing states can distinguish victory,
         # defeat and a successful escape.
         self.outcome = None
+        # New Cycle scaling is applied once when combat first runs.
+        self.cycle_scaled = False
         # A stealth opening skips the enemies' first turn; the opening weapon
         # attack also has advantage.
         self.surprised = bool(surprised)
@@ -112,6 +114,37 @@ class CombatState(BaseState):
             else 0
         )
 
+    def _apply_cycle_scaling(self, player):
+        """Scales enemies once for the current New Cycle."""
+        if getattr(self, "cycle_scaled", False):
+            return
+        self.cycle_scaled = True
+
+        from core.cycles import cycle_number, enemy_scaling
+
+        scaling = enemy_scaling(cycle_number(player))
+        hp_percent = int(scaling.get("hp_percent", 0) or 0)
+        damage_bonus = int(scaling.get("damage_bonus", 0) or 0)
+        ac_bonus = int(scaling.get("ac_bonus", 0) or 0)
+        if not (hp_percent or damage_bonus or ac_bonus):
+            return
+
+        for enemy in self.enemies:
+            if hp_percent:
+                bonus = max(
+                    1, int(round(enemy.hp_max * hp_percent / 100))
+                )
+                enemy.hp_max += bonus
+                enemy.hp = min(enemy.hp_max, enemy.hp + bonus)
+            if damage_bonus:
+                enemy.damage_bonus = int(
+                    getattr(enemy, "damage_bonus", 0) or 0
+                ) + damage_bonus
+            if ac_bonus:
+                enemy.armor_class_value = (
+                    int(self._armor_class_for(enemy)) + ac_bonus
+                )
+
     def cover_available(self, game=None):
         """Whether the player has a nearby wall or cover object."""
         game = game or getattr(self, "game", None)
@@ -150,6 +183,8 @@ class CombatState(BaseState):
         
     def run(self, game):
         player = game.player
+
+        self._apply_cycle_scaling(player)
 
         # A fight counts against "complete a quest without fighting" even if the
         # player flees, so record it once when combat actually starts.
@@ -958,6 +993,13 @@ class CombatState(BaseState):
             reward = {}
         gold = int(reward.get("gold", 0) or 0)
         experience = int(reward.get("experience", 0) or 0)
+        from core.cycles import reward_multiplier
+
+        multiplier = reward_multiplier(
+            getattr(game.player, "cycle", 1)
+        )
+        gold = int(gold * multiplier)
+        experience = int(experience * multiplier)
 
         if gold:
             game.player.add_gold(gold, game)
@@ -1948,6 +1990,8 @@ class CombatState(BaseState):
             self.surprised = False
         if not hasattr(self, "outcome"):
             self.outcome = None
+        if not hasattr(self, "cycle_scaled"):
+            self.cycle_scaled = False
         if not hasattr(self, "_initiative_checked"):
             self._initiative_checked = True
         if not hasattr(self, "last_ability_used"):
@@ -2020,6 +2064,7 @@ class CombatState(BaseState):
         state.effects = data.get("effects", {})
         state.surprised = bool(data.get("surprised", False))
         state.outcome = data.get("outcome")
+        state.cycle_scaled = bool(data.get("cycle_scaled", False))
         state._initiative_checked = data.get("initiative_checked", True)
         state.damage_taken = int(data.get("damage_taken", 0) or 0)
         state.ability_cooldowns = {
@@ -2056,6 +2101,7 @@ class CombatState(BaseState):
             "effects": dict(getattr(self, "effects", {}) or {}),
             "surprised": bool(getattr(self, "surprised", False)),
             "outcome": getattr(self, "outcome", None),
+            "cycle_scaled": bool(getattr(self, "cycle_scaled", False)),
             "initiative_checked": bool(
                 getattr(self, "_initiative_checked", False)
             ),

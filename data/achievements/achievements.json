@@ -227,5 +227,17 @@
       "type": "level",
       "value": 10
     }
+  },
+  {
+    "id": "cyclebreaker",
+    "name": "Cyclebreaker",
+    "description": "Begin a second cycle with your achievements and standing intact",
+    "icon": "achievement_map.png",
+    "difficulty": "hard",
+    "score": 50,
+    "condition": {
+      "type": "cycle",
+      "value": 2
+    }
   }
 ] 

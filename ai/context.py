@@ -140,6 +140,7 @@ def build_context(game, memory=None) -> dict[str, Any]:
             "name": getattr(player, "name", "Adventurer"),
             "class": getattr(player, "char_class", ""),
             "level": getattr(player, "level", 1),
+            "cycle": getattr(player, "cycle", 1),
             "hp": getattr(player, "hp", 0),
             "hp_max": getattr(player, "hp_max", 0),
         }

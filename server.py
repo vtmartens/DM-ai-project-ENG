@@ -815,6 +815,7 @@ def get_available_actions():
         "tavern": [
             "rest",
             "bounties",
+            "new cycle",
             "talk",
             "fight",
             "travel",

@@ -142,6 +142,8 @@ class TavernState(BaseGameState):
             self._save_game(game)
         elif self.phase == "choose_enemy":
             self._choose_enemy(game)
+        elif self.phase == "confirm_new_cycle":
+            self._confirm_new_cycle(game)
         else:
             # Unrecognized phase, return to the main menu
             self.phase = "main_menu"
@@ -168,6 +170,10 @@ class TavernState(BaseGameState):
             game.io.show_message("13. Exit the game")
             game.io.show_message(f"14. Rest at the inn ({self.REST_COST} gold)")
             game.io.show_message("15. Bounty board")
+            if self._campaign_complete(game.player):
+                game.io.show_message(
+                    "16. Begin a new cycle (New Game+)"
+                )
             self.contextual_data["main_menu_rendered"] = True
 
         # Gets the command from input and stores it
@@ -248,6 +254,15 @@ class TavernState(BaseGameState):
 
             game.push_state(BountyBoardState(game))
             self.phase = "main_menu"
+        elif selection == "16":
+            if not self._campaign_complete(game.player):
+                game.io.show_message(
+                    "Finish the Sealed Sanctum before beginning a new cycle."
+                )
+                self.phase = "main_menu"
+                return
+            self.phase = "confirm_new_cycle"
+            self.contextual_data.clear()
         else:
             game.io.show_message(f"I don't understand what you want to do with '{original_selection}'.")
             self.phase = "main_menu"
@@ -287,8 +302,37 @@ class TavernState(BaseGameState):
             return "14"
         elif words & {"bounty", "bounties", "contract", "contracts"}:
             return "15"
+        elif "new" in words and "cycle" in words:
+            return "16"
+        elif words & {"newgameplus", "ng+"}:
+            return "16"
         else:
             return cmd  # return the original command if it matches no action
+
+    @staticmethod
+    def _campaign_complete(player):
+        return any(
+            isinstance(quest, dict)
+            and quest.get("id") == "sanctum_chapter"
+            for quest in (getattr(player, "completed_quests", []) or [])
+        )
+
+    def _confirm_new_cycle(self, game):
+        player = game.player
+        next_cycle = max(1, int(getattr(player, "cycle", 1) or 1)) + 1
+        game.io.show_message(
+            f"\nBegin a new cycle? Cycle {next_cycle} restarts the story "
+            "and world state, but keeps your level, equipment, achievements, "
+            "faction standing, Rune Trials progress, Rune Shards and forged gear."
+        )
+        choice = str(
+            game.io.request_input("Begin the new cycle? (y/n): ") or ""
+        )
+        if choice.strip().casefold() in {"y", "yes", "begin"}:
+            game.start_new_cycle()
+            return
+        game.io.show_message("You remain in the current cycle.")
+        self.phase = "main_menu"
 
     def _rest(self, game):
         """Restore the party at the inn for gold and clear temporary effects."""

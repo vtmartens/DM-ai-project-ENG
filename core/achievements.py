@@ -33,6 +33,7 @@ SUPPORTED_CONDITIONS = frozenset(
         "rune_trials_best",
         "rune_trials_runs",
         "level",
+        "cycle",
     }
 )
 
@@ -210,6 +211,9 @@ def condition_met(player, condition, game=None) -> bool:
 
     if condition_type == "level":
         return int(getattr(player, "level", 1) or 1) >= _as_int(value, 1)
+
+    if condition_type == "cycle":
+        return int(getattr(player, "cycle", 1) or 1) >= _as_int(value, 1)
 
     return False
 

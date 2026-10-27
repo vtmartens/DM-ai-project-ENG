@@ -222,6 +222,10 @@ def build_recap(game, memory=None, events=None) -> str:
     state += f", carrying {gold} gold."
     parts = [state]
 
+    cycle = max(1, int(getattr(player, "cycle", 1) or 1))
+    if cycle > 1:
+        parts.append(f"This is cycle {cycle} of the story.")
+
     quest_summary = _active_quest_summary(player)
     if quest_summary:
         parts.append(quest_summary)
