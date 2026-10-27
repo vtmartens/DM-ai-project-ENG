@@ -50,6 +50,7 @@ class Player(Entity):
         self.initiative = self.initiative_base
         self.conditions = {}
         self.stealthed = False
+        self.reputation = {}
         self.allies = []
         self.defeats = 0
         self.cleared_areas = []
@@ -520,6 +521,7 @@ class Player(Entity):
             ),
             "conditions": dict(getattr(self, "conditions", {})),
             "stealthed": bool(getattr(self, "stealthed", False)),
+            "reputation": dict(getattr(self, "reputation", {}) or {}),
             "allies": list(getattr(self, "allies", [])),
             "defeats": int(getattr(self, "defeats", 0) or 0),
             "cleared_areas": list(getattr(self, "cleared_areas", [])),
@@ -597,6 +599,7 @@ class Player(Entity):
         player.mana_max = data.get("mana_max", getattr(player, "mana_max", 0))
         player.conditions = dict(data.get("conditions", {}))
         player.stealthed = bool(data.get("stealthed", False))
+        player.reputation = dict(data.get("reputation", {}) or {})
         player.allies = list(data.get("allies", []))
         player.defeats = int(data.get("defeats", 0) or 0)
         player.cleared_areas = list(data.get("cleared_areas", []) or [])

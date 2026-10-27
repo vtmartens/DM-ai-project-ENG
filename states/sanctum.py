@@ -273,19 +273,82 @@ class SanctumState(BaseGameState):
             game.io.show_message("The Runeheart vault is empty.")
             return False
 
-        definition = item_definition("Runeheart Amulet")
-        if definition is not None:
-            player.add_item(Item.from_dict(definition))
+        game.io.show_message(
+            "The vault opens on a heart of living rune-stone and 120 gold. "
+            "The amulet is worth a fortune to the right buyer."
+        )
+        game.io.show_message(
+            "\n1. Keep the Runeheart Amulet\n"
+            "2. Give it to Mirt (+Mirt's Network, +200 gold)\n"
+            "3. Give it to Violet (+Violet's Watch, +100 gold)\n"
+            "4. Decide later"
+        )
+        choice = str(
+            game.io.request_input("\nChoice: ") or ""
+        ).strip().casefold()
+        if not self._apply_vault_choice(player, choice, game):
+            game.io.show_message("You leave the vault untouched for now.")
+            return False
+        return True
+
+    def _apply_vault_choice(self, player, choice, game):
+        if not self._cleared(player) or self._looted(player):
+            return False
+        choice = str(choice or "").strip().casefold()
+        if choice in {"4", "later", "leave", "back", "cancel"}:
+            return False
+
+        base_gold = 120
+        if choice in {"1", "keep", "amulet"}:
+            definition = item_definition("Runeheart Amulet")
+            if definition is not None:
+                player.add_item(Item.from_dict(definition))
+            player.add_gold(base_gold, game)
             game.io.show_message(
-                "You open the vault and lift out the Runeheart Amulet."
+                "You close your hand around the Runeheart Amulet."
             )
-        player.add_gold(120, game)
+            reward_flag = "runeheart_kept"
+        elif choice in {"2", "mirt", "give_mirt"}:
+            from core.factions import adjust_reputation
+
+            adjust_reputation(
+                player,
+                "mirt_network",
+                12,
+                game,
+                reason="Mirt will remember the gift.",
+            )
+            player.add_gold(base_gold + 200, game)
+            game.io.show_message(
+                "Mirt accepts the Runeheart with a merchant's careful smile."
+            )
+            reward_flag = "runeheart_mirt"
+        elif choice in {"3", "violet", "give_violet"}:
+            from core.factions import adjust_reputation
+
+            adjust_reputation(
+                player,
+                "violet_watch",
+                12,
+                game,
+                reason="Violet will remember the gift.",
+            )
+            player.add_gold(base_gold + 100, game)
+            game.io.show_message(
+                "Violet turns the Runeheart in the light, already thinking "
+                "of who it can protect."
+            )
+            reward_flag = "runeheart_violet"
+        else:
+            return False
 
         claimed = getattr(player, "claimed_rewards", None)
         if not isinstance(claimed, list):
             claimed = []
             player.claimed_rewards = claimed
         claimed.append("sanctum_vault")
+        if reward_flag not in claimed:
+            claimed.append(reward_flag)
         return True
 
     def _leave(self, game):

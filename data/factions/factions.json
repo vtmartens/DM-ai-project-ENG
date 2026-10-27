@@ -1,0 +1,36 @@
+{
+  "mirt_network": {
+    "name": "Mirt's Network",
+    "description": "Merchants, informants and caravan masters who trade on Mirt's word.",
+    "shop_discount": {
+      "friendly": 5,
+      "trusted": 10,
+      "allied": 15
+    },
+    "quest_bonus": {
+      "friendly": 10,
+      "trusted": 20,
+      "allied": 30
+    }
+  },
+  "violet_watch": {
+    "name": "Violet's Watch",
+    "description": "Violet's circle of healers, watchmen and city informants.",
+    "shop_discount": {},
+    "quest_bonus": {
+      "friendly": 10,
+      "trusted": 20,
+      "allied": 30
+    }
+  },
+  "underroad_smugglers": {
+    "name": "Underroad Smugglers",
+    "description": "The tunnel runners and buyers who once used the old smuggler route.",
+    "shop_discount": {},
+    "quest_bonus": {
+      "friendly": 10,
+      "trusted": 20,
+      "allied": 30
+    }
+  }
+}

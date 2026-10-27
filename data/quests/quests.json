@@ -5,6 +5,8 @@
     "objective": "Defeat Vargas and break up the cult cell in the old warehouse.",
     "target": "Vargas",
     "turn_in": "Violet",
+    "faction": "violet_watch",
+    "reputation": 8,
     "reward": {
       "gold": 60,
       "experience": 150
@@ -16,6 +18,8 @@
     "objective": "Find Vargas in the old warehouse and collect Mirt's debt.",
     "target": "Vargas",
     "turn_in": "Mirt",
+    "faction": "mirt_network",
+    "reputation": 5,
     "reward": {
       "gold": 50,
       "experience": 75
@@ -27,6 +31,8 @@
     "objective": "Carry Violet's warning to Mirt in the tavern.",
     "completion": "dialogue",
     "turn_in": "Mirt",
+    "faction": "violet_watch",
+    "reputation": 3,
     "reward": {
       "gold": 15,
       "experience": 25
@@ -38,6 +44,8 @@
     "objective": "Recover Sentinel's Edge from the Sealed Vault beneath the warehouse.",
     "target_item": "Sentinel's Edge",
     "turn_in": "Mirt",
+    "faction": "mirt_network",
+    "reputation": 5,
     "reward": {
       "gold": 100,
       "experience": 200,
@@ -53,6 +61,8 @@
     "target": "Waystation Chief",
     "target_item": "Wayfarer's Cloak",
     "turn_in": "Mirt",
+    "faction": "mirt_network",
+    "reputation": 6,
     "reward": {
       "gold": 75,
       "experience": 150
@@ -68,6 +78,8 @@
     "target_type": "goblin",
     "target_count": 2,
     "turn_in": "Bounty Board",
+    "faction": "mirt_network",
+    "reputation": 1,
     "reward": {
       "gold": 40,
       "experience": 50
@@ -83,6 +95,8 @@
     "target_type": "wolf",
     "target_count": 2,
     "turn_in": "Bounty Board",
+    "faction": "mirt_network",
+    "reputation": 1,
     "reward": {
       "gold": 35,
       "experience": 45
@@ -98,6 +112,8 @@
     "target_type": "bandit_chief",
     "target_count": 1,
     "turn_in": "Bounty Board",
+    "faction": "mirt_network",
+    "reputation": 2,
     "reward": {
       "gold": 60,
       "experience": 80
@@ -109,6 +125,8 @@
     "objective": "Descend into the Underroad and defeat the Smuggler Lord.",
     "target": "Smuggler Lord",
     "turn_in": "Mirt",
+    "faction": "mirt_network",
+    "reputation": 8,
     "reward": {
       "gold": 100,
       "experience": 200
@@ -120,6 +138,8 @@
     "objective": "Enter the Sealed Sanctum beneath the Underroad and defeat the Rune Warden.",
     "target": "Rune Warden",
     "turn_in": "Mirt",
+    "faction": "mirt_network",
+    "reputation": 10,
     "reward": {
       "gold": 250,
       "experience": 600

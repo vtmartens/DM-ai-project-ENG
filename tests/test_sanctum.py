@@ -2,6 +2,7 @@
 
 from core.achievements import achievement_definitions
 from core.encounters import build_encounter
+from core.factions import reputation_value
 from core.game import Game
 from core.item_catalogue import item_definition
 from core.quests import complete_quest, record_enemy_defeat, start_quest
@@ -12,6 +13,18 @@ from states.combat import CombatState
 from states.dialogue import DialogueState
 from states.sanctum import SanctumState
 from states.underroad import UnderroadState
+from tests.helpers import RecordingIO
+
+
+class ScriptedIO(RecordingIO):
+    def __init__(self, replies):
+        super().__init__()
+        self.replies = iter(replies)
+
+    def request_input(self, prompt=""):
+        self.last_input = next(self.replies, "")
+        self.messages.append({"type": "prompt", "text": prompt})
+        return self.last_input
 
 
 def _game(recording_io, underroad_cleared=True, cache_claimed=True):
@@ -163,21 +176,53 @@ def test_rune_warden_victory_clears_the_sanctum_and_readies_the_quest(
     assert isinstance(game.current_state(), SanctumState)
 
 
-def test_runeheart_vault_grants_the_unique_reward_once(recording_io):
-    player, game, state = _sanctum(recording_io)
+def test_runeheart_vault_grants_the_unique_reward_once():
+    io = ScriptedIO(["1"])
+    player = Player("Sanctum Tester", "fighter")
+    game = Game(player, None, io, temporary=True)
+    game.set_initial_map("sanctum")
     player.cleared_areas = ["underroad", "sanctum"]
     player.gold = 100
+    state = SanctumState(game)
+    game.push_state(state)
 
     assert state._open_vault(game) is True
     assert "Runeheart Amulet" in [item.name for item in player.inventory]
     assert player.gold == 220
     assert "sanctum_vault" in player.claimed_rewards
+    assert "runeheart_kept" in player.claimed_rewards
 
     assert state._open_vault(game) is False
     assert player.gold == 220
     assert [item.name for item in player.inventory].count(
         "Runeheart Amulet"
     ) == 1
+
+
+def test_runeheart_can_be_given_to_mirt_for_reputation(recording_io):
+    player, game, state = _sanctum(recording_io)
+    player.cleared_areas = ["underroad", "sanctum"]
+    player.gold = 0
+
+    assert state._apply_vault_choice(player, "mirt", game) is True
+
+    assert player.gold == 320
+    assert "Runeheart Amulet" not in [item.name for item in player.inventory]
+    assert reputation_value(player, "mirt_network") == 12
+    assert "runeheart_mirt" in player.claimed_rewards
+
+
+def test_runeheart_can_be_given_to_violet_for_reputation(recording_io):
+    player, game, state = _sanctum(recording_io)
+    player.cleared_areas = ["underroad", "sanctum"]
+    player.gold = 0
+
+    assert state._apply_vault_choice(player, "violet", game) is True
+
+    assert player.gold == 220
+    assert "Runeheart Amulet" not in [item.name for item in player.inventory]
+    assert reputation_value(player, "violet_watch") == 12
+    assert "runeheart_violet" in player.claimed_rewards
 
 
 def test_sanctum_leave_returns_to_the_underroad(recording_io):

@@ -38,6 +38,7 @@ class DataManager:
             "monsters": DATA_DIR / "monsters",
             "conditions": DATA_DIR / "conditions",
             "combat": DATA_DIR / "combat",
+            "factions": DATA_DIR / "factions",
             "road": DATA_DIR / "road",
             "assets_info": DATA_DIR / "assets_info"
         }

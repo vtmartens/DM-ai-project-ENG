@@ -50,6 +50,7 @@ const el = {
   questList: document.getElementById("quest-list"),
   achievementsList: document.getElementById("achievements-list"),
   achievementsCount: document.getElementById("achievements-count"),
+  reputationList: document.getElementById("reputation-list"),
   abilitiesList: document.getElementById("abilities-list"),
   skillsList: document.getElementById("skills-list"),
   inventoryList: document.getElementById("inventory-list"),
@@ -400,6 +401,7 @@ function renderState(state) {
 
   renderStats(state.stats || {});
   renderConditions(state.conditions || {}, Boolean(state.stealthed));
+  renderReputation(state.reputation || {});
 
   if (state.preferences?.theme && !localStorage.getItem(THEME_KEY)) {
     applyTheme(state.preferences.theme, true);
@@ -847,6 +849,40 @@ function renderQuests(data) {
     objective.textContent = objectiveText;
     item.append(title, objective);
     el.questList.appendChild(item);
+  }
+}
+
+function renderReputation(data) {
+  el.reputationList.innerHTML = "";
+  const factions = Array.isArray(data?.factions) ? data.factions : [];
+
+  if (!factions.length) {
+    const note = document.createElement("li");
+    note.className = "empty-note";
+    note.textContent = "No faction standing yet.";
+    el.reputationList.appendChild(note);
+    return;
+  }
+
+  for (const faction of factions) {
+    const item = document.createElement("li");
+    const head = document.createElement("div");
+    head.className = "reputation-head";
+    const name = document.createElement("strong");
+    name.textContent = faction.name || faction.id || "Faction";
+    const tier = document.createElement("span");
+    tier.className = `tag reputation-${faction.tier || "neutral"}`;
+    const value = Number(faction.value ?? 0);
+    tier.textContent = `${faction.tier_label || "Neutral"} · ${
+      value >= 0 ? "+" : ""
+    }${value}`;
+    head.append(name, tier);
+
+    const description = document.createElement("span");
+    description.className = "muted";
+    description.textContent = faction.description || "";
+    item.append(head, description);
+    el.reputationList.appendChild(item);
   }
 }
 
@@ -1717,7 +1753,10 @@ function createShopEntry(item, action, gold) {
 
 function renderShop(data) {
   const gold = Number(data?.gold || 0);
-  el.shopGold.textContent = `Gold: ${gold}`;
+  const discount = Number(data?.reputation?.shop_discount || 0);
+  el.shopGold.textContent = discount
+    ? `Gold: ${gold} · Mirt's Network −${discount}%`
+    : `Gold: ${gold}`;
 
   el.shopStock.innerHTML = "";
   const stock = data?.stock || [];

@@ -105,6 +105,19 @@ a server restart. A stale `session_id` returns `404`.
   "timestamp_achievements": {},
   "conditions": {},
   "stealthed": false,
+  "reputation": {
+    "factions": [
+      {
+        "id": "mirt_network",
+        "name": "Mirt's Network",
+        "description": "Merchants, informants and caravan masters who trade on Mirt's word.",
+        "value": 0,
+        "tier": "neutral",
+        "tier_label": "Neutral"
+      }
+    ],
+    "shop_discount": 0
+  },
   "preferences": {},
   "combat": {"in_combat": false},
   "dialogue": {"active": false}
@@ -511,7 +524,9 @@ available while the current state is `MarketState`; otherwise it returns `409`.
       "type": "armor",
       "category": "Armor",
       "price": 45,
+      "base_price": 45,
       "sell_price": 22,
+      "reputation_discount": 0,
       "description": "Armor of interwoven metal rings...",
       "effect": {"defense": 4},
       "effect_text": "AC +4",
@@ -544,7 +559,8 @@ available while the current state is `MarketState`; otherwise it returns `409`.
 
 Buys one stock item at `price`. Returns `output`, `state`, `bought`, `message`, and the
 updated `shop` object. A failed purchase returns `bought: false` with the reason; it does not
-change gold or inventory.
+change gold or inventory. Prices already include the Mirt's Network discount shown in
+`reputation.shop_discount`; `base_price` keeps the undiscounted value.
 
 #### `POST /shop/sell`
 
@@ -724,7 +740,9 @@ After the Underroad is cleared and its cache has been claimed, the Underroad men
 - `confront` starts the fixed `sanctum_boss` encounter against the Rune Warden and two
   Rune Sentinels. Victory clears `sanctum`, readies the quest and unlocks the Sanctum
   Breaker achievement.
-- `vault` opens the Runeheart vault once for the unique Runeheart Amulet and 120 gold.
+- `vault` opens the Runeheart vault once for 120 gold and a choice: keep the unique
+  Runeheart Amulet, give it to Mirt for +12 Mirt's Network standing and an extra 200 gold,
+  or give it to Violet for +12 Violet's Watch standing and an extra 100 gold.
 - `leave` returns to the Underroad.
 
 `/available_actions` reflects the current phase (`amulet`/`force` before the ward, then
@@ -911,6 +929,32 @@ success halves or negates damage and can prevent poison.
 Active quests can be `active` or `ready`; `ready` means the objective is complete and the
 player must speak to the `turn_in` NPC before the reward is granted. Completed quests move
 to `completed` with `"status": "completed"`.
+
+#### `GET /reputation?session_id=...`
+
+```json
+{
+  "factions": [
+    {
+      "id": "mirt_network",
+      "name": "Mirt's Network",
+      "description": "Merchants, informants and caravan masters who trade on Mirt's word.",
+      "value": 12,
+      "tier": "friendly",
+      "tier_label": "Friendly"
+    }
+  ],
+  "shop_discount": 5
+}
+```
+
+Faction values start at 0. The tiers are `hostile` (≤ -10), `neutral`, `friendly` (10+),
+`trusted` (25+) and `allied` (40+). Quest completion applies the quest's `faction` and
+`reputation` values, and a friendly-or-better `quest_bonus` adds gold to the reward. Mirt's
+Network `shop_discount` reduces market buy prices. Dialogue options may gate on
+`{"reputation": {"faction": "mirt_network", "min": 10}}`; reputation conditions can also be
+combined with quest conditions through `all` / `any`. The same reputation object is included
+in `GET /state`.
 
 #### `GET /tutorial?session_id=...&type=combat`
 

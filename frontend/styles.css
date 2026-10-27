@@ -371,6 +371,18 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
 }
 .condition-list .empty-note { padding: 0; background: none; border: 0; }
 
+.reputation-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
+.reputation-list li { display: grid; gap: 3px; padding: 7px 8px; border-radius: 8px; background: var(--bg-input); border: 1px solid var(--border); }
+.reputation-list .reputation-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.reputation-list strong { font-size: 13px; color: var(--accent-strong); }
+.reputation-list span { font-size: 12px; line-height: 1.35; }
+.reputation-list .empty-note { padding: 0; background: none; border: 0; }
+.tag.reputation-hostile { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 45%, var(--border)); }
+.tag.reputation-neutral { color: var(--text-muted); border-color: var(--border-strong); }
+.tag.reputation-friendly { color: var(--info); border-color: color-mix(in srgb, var(--info) 45%, var(--border)); }
+.tag.reputation-trusted,
+.tag.reputation-allied { color: var(--success); border-color: color-mix(in srgb, var(--success) 45%, var(--border)); }
+
 .quest-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .quest-list li { display: grid; gap: 3px; padding: 8px 9px; border-radius: 8px; background: var(--bg-input); border: 1px solid var(--border); }
 .quest-list li.ready { border-color: color-mix(in srgb, var(--accent) 55%, var(--border)); }

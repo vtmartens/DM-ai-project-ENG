@@ -322,9 +322,9 @@ class MarketState(BaseGameState):
 
     def _shop_menu(self, game):
         """Lists potions and equipment with prices and allows a purchase."""
-        stock = shop_stock()
-        self.contextual_data["shop_items"] = stock
         player = game.player
+        stock = shop_stock(player)
+        self.contextual_data["shop_items"] = stock
 
         game.io.show_message("\n=== MARKET SHOP ===")
         game.io.show_message(f"Gold: {player.gold}")

@@ -108,18 +108,35 @@ def _stock_definitions() -> list[dict]:
     return stock or _fallback_stock(catalogue)
 
 
-def _price(definition: dict, sale=False) -> int:
+def _price(definition: dict, sale=False, player=None) -> int:
     value = max(1, int(definition.get("value", 0) or 0))
-    return max(1, value // 2) if sale else value
+    if sale:
+        return max(1, value // 2)
+    if player is not None:
+        from core.factions import shop_discount
+
+        discount = shop_discount(player)
+        if discount:
+            return max(1, round(value * (100 - discount) / 100))
+    return value
 
 
-def item_summary(definition: dict, category: str, sale=False) -> dict:
+def item_summary(
+    definition: dict, category: str, sale=False, player=None
+) -> dict:
+    discount = 0
+    if player is not None and not sale:
+        from core.factions import shop_discount
+
+        discount = shop_discount(player)
     return {
         "name": definition.get("name", "Unknown item"),
         "type": definition.get("type", "misc"),
         "category": category,
-        "price": _price(definition, sale=sale),
+        "price": _price(definition, sale=sale, player=player),
+        "base_price": max(1, int(definition.get("value", 0) or 0)),
         "sell_price": _price(definition, sale=True),
+        "reputation_discount": discount,
         "description": definition.get("description", ""),
         "effect": dict(definition.get("effect", {}) or {}),
         "effect_text": describe_effect(definition.get("effect", {})),
@@ -131,10 +148,10 @@ def item_summary(definition: dict, category: str, sale=False) -> dict:
     }
 
 
-def shop_stock() -> list[dict]:
+def shop_stock(player=None) -> list[dict]:
     """Returns the purchasable stock with prices and effect details."""
     return [
-        item_summary(entry["definition"], entry["category"])
+        item_summary(entry["definition"], entry["category"], player=player)
         for entry in _stock_definitions()
     ]
 
@@ -213,7 +230,7 @@ def buy_item(player, item_name, game=None) -> dict:
         return {"success": False, "message": message, "gold": player.gold}
 
     definition = entry["definition"]
-    price = _price(definition)
+    price = _price(definition, player=player)
     name = definition.get("name", item_name)
     if int(getattr(player, "gold", 0) or 0) < price:
         message = (
@@ -240,7 +257,9 @@ def buy_item(player, item_name, game=None) -> dict:
     return {
         "success": True,
         "message": message,
-        "item": item_summary(definition, entry["category"]),
+        "item": item_summary(
+            definition, entry["category"], player=player
+        ),
         "price": price,
         "gold": player.gold,
     }

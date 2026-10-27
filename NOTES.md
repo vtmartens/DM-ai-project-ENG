@@ -986,6 +986,25 @@ entirely. The doors that existed were also misaligned with the map exits.
   access gating, the ward paths, boss victory, reward-once behavior, dialogue visibility,
   quick actions and state round trips. 555 tests pass.
 
+## Faction reputation and the Runeheart choice (2026-10-27)
+
+- Added `data/factions/factions.json` and `core/factions.py` for Mirt's Network, Violet's
+  Watch and the Underroad Smugglers. `Player.reputation` persists through save/load and is
+  exposed in `/state` and `GET /reputation`.
+- Quest definitions now carry optional `faction` and `reputation` values. Completing a
+  quest adjusts standing; friendly-or-better standing adds the faction's `quest_bonus`
+  percentage to the gold reward.
+- Mirt's Network standing discounts market purchase prices (`shop_discount`), with the
+  base and discounted prices exposed in `/shop`; the shop modal shows the active discount.
+- Dialogue conditions now support reputation thresholds and nested `all`/`any` groups. Mirt
+  and Violet each gain a friendly-standing dialogue option.
+- The Runeheart vault now offers a choice: keep the legendary Runeheart Amulet, give it to
+  Mirt (+12 Mirt's Network, +200 gold), or give it to Violet (+12 Violet's Watch,
+  +100 gold). The chosen flag is persisted.
+- Added a client Reputation panel and bumped assets to `v=33`. Tests cover thresholds,
+  discounts, quest bonuses, dialogue gates, API exposure, the Runeheart outcomes and data
+  integrity. 566 tests pass.
+
 ## Deliberate translation choices worth knowing
 
 - **`hp_base` / `mana_base` were left as-is.** They are consistent between code and JSON

@@ -207,7 +207,8 @@
         ["You mentioned a sealed sanctum beneath the Underroad.", "sanctum_offer", {"all": [{"quest": "underroad_chapter", "status": "completed"}, {"quest": "sanctum_chapter", "status": "not_started"}]}],
         ["About the sealed sanctum...", "sanctum_reminder", {"quest": "sanctum_chapter", "status": "active"}],
         ["The Rune Warden is destroyed.", "sanctum_turn_in", {"quest": "sanctum_chapter", "status": "ready"}],
-        ["What lies beyond the sanctum?", "sanctum_done", {"quest": "sanctum_chapter", "status": "completed"}]
+        ["What lies beyond the sanctum?", "sanctum_done", {"quest": "sanctum_chapter", "status": "completed"}],
+        ["Any work for a trusted friend?", "mirt_trusted", {"reputation": {"faction": "mirt_network", "min": 10}}]
       ]
     },
     "business_info": {
@@ -343,6 +344,12 @@
         ["Until then.", null]
       ]
     },
+    "mirt_trusted": {
+      "text": "Mirt leans back and studies you. 'A trusted friend. That is a rare thing in this city.' He taps the table. 'Keep your purse full of potions and your name clean, and my people will keep their prices kind.'",
+      "options": [
+        ["I can live with that.", null]
+      ]
+    },
     "show_items": {
       "text": "At the moment I have a fine healing potion, only 30 gold coins. And this amulet of protection, for 60. Interested?",
       "options": [
@@ -472,7 +479,8 @@
         ["I broke up Vargas's cell.", "shadows_turn_in", {"quest": "shadows_of_the_market", "status": "ready"}],
         ["What happens now?", "shadows_done", {"quest": "shadows_of_the_market", "status": "completed"}],
         ["Is there anything else I can do?", "warning_offer"],
-        ["About that warning for Mirt...", "warning_reminder", {"quest": "violet_warning", "status": "active"}]
+        ["About that warning for Mirt...", "warning_reminder", {"quest": "violet_warning", "status": "active"}],
+        ["The Watch could use someone like you.", "violet_trusted", {"reputation": {"faction": "violet_watch", "min": 10}}]
       ]
     },
     "strange_info": {
@@ -500,6 +508,12 @@
       ],
       "options": [
         ["Let us go to the warehouse.", null]
+      ]
+    },
+    "violet_trusted": {
+      "text": "Violet smiles without looking up from her herbs. 'The Watch remembers who stood with us when the warehouse was full of knives. My door is open to you.'",
+      "options": [
+        ["Good to know.", null]
       ]
     },
     "warning_offer": {

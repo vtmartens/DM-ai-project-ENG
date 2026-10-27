@@ -47,6 +47,17 @@ class DialogueState(BaseState):
                 self._condition_met(item, game) for item in any_conditions
             )
 
+        reputation = condition.get("reputation")
+        if isinstance(reputation, dict):
+            player = (game or self.game).player
+            from core.factions import reputation_value
+
+            value = reputation_value(player, reputation.get("faction"))
+            if "min" in reputation and value < int(reputation["min"]):
+                return False
+            if "max" in reputation and value > int(reputation["max"]):
+                return False
+
         quest_id = condition.get("quest")
         if not quest_id:
             return True
@@ -219,6 +230,16 @@ class DialogueState(BaseState):
                 from core.quests import recruit_ally
 
                 recruit_ally(game.player, effect.get("npc"), game)
+
+            elif type == "adjust_reputation":
+                from core.factions import adjust_reputation
+
+                adjust_reputation(
+                    game.player,
+                    effect.get("faction"),
+                    int(effect.get("amount", 0) or 0),
+                    game,
+                )
 
             elif type == "trade":
                 item_name = effect.get("item")

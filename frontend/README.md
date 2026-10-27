@@ -83,6 +83,9 @@ You can also set `localStorage["dm_api_base"]`.
 - Achievements panel driven by `GET /achievements`, with an unlocked/total count, score,
   description and unlock date for each entry. Locked achievements stay visible as goals,
   and a toast announces new unlocks as they happen.
+- **Reputation** panel driven by `state.reputation` / `GET /reputation`, showing each
+  faction's standing, tier and description. Mirt's Network discounts are also shown in the
+  Shop modal's gold line.
 - **Hint** button (`POST /hint`) that appends a Dungeon Master hint to the log. The engine
   always supplies a deterministic hint; when AI narration is enabled the model may rephrase
   it, and any failure falls back to the engine wording.

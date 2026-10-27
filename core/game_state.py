@@ -272,6 +272,16 @@ class GameState:
         self._record_output()
         return used
 
+    def get_reputation_state(self):
+        """Returns faction standing and the current shop discount."""
+        from core.factions import reputation_entries, shop_discount
+
+        player = self.game.player
+        return {
+            "factions": reputation_entries(player),
+            "shop_discount": shop_discount(player),
+        }
+
     def get_shop_state(self):
         """Returns the market stock and the player's sellable inventory."""
         from core.shop import sellable_items, shop_stock
@@ -279,8 +289,9 @@ class GameState:
         player = self.game.player
         return {
             "gold": int(getattr(player, "gold", 0) or 0),
-            "stock": shop_stock(),
+            "stock": shop_stock(player),
             "sellable": sellable_items(player),
+            "reputation": self.get_reputation_state(),
         }
 
     def shop_buy(self, item_name):
@@ -678,6 +689,7 @@ class GameState:
             "stealthed": bool(
                 getattr(self.game.player, "stealthed", False)
             ),
+            "reputation": self.get_reputation_state(),
             "preferences": dict(self.preferences),
             "combat": self.get_combat_state(),
             "dialogue": self.get_dialogue_state(),

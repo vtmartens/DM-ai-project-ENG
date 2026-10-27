@@ -223,8 +223,20 @@ def complete_quest(player, quest_id, game=None):
     experience = int(reward.get("experience", 0) or 0)
     reward_items = reward.get("items", []) if isinstance(reward, dict) else []
     granted = []
-    if gold:
-        player.gold += gold
+
+    faction_id = (
+        definition.get("faction") if isinstance(definition, dict) else None
+    )
+    bonus_gold = 0
+    if faction_id and gold:
+        from core.factions import faction_bonus_percent
+
+        percent = faction_bonus_percent(player, faction_id)
+        bonus_gold = int(gold * percent / 100)
+
+    total_gold = gold + bonus_gold
+    if total_gold:
+        player.gold += total_gold
     if experience:
         player.gain_experience(experience, game)
     for item_name in reward_items:
@@ -235,12 +247,26 @@ def complete_quest(player, quest_id, game=None):
 
     if game:
         game.io.show_message(f"\nQuest complete: {completed.get('title', quest_id)}")
-        if gold:
-            game.io.show_message(f"Reward: {gold} gold coins.")
+        if total_gold:
+            game.io.show_message(f"Reward: {total_gold} gold coins.")
+        if bonus_gold:
+            game.io.show_message(
+                f"Faction bonus: +{bonus_gold} gold."
+            )
         if experience:
             game.io.show_message(f"Reward: {experience} experience points.")
         if granted:
             game.io.show_message(f"Reward: {', '.join(granted)}.")
+
+    if faction_id:
+        from core.factions import adjust_reputation
+
+        adjust_reputation(
+            player,
+            faction_id,
+            int(definition.get("reputation", 0) or 0),
+            game,
+        )
 
     from core.achievements import record_event
 

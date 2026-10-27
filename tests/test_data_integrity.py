@@ -552,6 +552,19 @@ def test_quest_targets_are_known_combatants():
         assert quest.get("objective")
 
 
+def test_quest_faction_references_are_defined():
+    quests = _load(ROOT / "data" / "quests" / "quests.json")
+    factions = _load(ROOT / "data" / "factions" / "factions.json")
+
+    for quest_id, quest in quests.items():
+        faction = quest.get("faction")
+        if faction is None:
+            continue
+        assert faction in factions, quest_id
+        assert isinstance(quest.get("reputation", 0), int), quest_id
+        assert int(quest.get("reputation", 0)) >= 0, quest_id
+
+
 def test_quest_target_and_reward_items_are_defined():
     items = {
         item["name"]
@@ -694,15 +707,24 @@ def test_tavern_exit_enters_market_state():
     assert (session.game.player.x, session.game.player.y) == (12, 2)
 
 
-def _assert_dialogue_condition(condition, quests, label):
+def _assert_dialogue_condition(condition, quests, factions, label):
     assert isinstance(condition, dict), label
     for key in ("all", "any"):
         nested = condition.get(key)
         if isinstance(nested, list):
             assert nested, label
             for item in nested:
-                _assert_dialogue_condition(item, quests, label)
+                _assert_dialogue_condition(item, quests, factions, label)
             return
+
+    reputation = condition.get("reputation")
+    if isinstance(reputation, dict):
+        assert reputation.get("faction") in factions, label
+        for key in ("min", "max"):
+            if key in reputation:
+                assert isinstance(reputation[key], int), label
+        return
+
     quest_id = condition.get("quest")
     assert quest_id, label
     assert quest_id in quests, label
@@ -717,6 +739,7 @@ def _assert_dialogue_condition(condition, quests, label):
 def test_dialogue_option_targets_exist():
     conversations = _load(ROOT / "data" / "npc" / "conversations.json")
     quests = _load(ROOT / "data" / "quests" / "quests.json")
+    factions = _load(ROOT / "data" / "factions" / "factions.json")
 
     for npc_name, graph in conversations.items():
         for state_name, node in graph.items():
@@ -730,5 +753,6 @@ def test_dialogue_option_targets_exist():
                     _assert_dialogue_condition(
                         option[2],
                         quests,
+                        factions,
                         f"{npc_name}.{state_name}: {text!r}",
                     )

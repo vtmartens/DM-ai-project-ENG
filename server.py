@@ -146,6 +146,7 @@ def home():
             "GET /assets_info": "Get information about the available assets",
             "GET /tutorial": "Get information about the tutorials",
             "GET /achievements": "Get the player's achievements",
+            "GET /reputation": "Get faction standing and shop discounts",
             "POST /hint": "Ask the Dungeon Master for a hint",
             "POST /recap": "Get a recap of the story so far",
             "GET /item_details": "Get details about a specific item",
@@ -1314,6 +1315,18 @@ def get_achievements():
         "total": len(all_achievements),
         "unlocked": len(unlocked_achievements)
     })
+
+
+@app.route("/reputation", methods=["GET"])
+def get_reputation():
+    """Get faction standing and the current merchant discount."""
+    session_id = request.args.get("session_id")
+
+    session, error = get_session_or_error(session_id)
+    if error:
+        return error
+
+    return jsonify(session.get_reputation_state())
 
 @app.route("/item_details", methods=["GET"])
 def get_item_details():
