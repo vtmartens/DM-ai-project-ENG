@@ -50,12 +50,12 @@ You can also set `localStorage["dm_api_base"]`.
   legend generated from the objects/NPCs actually on the map; characters are labelled
   `(NPC)` so it is clear who can be talked to. Map exits are shown as `>` and named in the
   legend (“Exit to market”). The **Road** area is on the same map, and moving there can
-  trigger wandering encounters; their loot appears in the inventory. Its far end leads to
-  the **Broken Waystation**, a menu-driven boss landmark with a strongbox, a cleared-area
-  campfire rest and a Mirt quest hook. After clearing it, descend into the Underroad
-  chapter, fight the Smuggler Lord and claim the unique cache reward. The vault's Rune
-  Pillar is also interactive: use `interact with Rune Pillar` nearby to attempt its Arcana
-  challenge.
+  trigger wandering encounters or roadside events — a traveling merchant, shrine, stranded
+  wagon, wounded traveler or ambush. Its far end leads to the **Broken Waystation**, a
+  menu-driven boss landmark with a strongbox, a cleared-area campfire rest and a Mirt quest
+  hook. After clearing it, descend into the Underroad chapter, fight the Smuggler Lord and
+  claim the unique cache reward. The vault's Rune Pillar is also interactive: use
+  `interact with Rune Pillar` nearby to attempt its Arcana challenge.
 - **Bounties** button in the tavern opens a focus-trapped Bounty Board modal (`GET /bounties`)
   with each contract's objective, status, progress and reward. **Accept** and **Claim**
   buttons call `/bounties/accept` and `/bounties/claim`; accepted contracts also appear in

@@ -358,10 +358,10 @@ class MapState(BaseState):
 
     def _maybe_road_encounter(self, game):
         """Rolls for a wandering encounter after a road step."""
+        from core.road_events import start_road_event
         from core.wilderness import (
             ROAD_ENCOUNTER_COOLDOWN,
             should_trigger_encounter,
-            start_road_encounter,
         )
 
         try:
@@ -376,8 +376,8 @@ class MapState(BaseState):
         if not should_trigger_encounter():
             return
 
-        encounter = start_road_encounter(game)
-        if encounter is not None:
+        event = start_road_event(game)
+        if event is not None:
             self.encounter_cooldown = ROAD_ENCOUNTER_COOLDOWN
             
     def to_dict(self):

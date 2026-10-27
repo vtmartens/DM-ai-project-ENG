@@ -840,6 +840,20 @@ entirely. The doors that existed were also misaligned with the map exits.
 - Tests cover profile selection, Dexterity-based basic damage and log labels, generic enemy
   round trips and monster attack-profile data integrity. 498 tests pass.
 
+## Roadside events (2026-10-27)
+
+- Added `data/road/road_events.json` and `core/road_events.py`. A triggered road event now
+  chooses between an ambush and non-combat events using data weights, with one-time events
+  filtered by `player.claimed_rewards`.
+- Added `RoadEventState` for the traveling merchant (shop stock purchases), one-time healing
+  shrine, stranded wagon (Investigation check), wounded traveler reward and leave flow.
+  Ambush events continue through the existing road encounter system.
+- `MapState` now routes triggered road steps through `start_road_event`; the existing grace
+  period and three-step event cooldown are unchanged. Added a shared skill-check helper.
+- Added state restore/quick-action handling and API documentation. Tests cover data
+  integrity, event selection/filtering, merchant purchases, shrine recovery, wagon checks,
+  traveler rewards and MapState event entry. 508 tests pass.
+
 ## Rune Pillar vault challenge (2026-10-27)
 
 - Changed the vault Rune Pillar data type to `rune_pillar` and added a `RunePillar`
@@ -929,7 +943,7 @@ entirely. The doors that existed were also misaligned with the map exits.
 | Residual Italian (glossary-derived denylist + accented characters) | 0 hits |
 | **Original Italian vs translated, identical input** | **46/46 placements, identical sequence** |
 | Flask API in-process (test client, no socket) | 31 × 200, 0 raised |
-| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, AI memory, hints, achievements, utility spells, locks, vault, quests, enemy abilities, encounters, saving throws, conditions, combat status, attack rolls/AC, Defend/Aim, defeat recovery, session recap, equipment economy, road/wilderness/loot, Broken Waystation, Underroad, bounty board, bounty web panel, progression achievements, weapon properties, enemy attack profiles, Rune Pillar, hardening, rest, accessibility, web client routes, browser smoke/mobile) | 498 passed |
+| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, AI memory, hints, achievements, utility spells, locks, vault, quests, enemy abilities, encounters, saving throws, conditions, combat status, attack rolls/AC, Defend/Aim, defeat recovery, session recap, equipment economy, road/wilderness/loot, Broken Waystation, Underroad, bounty board, bounty web panel, progression achievements, weapon properties, enemy attack profiles, roadside events, Rune Pillar, hardening, rest, accessibility, web client routes, browser smoke/mobile) | 508 passed |
 | Live smoke test (Flask server, `/app`, start/state/abilities/inventory/actions/command/save/load) | passed |
 
 The last comparison is the strongest evidence: the pristine Italian code and the finished

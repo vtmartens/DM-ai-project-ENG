@@ -818,7 +818,8 @@ def get_available_actions():
         ],
         "underroad": ["confront", "cache", "leave"],
         "bounty_board": ["accept", "claim", "leave"],
-        "rune_pillar": ["study", "leave"]
+        "rune_pillar": ["study", "leave"],
+        "road_event": ["leave"],
     }
 
     if session.get_combat_state().get("in_combat"):
@@ -839,6 +840,10 @@ def get_available_actions():
         actions = actions_context["bounty_board"]
     elif state_name == "RunePillarState":
         actions = actions_context["rune_pillar"]
+    elif state_name == "RoadEventState":
+        road_event = session.game.current_state()
+        chooser = getattr(road_event, "available_actions", None)
+        actions = chooser() if callable(chooser) else actions_context["road_event"]
     else:
         actions = actions_context["base"]
 

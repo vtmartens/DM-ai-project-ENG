@@ -347,6 +347,54 @@ def test_loot_tables_reference_existing_monsters_and_items():
             assert 1 <= int(entry.get("chance", 0)) <= 100, (monster_id, entry)
 
 
+def test_road_event_definitions_are_well_formed():
+    from entities.entity import ASSOCIATED_SKILLS
+
+    events = _load(ROOT / "data" / "road" / "road_events.json")
+    item_names = {
+        item["name"]
+        for file_name in (
+            "weapons.json",
+            "armor.json",
+            "accessories.json",
+            "potions.json",
+        )
+        for item in _load(ITEMS_DIR / file_name)
+    }
+    shop_names = {
+        name
+        for names in _load(ITEMS_DIR / "shop_stock.json").values()
+        for name in names
+    }
+
+    assert events
+    for event_id, event in events.items():
+        assert event.get("id") == event_id
+        assert event.get("title")
+        assert event.get("type") in {
+            "merchant",
+            "shrine",
+            "wagon",
+            "traveler",
+            "ambush",
+        }
+        assert int(event.get("weight", 0)) >= 1
+        assert isinstance(event.get("once", False), bool)
+
+        stock = event.get("stock") or []
+        for item_name in stock:
+            assert item_name in shop_names, event_id
+
+        check = event.get("check")
+        if check is not None:
+            assert check.get("skill") in ASSOCIATED_SKILLS, event_id
+            assert 5 <= int(check.get("dc", 0)) <= 30, event_id
+
+        reward = event.get("reward") or {}
+        for item_name in reward.get("items", []) or []:
+            assert item_name in item_names, event_id
+
+
 def test_road_encounter_ids_are_defined():
     from core.encounters import encounter_catalogue
     from core.wilderness import ROAD_ENCOUNTER_IDS

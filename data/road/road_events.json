@@ -1,0 +1,63 @@
+{
+  "traveling_merchant": {
+    "id": "traveling_merchant",
+    "type": "merchant",
+    "title": "A Traveling Merchant",
+    "description": "A covered cart waits at the roadside. The merchant lifts a lantern and spreads a small selection of goods across the tailgate.",
+    "weight": 2,
+    "once": false,
+    "stock": [
+      "Light Healing Potion",
+      "Healing Potion",
+      "Antidote",
+      "Smoke Bomb"
+    ]
+  },
+  "roadside_shrine": {
+    "id": "roadside_shrine",
+    "type": "shrine",
+    "title": "A Roadside Shrine",
+    "description": "A weathered stone shrine stands beside the road. Its bowl still holds clear water, and old carvings promise safe passage.",
+    "weight": 1,
+    "once": true,
+    "reward_flag": "road_shrine",
+    "heal": 10,
+    "clear_conditions": true
+  },
+  "stranded_wagon": {
+    "id": "stranded_wagon",
+    "type": "wagon",
+    "title": "A Stranded Wagon",
+    "description": "A wagon lies tilted in the ditch, its axle cracked. A locked strongbox is still wedged beneath the driver's bench.",
+    "weight": 2,
+    "once": true,
+    "reward_flag": "road_wagon",
+    "check": {"skill": "investigation", "dc": 12},
+    "reward": {
+      "gold": 30,
+      "experience": 20,
+      "items": ["Light Healing Potion"]
+    }
+  },
+  "wounded_traveler": {
+    "id": "wounded_traveler",
+    "type": "traveler",
+    "title": "A Wounded Traveler",
+    "description": "A traveller sits against a milestone, clutching a bloodied cloak. They raise a hand when they see you.",
+    "weight": 1,
+    "once": true,
+    "reward_flag": "road_traveler",
+    "reward": {
+      "gold": 15,
+      "experience": 25,
+      "items": ["Healing Potion"]
+    }
+  },
+  "ambush": {
+    "id": "ambush",
+    "type": "ambush",
+    "title": "An Ambush",
+    "description": "Figures move in the brush beside the road.",
+    "weight": 3
+  }
+}

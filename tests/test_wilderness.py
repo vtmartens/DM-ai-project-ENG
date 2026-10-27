@@ -2,7 +2,7 @@
 
 import pytest
 
-from core import wilderness
+from core import road_events, wilderness
 from core.game import Game
 from entities.enemy import Enemy
 from entities.player import Player
@@ -54,6 +54,17 @@ def test_road_move_can_trigger_a_curated_loot_encounter(
     monkeypatch.setattr(
         wilderness.random, "choice", lambda values: "goblin_scouts"
     )
+    monkeypatch.setattr(
+        road_events,
+        "choose_road_event",
+        lambda player, chooser=None: {
+            "id": "ambush",
+            "type": "ambush",
+            "title": "An Ambush",
+            "description": "Figures move in the brush.",
+            "weight": 1,
+        },
+    )
 
     state._move_player_position(game, "east")
 
@@ -77,6 +88,17 @@ def test_road_cooldown_prevents_immediate_encounters(recording_io, monkeypatch):
     )
     monkeypatch.setattr(
         wilderness.random, "choice", lambda values: "goblin_scouts"
+    )
+    monkeypatch.setattr(
+        road_events,
+        "choose_road_event",
+        lambda player, chooser=None: {
+            "id": "ambush",
+            "type": "ambush",
+            "title": "An Ambush",
+            "description": "Figures move in the brush.",
+            "weight": 1,
+        },
     )
 
     state._move_player_position(game, "east")

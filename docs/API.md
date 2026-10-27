@@ -655,6 +655,12 @@ At level 1–2 the encounter table uses Goblin Scouts and Wolf Pack; Orc Patrol 
 level 3. Victories use the curated encounter reward and can additionally roll loot from
 `data/monsters/loot_tables.json` into the player's inventory.
 
+A triggered road step can instead open a data-driven `RoadEventState`: a traveling merchant
+with shop stock, a one-time healing shrine, a stranded wagon with an Investigation check, a
+wounded traveler reward, or an ambush that uses the road encounter system. Event definitions
+live in `data/road/road_events.json`; one-time events are filtered after their reward flag is
+recorded in `player.claimed_rewards`.
+
 The road's far end leads to the **Broken Waystation** (`WaystationState`). Its actions are
 `confront`, `strongbox`, `rest` and `leave`. Confronting the bandits starts the fixed
 `waystation_chief` encounter; victory marks the area cleared, readies Mirt's
