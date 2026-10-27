@@ -47,5 +47,12 @@
     "effect": {"charisma": 2},
     "value": 40,
     "description": "Earrings that increase presence and social influence"
+  },
+  {
+    "name": "Vault Warden's Signet",
+    "type": "accessory",
+    "effect": {"defense": 1, "wisdom": 1},
+    "value": 150,
+    "description": "A heavy silver signet worn by the vault's wardens"
   }
-] 
+]

@@ -31,5 +31,19 @@
       "gold": 15,
       "experience": 25
     }
+  },
+  "sentinel_sigil": {
+    "title": "The Sentinel's Sigil",
+    "description": "Mirt has heard of a sealed vault beneath the old warehouse, guarded by an iron sentinel. He wants the relic inside brought back to him.",
+    "objective": "Recover Sentinel's Edge from the Sealed Vault beneath the warehouse.",
+    "target_item": "Sentinel's Edge",
+    "turn_in": "Mirt",
+    "reward": {
+      "gold": 100,
+      "experience": 200,
+      "items": [
+        "Vault Warden's Signet"
+      ]
+    }
   }
 }

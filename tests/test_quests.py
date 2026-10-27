@@ -9,7 +9,10 @@ from core.quests import (
     record_enemy_defeat,
     start_quest,
 )
+from entities.npc import NPC
 from entities.player import Player
+from items.item import Item
+from states.dialogue import DialogueState
 
 
 @pytest.fixture
@@ -81,6 +84,92 @@ def test_both_vargas_quests_turn_in_after_vargas(recording_io):
         quest["title"] for quest in player.completed_quests
     } == {"Shadows in the Market", "A Debt to Collect"}
     assert player.gold == 100 + 60 + 50
+
+
+def test_item_objective_marks_the_vault_quest_ready(recording_io):
+    player = Player("Vault Quester", "fighter")
+    game = Game(player, None, recording_io, temporary=True)
+
+    assert start_quest(player, "sentinel_sigil", game) is True
+    assert player.active_quests[0]["target_item"] == "Sentinel's Edge"
+
+    player.add_item(Item("Sentinel's Edge", "weapon", {"strength": 6}, 300))
+
+    assert player.active_quests[0]["status"] == "ready"
+    assert "Objective complete: The Sentinel's Sigil" in recording_io.text
+    assert "Return to Mirt" in recording_io.text
+
+
+def test_starting_the_vault_quest_with_the_relic_already_held(recording_io):
+    player = Player("Early Relic", "fighter")
+    game = Game(player, None, recording_io, temporary=True)
+    player.add_item(Item("Sentinel's Edge", "weapon", {"strength": 6}, 300))
+
+    assert start_quest(player, "sentinel_sigil", game) is True
+
+    assert player.active_quests[0]["status"] == "ready"
+
+
+def test_item_quest_progress_survives_save_and_load(recording_io, tmp_path):
+    player = Player("Vault Saver", "fighter")
+    game = Game(player, None, recording_io, temporary=True)
+    start_quest(player, "sentinel_sigil", game)
+    save_path = tmp_path / "vault-quest.json"
+
+    assert game.save(str(save_path)) is True
+
+    loaded = Game(None, None, recording_io, temporary=True)
+    assert loaded.load(str(save_path)) is True
+    quest = next(
+        quest
+        for quest in loaded.player.active_quests
+        if quest.get("id") == "sentinel_sigil"
+    )
+    assert quest["target_item"] == "Sentinel's Edge"
+
+    loaded.player.add_item(Item("Sentinel's Edge", "weapon", {"strength": 6}, 300))
+
+    assert quest["status"] == "ready"
+
+
+def test_completing_the_vault_quest_grants_gold_xp_and_signet(recording_io):
+    player = Player("Vault Finisher", "fighter")
+    game = Game(player, None, recording_io, temporary=True)
+    start_quest(player, "sentinel_sigil", game)
+    mark_quest_ready(player, "sentinel_sigil", game)
+    before_gold = player.gold
+
+    assert complete_quest(player, "sentinel_sigil", game) is True
+
+    names = {getattr(item, "name", item) for item in player.inventory}
+    assert player.gold == before_gold + 100
+    assert "Vault Warden's Signet" in names
+    assert "Reward: Vault Warden's Signet." in recording_io.text
+
+
+def test_mirt_offers_and_tracks_the_vault_quest(recording_io):
+    player = Player("Mirt Quester", "fighter")
+    game = Game(player, None, recording_io, temporary=True)
+    state = DialogueState(NPC("Mirt"))
+
+    def option_texts():
+        return [text for text, _ in state.visible_options(game)]
+
+    assert not any("sealed vault" in text.lower() for text in option_texts())
+
+    start_quest(player, "shadows_of_the_market", game)
+    assert any("sealed vault" in text.lower() for text in option_texts())
+
+    assert start_quest(player, "sentinel_sigil", game) is True
+    assert any("About the sealed vault" in text for text in option_texts())
+
+    mark_quest_ready(player, "sentinel_sigil", game)
+    assert any("recovered Sentinel's Edge" in text for text in option_texts())
+
+    complete_quest(player, "sentinel_sigil", game)
+    assert any(
+        "What did you do with the sigil?" in text for text in option_texts()
+    )
 
 
 def test_quest_rewards_and_recruited_ally(recording_io):

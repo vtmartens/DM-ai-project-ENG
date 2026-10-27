@@ -148,10 +148,16 @@ class Entity:
         else:
             self.inventory.append(item)
 
-        # Only the player has achievement tracking; NPC inventories are ignored.
+        # Only the player has achievement and quest tracking; NPC inventories
+        # are ignored by both hooks.
+        name = getattr(added, "name", added if isinstance(added, str) else None)
+
+        from core.quests import record_item_acquired
+
+        record_item_acquired(self, name)
+
         from core.achievements import record_event
 
-        name = getattr(added, "name", added if isinstance(added, str) else None)
         record_event(self, "item_collected", item=name)
         
     def remove_item(self, item_name):

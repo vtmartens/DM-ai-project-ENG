@@ -510,6 +510,24 @@ entirely. The doors that existed were also misaligned with the map exits.
   the strongbox→Vault Key→Vault Door chain, direct travel, the vault-exit bypass regression,
   the guardian drop, relic loot and save/load. 330 tests pass.
 
+## Sealed Vault phase 2 — the quest wrapper (2026-10-26)
+
+- **The Sentinel's Sigil** (`sentinel_sigil`): Mirt asks for **Sentinel's Edge** from the
+  vault. Rewards are 100 gold, 200 XP and the new **Vault Warden's Signet** accessory
+  (defense +1, wisdom +1). The offer is shown when the Shadows quest is active, ready or
+  completed, so the player has Violet's warehouse-key thread.
+- Item-based progress: `core/quests.py` gained `record_item_acquired`, called from
+  `Entity.add_item`. An active quest with a matching `target_item` becomes ready as soon as
+  the item is picked up (including chest loot). `start_quest` also checks the inventory, so
+  accepting the quest after recovering the relic marks it ready immediately.
+- `complete_quest` now supports `reward.items`, building defined items from the data files
+  and adding them through `player.add_item` (so achievements and item quests still fire).
+- Mirt's dialogue has offer, reminder, ready turn-in and completed nodes, using the
+  quest-conditioned options fixed earlier.
+- Tests: item progress, out-of-order start, reward items, Mirt option visibility, save/load
+  and the vault-chest integration; 336 tests pass. Phase 2's optional rune ability check
+  and a dedicated achievement remain future work.
+
 ## Deliberate translation choices worth knowing
 
 - **`hp_base` / `mana_base` were left as-is.** They are consistent between code and JSON
@@ -538,7 +556,7 @@ entirely. The doors that existed were also misaligned with the map exits.
 | Residual Italian (glossary-derived denylist + accented characters) | 0 hits |
 | **Original Italian vs translated, identical input** | **46/46 placements, identical sequence** |
 | Flask API in-process (test client, no socket) | 31 × 200, 0 raised |
-| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, hints, achievements, utility spells, locks, vault, accessibility, web client routes, browser smoke/mobile) | 330 passed |
+| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, hints, achievements, utility spells, locks, vault, quests, accessibility, web client routes, browser smoke/mobile) | 336 passed |
 | Live smoke test (Flask server, `/app`, start/state/abilities/inventory/actions/command/save/load) | passed |
 
 The last comparison is the strongest evidence: the pristine Italian code and the finished

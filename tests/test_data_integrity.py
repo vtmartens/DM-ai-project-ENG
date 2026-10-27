@@ -162,13 +162,35 @@ def test_quest_targets_are_known_npcs():
 
     for quest_id, quest in quests.items():
         target = quest.get("target")
-        if quest.get("completion") != "dialogue":
+        if quest.get("completion") != "dialogue" and not quest.get("target_item"):
             assert target in npcs, f"{quest_id}: unknown target {target!r}"
         assert quest.get("turn_in") in npcs, (
             f"{quest_id}: unknown turn-in NPC {quest.get('turn_in')!r}"
         )
         assert quest.get("title")
         assert quest.get("objective")
+
+
+def test_quest_target_and_reward_items_are_defined():
+    items = {
+        item["name"]
+        for file_name in INVENTORY_FILES
+        for item in _load(ITEMS_DIR / file_name)
+    }
+    quests = _load(ROOT / "data" / "quests" / "quests.json")
+
+    for quest_id, quest in quests.items():
+        target_item = quest.get("target_item")
+        if target_item:
+            assert target_item in items, (
+                f"{quest_id}: unknown target item {target_item!r}"
+            )
+
+        reward_items = (quest.get("reward") or {}).get("items") or []
+        for reward_item in reward_items:
+            assert reward_item in items, (
+                f"{quest_id}: unknown reward item {reward_item!r}"
+            )
 
 
 def test_cellar_npcs_are_defined():

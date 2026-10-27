@@ -1,6 +1,7 @@
 """Sealed Vault: the warehouse lock chain, guardian and relic loot."""
 
 from core.game import Game
+from core.quests import start_quest
 from entities.player import Player
 from items.item import Item
 from states.combat import CombatState
@@ -131,6 +132,7 @@ def test_vault_exit_returns_to_the_warehouse(recording_io):
 def test_guardian_drops_the_sentinel_key_and_the_relic_chest_yields_loot(recording_io):
     player, game = _game(recording_io, "vault")
     player.set_position("vault", 16, 6)
+    start_quest(player, "sentinel_sigil", game)
     vault = game.map_manager.get_map("vault")
     guardian = next(npc for npc in vault.npc.values() if npc.name == "Iron Sentinel")
 
@@ -154,6 +156,12 @@ def test_guardian_drops_the_sentinel_key_and_the_relic_chest_yields_loot(recordi
     assert "Sentinel's Edge" in _names(player)
     assert "Greater Healing Potion" in _names(player)
     assert all(npc.name != "Iron Sentinel" for npc in vault.npc.values())
+    quest = next(
+        quest
+        for quest in player.active_quests
+        if quest.get("id") == "sentinel_sigil"
+    )
+    assert quest["status"] == "ready"
 
 
 def test_vault_door_state_survives_save_and_load(recording_io, tmp_path):

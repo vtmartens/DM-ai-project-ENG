@@ -58,6 +58,7 @@ def start_quest(player, quest_id, game=None):
         "description": definition.get("description", ""),
         "objective": definition.get("objective", ""),
         "target": definition.get("target", ""),
+        "target_item": definition.get("target_item", ""),
         "turn_in": definition.get("turn_in", ""),
         "status": "active",
     }
@@ -70,6 +71,16 @@ def start_quest(player, quest_id, game=None):
         game.io.show_message(f"\nQuest started: {quest['title']}")
         if quest["objective"]:
             game.io.show_message(f"Objective: {quest['objective']}")
+
+    # The player may already carry an item-based objective (for example if
+    # they explored the vault before accepting the quest).
+    target_item = quest.get("target_item")
+    if target_item and any(
+        _normalize(getattr(item, "name", item)) == _normalize(target_item)
+        for item in getattr(player, "inventory", [])
+    ):
+        mark_quest_ready(player, quest_id, game)
+
     return True
 
 
@@ -90,6 +101,27 @@ def record_combat(player):
             continue
         entry = progress.setdefault(quest_id, {})
         entry["combat_encounters"] = int(entry.get("combat_encounters", 0) or 0) + 1
+
+
+def record_item_acquired(player, item_name, game=None):
+    """Marks active quests whose ``target_item`` was just acquired."""
+    if not item_name:
+        return []
+
+    wanted = _normalize(item_name)
+    changed = []
+    for quest in list(getattr(player, "active_quests", [])):
+        if not isinstance(quest, dict):
+            continue
+        if quest.get("status") == "ready":
+            continue
+        target_item = quest.get("target_item")
+        if not target_item or _normalize(target_item) != wanted:
+            continue
+        game_ctx = game if game is not None else getattr(player, "game", None)
+        if mark_quest_ready(player, quest.get("id"), game_ctx):
+            changed.append(quest.get("id"))
+    return changed
 
 
 def mark_quest_ready(player, quest_id, game=None):
@@ -118,6 +150,34 @@ def mark_quest_ready(player, quest_id, game=None):
     return False
 
 
+ITEM_FILES = (
+    "weapons.json",
+    "armor.json",
+    "accessories.json",
+    "keys.json",
+    "potions.json",
+)
+
+
+def _reward_item(item_name):
+    """Builds an Item from the data files, or None when it is not defined."""
+    if not item_name:
+        return None
+
+    from items.item import Item
+
+    data_manager = get_data_manager()
+    wanted = _normalize(item_name)
+    for file_name in ITEM_FILES:
+        for data in data_manager.load_data("items", file_name):
+            if (
+                isinstance(data, dict)
+                and _normalize(data.get("name")) == wanted
+            ):
+                return Item.from_dict(data)
+    return None
+
+
 def complete_quest(player, quest_id, game=None):
     """Moves a quest to the completed list and grants its reward."""
     definition = quest_catalogue().get(quest_id, {})
@@ -144,10 +204,17 @@ def complete_quest(player, quest_id, game=None):
     reward = definition.get("reward", {}) if isinstance(definition, dict) else {}
     gold = int(reward.get("gold", 0) or 0)
     experience = int(reward.get("experience", 0) or 0)
+    reward_items = reward.get("items", []) if isinstance(reward, dict) else []
+    granted = []
     if gold:
         player.gold += gold
     if experience:
         player.gain_experience(experience, game)
+    for item_name in reward_items:
+        item = _reward_item(item_name)
+        if item is not None:
+            player.add_item(item)
+            granted.append(item_name)
 
     if game:
         game.io.show_message(f"\nQuest complete: {completed.get('title', quest_id)}")
@@ -155,6 +222,8 @@ def complete_quest(player, quest_id, game=None):
             game.io.show_message(f"Reward: {gold} gold coins.")
         if experience:
             game.io.show_message(f"Reward: {experience} experience points.")
+        if granted:
+            game.io.show_message(f"Reward: {', '.join(granted)}.")
 
     from core.achievements import record_event
 

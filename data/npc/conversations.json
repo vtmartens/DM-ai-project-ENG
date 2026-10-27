@@ -190,7 +190,13 @@
         ["About Vargas and the debt...", "vargas_debt_reminder", {"quest": "vargas_debt", "status": "active"}],
         ["I have settled Vargas's debt.", "vargas_debt_turn_in", {"quest": "vargas_debt", "status": "ready"}],
         ["About Vargas...", "vargas_debt_done", {"quest": "vargas_debt", "status": "completed"}],
-        ["Violet sent me with a warning about the hooded figures.", "violet_warning_turn_in", {"quest": "violet_warning", "status": "active"}]
+        ["Violet sent me with a warning about the hooded figures.", "violet_warning_turn_in", {"quest": "violet_warning", "status": "active"}],
+        ["Tell me about the sealed vault beneath the warehouse.", "sentinel_sigil_offer", {"quest": "shadows_of_the_market", "status": "active"}],
+        ["Tell me about the sealed vault beneath the warehouse.", "sentinel_sigil_offer", {"quest": "shadows_of_the_market", "status": "ready"}],
+        ["Tell me about the sealed vault beneath the warehouse.", "sentinel_sigil_offer", {"quest": "shadows_of_the_market", "status": "completed"}],
+        ["About the sealed vault...", "sentinel_sigil_reminder", {"quest": "sentinel_sigil", "status": "active"}],
+        ["I recovered Sentinel's Edge.", "sentinel_sigil_turn_in", {"quest": "sentinel_sigil", "status": "ready"}],
+        ["What did you do with the sigil?", "sentinel_sigil_done", {"quest": "sentinel_sigil", "status": "completed"}]
       ]
     },
     "business_info": {
@@ -206,6 +212,39 @@
       "effect": {"type": "complete_quest", "quest": "violet_warning"},
       "options": [
         ["I will tell her.", null]
+      ]
+    },
+    "sentinel_sigil_offer": {
+      "text": "Mirt lowers his voice. 'There is a sealed vault under the old warehouse. The warehouse key Violet gave you opens a strongbox there; the Vault Key inside opens the vault door. An iron sentinel guards the relic - Sentinel's Edge. Bring it to me and we will both profit.'",
+      "options": [
+        ["I will bring you the relic.", "sentinel_sigil_accept"],
+        ["Not now.", null]
+      ]
+    },
+    "sentinel_sigil_accept": {
+      "text": "Good. The strongbox is in the warehouse; the sentinel carries the key to the reliquary. Try not to wake the whole cult.",
+      "effect": {"type": "start_quest", "quest": "sentinel_sigil"},
+      "options": [
+        ["I will return with Sentinel's Edge.", null]
+      ]
+    },
+    "sentinel_sigil_reminder": {
+      "text": "The sealed vault is beneath the warehouse. Use the warehouse key on the strongbox for the Vault Key, then open the Vault Door. The sentinel carries the key to the reliquary.",
+      "options": [
+        ["I am on my way.", null]
+      ]
+    },
+    "sentinel_sigil_turn_in": {
+      "text": "Mirt turns the rune-etched blade in the light. 'Sentinel's Edge. I had begun to think the vault would keep it.' He pays you and presses a heavy silver signet into your hand.",
+      "effect": {"type": "complete_quest", "quest": "sentinel_sigil"},
+      "options": [
+        ["A fair trade.", null]
+      ]
+    },
+    "sentinel_sigil_done": {
+      "text": "The sigil is already sold, but Mirt raises his cup. 'The vault is open and my purse is heavier. Not a bad day's work.'",
+      "options": [
+        ["Until next time.", null]
       ]
     },
     "show_items": {
