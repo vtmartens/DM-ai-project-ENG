@@ -145,6 +145,9 @@ class Item:
             if game:
                 game.io.show_message(f"You equipped {self.name} as an accessory.")
 
+        if hasattr(player, "recalculate_initiative"):
+            player.recalculate_initiative()
+
     def remove(self, player, game=None):
         # Silent version if no game is provided
         if self.type == "weapon":
@@ -168,6 +171,9 @@ class Item:
                 player.accessories.remove(self)
             if game:
                 game.io.show_message(f"You removed the accessory {self.name}.")
+
+        if hasattr(player, "recalculate_initiative"):
+            player.recalculate_initiative()
     
     def to_dict(self):
         """

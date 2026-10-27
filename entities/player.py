@@ -45,11 +45,40 @@ class Player(Entity):
         
         # Class-specific attributes that are not in Entity
         self._initialize_for_char_class()
-        self.initiative = self.modifier_dexterity
+        self.defense_base = self.defense
+        self.initiative_base = self.modifier_dexterity
+        self.initiative = self.initiative_base
         self.conditions = {}
         self.allies = []
         self._create_inventory_base()
-    
+        self.recalculate_initiative()
+
+    def _equipment_stat_bonus(self, ability):
+        """Returns the equipment bonus applied to an ability modifier."""
+        bonus = 0
+        if ability == "strength" and getattr(self, "weapon", None):
+            bonus += int(self.weapon.effect.get("strength", 0) or 0)
+        for accessory in getattr(self, "accessories", []):
+            bonus += int(accessory.effect.get(ability, 0) or 0)
+        return bonus
+
+    def _recalculate_ability_modifier(self, ability):
+        base = getattr(self, f"{ability}_base")
+        setattr(
+            self,
+            f"modifier_{ability}",
+            self.calculate_modifier(base) + self._equipment_stat_bonus(ability),
+        )
+
+    def recalculate_initiative(self):
+        """Rebuilds initiative from Dexterity and accessory bonuses."""
+        accessory_initiative = sum(
+            int(getattr(accessory, "effect", {}).get("initiative", 0) or 0)
+            for accessory in getattr(self, "accessories", [])
+        )
+        self.initiative_base = self.modifier_dexterity
+        self.initiative = self.initiative_base + accessory_initiative
+
     def _load_data_classes(self):
         """Loads the class data from the JSON file"""
         file_path = os.path.join("data", "classes", "classes.json")
@@ -245,13 +274,24 @@ class Player(Entity):
             attribute_to_increase,
             getattr(self, attribute_to_increase) + 1,
         )
-        modifier_name = f"modifier_{attribute_to_increase[:-5]}"
-        setattr(
-            self,
-            modifier_name,
-            self.calculate_modifier(getattr(self, attribute_to_increase)),
-        )
+        self._recalculate_ability_modifier(attribute_to_increase[:-5])
+
+        if not hasattr(self, "defense_base"):
+            gear_defense = (
+                int(getattr(getattr(self, "armor", None), "effect", {}).get(
+                    "defense", 0
+                )
+                or 0)
+            )
+            gear_defense += sum(
+                int(getattr(accessory, "effect", {}).get("defense", 0) or 0)
+                for accessory in getattr(self, "accessories", [])
+            )
+            self.defense_base = max(0, self.defense - gear_defense)
+        self.defense_base += 1
         self.defense += 1
+
+        self.recalculate_initiative()
 
         from core.abilities import abilities_unlocked_at_level
 
@@ -422,6 +462,10 @@ class Player(Entity):
             "mana": getattr(self, "mana", 0),
             "mana_max": getattr(self, "mana_max", 0),
             "initiative": getattr(self, "initiative", 0),
+            "defense_base": getattr(self, "defense_base", 2),
+            "initiative_base": getattr(
+                self, "initiative_base", self.modifier_dexterity
+            ),
             "conditions": dict(getattr(self, "conditions", {})),
             "allies": list(getattr(self, "allies", [])),
         })
@@ -480,13 +524,11 @@ class Player(Entity):
         # Restore other attributes
         player.skill_proficiencies = data.get("skill_proficiencies", {})
         player.proficiency_bonus = data.get("proficiency_bonus", 2)
-        player.defense = data.get("defense", 0)
         player.gold = data.get("gold", 0)
         player.experience = data.get("experience", 0)
         player.level = data.get("level", 1)
         player.mana = data.get("mana", getattr(player, "mana", 0))
         player.mana_max = data.get("mana_max", getattr(player, "mana_max", 0))
-        player.initiative = data.get("initiative", player.modifier_dexterity)
         player.conditions = dict(data.get("conditions", {}))
         player.allies = list(data.get("allies", []))
 
@@ -512,30 +554,79 @@ class Player(Entity):
                 
         player.inventory = inventory
         
-        # Restore weapon
+        # Rebuild equipment first so its bonuses can be applied to the base stats.
         weapon_data = data.get("weapon")
         if isinstance(weapon_data, dict):
-            player.weapon = Item.from_dict(weapon_data)
+            weapon = Item.from_dict(weapon_data)
         elif isinstance(weapon_data, str):
-            player.weapon = Item(weapon_data, "weapon")
-        
-        # Restore armor
+            weapon = Item(weapon_data, "weapon")
+        else:
+            weapon = None
+
         armor_data = data.get("armor")
         if isinstance(armor_data, dict):
-            player.armor = Item.from_dict(armor_data)
+            armor = Item.from_dict(armor_data)
         elif isinstance(armor_data, str):
-            player.armor = Item(armor_data, "armor")
-            
-        # Restore accessories
-        accessories_data = data.get("accessories", [])
+            armor = Item(armor_data, "armor")
+        else:
+            armor = None
+
         accessories = []
-        
-        for acc in accessories_data:
+        for acc in data.get("accessories", []):
             if isinstance(acc, dict):
                 accessories.append(Item.from_dict(acc))
             elif isinstance(acc, str):
                 accessories.append(Item(acc, "accessory"))
-                
+
+        armor_defense = (
+            int(armor.effect.get("defense", 0) or 0) if armor else 0
+        )
+        accessory_defense = sum(
+            int(accessory.effect.get("defense", 0) or 0)
+            for accessory in accessories
+        )
+        accessory_initiative = sum(
+            int(accessory.effect.get("initiative", 0) or 0)
+            for accessory in accessories
+        )
+
+        saved_defense = int(data.get("defense", 2) or 0)
+        saved_initiative = int(
+            data.get("initiative", player.modifier_dexterity) or 0
+        )
+
+        # New saves store the non-equipment base explicitly. Older saves stored
+        # only the effective value, so remove gear bonuses to recover the base.
+        player.defense_base = int(
+            data.get(
+                "defense_base",
+                max(0, saved_defense - armor_defense - accessory_defense),
+            )
+            or 0
+        )
+        player.initiative_base = int(
+            data.get(
+                "initiative_base",
+                saved_initiative - accessory_initiative,
+            )
+            or 0
+        )
+        player.defense = player.defense_base
+        player.initiative = player.initiative_base
+
+        player.weapon = weapon
+        if weapon is not None:
+            player.strength += int(weapon.effect.get("strength", 0) or 0)
+
+        player.armor = armor
+        if armor is not None:
+            player.defense += int(armor.effect.get("defense", 0) or 0)
+
         player.accessories = accessories
-        
+        for accessory in accessories:
+            for stat, value in accessory.effect.items():
+                if hasattr(player, stat):
+                    setattr(player, stat, getattr(player, stat) + value)
+        player.recalculate_initiative()
+
         return player

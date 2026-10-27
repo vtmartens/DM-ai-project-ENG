@@ -91,6 +91,7 @@ a server restart. A stale `session_id` returns `404`.
     "experience": 0,
     "mana": 20,
     "mana_max": 20,
+    "defense": 2,
     "initiative": 0
   },
   "active_quests": [],
