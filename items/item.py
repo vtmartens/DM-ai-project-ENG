@@ -2,7 +2,16 @@ from items.keys import key_opens
 
 
 class Item:
-    def __init__(self, name, type, effect=None, value=0, description="", rarity="common"):
+    def __init__(
+        self,
+        name,
+        type,
+        effect=None,
+        value=0,
+        description="",
+        rarity="common",
+        properties=None,
+    ):
         self.name = name
         self.type = type
         self.effect = effect or {}
@@ -10,6 +19,8 @@ class Item:
         self.description = description
         # Optional metadata used by achievement conditions and future loot tables.
         self.rarity = rarity
+        # Weapon metadata such as finesse, ranged, attack_stat or damage_bonus.
+        self.properties = dict(properties or {})
         
     def __str__(self):
         return f"{self.name} ({self.description})"
@@ -197,6 +208,7 @@ class Item:
             "value": self.value,
             "description": self.description,
             "rarity": self.rarity,
+            "properties": dict(getattr(self, "properties", {}) or {}),
         }
     
     @classmethod
@@ -217,6 +229,7 @@ class Item:
             value=data.get("value", 0),
             description=data.get("description", ""),
             rarity=data.get("rarity", "common"),
+            properties=data.get("properties", {}),
         )
         
     # Compatibility method with the previous name

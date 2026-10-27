@@ -811,6 +811,24 @@ entirely. The doors that existed were also misaligned with the map exits.
 - Added four integration/condition tests; existing clean-streak, quest and save/load
   achievement behavior is unchanged. 468 tests pass.
 
+## Weapon properties (2026-10-27)
+
+- `Item.properties` now carries weapon metadata (`finesse`, `ranged`, `attack_stat`,
+  `damage_bonus`) through `to_dict`/`from_dict`, shop stock, loot and saved equipment.
+- `Entity.attack_ability()` selects Strength by default, Dexterity for ranged or the better
+  of Strength/Dexterity for finesse, or an explicit `attack_stat`. `attack_bonus`,
+  `attack_modifier` and `attack_damage_modifier` use that choice; the combat log labels the
+  stat (`STR`/`DEX`/`INT`). Player and class weapon-damage abilities use the weapon damage
+  modifier.
+- Data: Short Sword and dagger are finesse; Short Bow is ranged/Dexterity with +4 damage;
+  Mage Staff attacks with Intelligence. Starting class weapons receive the matching
+  properties. Short Bow's old Strength effect was replaced with Dexterity.
+- The shop API and web modal expose weapon properties and their readable summary; asset
+  version bumped to `v=29`.
+- Tests: ranged, finesse and melee stat selection; Intelligence attacks and log labels;
+  damage; item/player round trips; shop property exposure; weapon data integrity. 475 tests
+  pass.
+
 ## Stable map ordering (CI fix, 2026-10-27)
 
 - `Path.glob()` order is filesystem-dependent. After the Road and Waystation maps were
@@ -849,7 +867,7 @@ entirely. The doors that existed were also misaligned with the map exits.
 | Residual Italian (glossary-derived denylist + accented characters) | 0 hits |
 | **Original Italian vs translated, identical input** | **46/46 placements, identical sequence** |
 | Flask API in-process (test client, no socket) | 31 × 200, 0 raised |
-| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, AI memory, hints, achievements, utility spells, locks, vault, quests, enemy abilities, encounters, saving throws, conditions, combat status, attack rolls/AC, Defend/Aim, defeat recovery, session recap, equipment economy, road/wilderness/loot, Broken Waystation, bounty board, progression achievements, rest, accessibility, web client routes, browser smoke/mobile) | 468 passed |
+| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, AI memory, hints, achievements, utility spells, locks, vault, quests, enemy abilities, encounters, saving throws, conditions, combat status, attack rolls/AC, Defend/Aim, defeat recovery, session recap, equipment economy, road/wilderness/loot, Broken Waystation, bounty board, progression achievements, weapon properties, rest, accessibility, web client routes, browser smoke/mobile) | 475 passed |
 | Live smoke test (Flask server, `/app`, start/state/abilities/inventory/actions/command/save/load) | passed |
 
 The last comparison is the strongest evidence: the pristine Italian code and the finished

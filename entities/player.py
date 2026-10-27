@@ -244,6 +244,21 @@ class Player(Entity):
                 weapon_base = Item("Traveler's Staff", "weapon", {"strength": 1}, 5, "A simple wooden staff")
                 armor_base = Item("Sturdy Clothes", "armor", {"defense": 1}, 5, "Reinforced clothes that offer minimal protection")
         
+        if weapon_base is not None:
+            weapon_name = weapon_base.name.casefold()
+            if "bow" in weapon_name:
+                weapon_base.properties = {
+                    "ranged": True,
+                    "attack_stat": "dexterity",
+                    "damage_bonus": 4,
+                }
+            elif "dagger" in weapon_name:
+                weapon_base.properties = {"finesse": True}
+            elif "staff" in weapon_name:
+                weapon_base.properties = {"attack_stat": "intelligence"}
+            elif "short sword" in weapon_name:
+                weapon_base.properties = {"finesse": True}
+
         # Add the items to the inventory
         self.inventory.append(potion)
         self.inventory.append(key)

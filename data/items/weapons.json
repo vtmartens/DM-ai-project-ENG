@@ -4,6 +4,7 @@
     "type": "weapon",
     "effect": {"strength": 3},
     "value": 25,
+    "properties": {"finesse": true},
     "description": "A small sword suited to close-quarters combat"
   },
   {
@@ -23,8 +24,13 @@
   {
     "name": "Short Bow",
     "type": "weapon",
-    "effect": {"strength": 4, "dexterity": 1},
+    "effect": {"dexterity": 1},
     "value": 30,
+    "properties": {
+      "ranged": true,
+      "attack_stat": "dexterity",
+      "damage_bonus": 4
+    },
     "description": "A light bow that is easy to use"
   },
   {
@@ -32,6 +38,7 @@
     "type": "weapon",
     "effect": {"strength": 2, "dexterity": 2},
     "value": 15,
+    "properties": {"finesse": true},
     "description": "A small but deadly weapon when wielded with precision"
   },
   {
@@ -39,6 +46,7 @@
     "type": "weapon",
     "effect": {"strength": 2, "intelligence": 3},
     "value": 100,
+    "properties": {"attack_stat": "intelligence"},
     "description": "A staff that amplifies magical powers"
   },
   {

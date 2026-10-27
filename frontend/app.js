@@ -1506,6 +1506,7 @@ function createShopEntry(item, action, gold) {
     String(item.type || "item").replace(/_/g, " "),
     item.rarity || "common",
     item.effect_text || "",
+    item.properties_text || "",
   ]
     .filter(Boolean)
     .join(" · ");

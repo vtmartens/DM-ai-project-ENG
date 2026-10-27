@@ -120,10 +120,11 @@ The web client renders a base score with the modifier, for example `INT 16 (+4)`
 `*_base` when you need the raw ability score.
 
 `ac` is the player's armor class and `attack_bonus` is the d20 bonus used by weapon
-attacks. `defense` remains the damage-reduction value applied after a hit. Weapon attacks
-roll `d20 + attack_bonus` against the target's AC; a natural 20 is a critical hit and a
-natural 1 always misses. Class abilities and save-based monster abilities resolve by their
-own rules rather than this attack roll.
+attacks; both follow the equipped weapon's finesse/ranged/attack-stat properties. `defense`
+remains the damage-reduction value applied after a hit. Weapon attacks roll
+`d20 + attack_bonus` against the target's AC; a natural 20 is a critical hit and a natural 1
+always misses. Class abilities and save-based monster abilities resolve by their own rules
+rather than this attack roll.
 
 A compact player summary is also returned by `/start`, `/load`, and `/import_save`:
 
@@ -489,6 +490,8 @@ using an antidote clears poison from the player.
 
 `action` is `equip`, `unequip`, or `examine`. Returns `output`, `state`, and `equipment`.
 Equipping applies every stat effect on the item, and unequipping removes the same effects.
+Weapon `properties` may include `finesse`, `ranged`, `attack_stat` and `damage_bonus`;
+`stats.attack_bonus` follows the equipped weapon's attack stat.
 
 #### `GET /shop?session_id=...`
 
@@ -508,6 +511,8 @@ available while the current state is `MarketState`; otherwise it returns `409`.
       "description": "Armor of interwoven metal rings...",
       "effect": {"defense": 4},
       "effect_text": "AC +4",
+      "properties": {},
+      "properties_text": "",
       "rarity": "common"
     }
   ],

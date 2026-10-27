@@ -247,6 +247,31 @@ def test_condition_definitions_are_well_formed():
             assert isinstance(modifier, int), condition_id
 
 
+def test_weapon_properties_are_well_formed():
+    weapons = _load(ITEMS_DIR / "weapons.json")
+    abilities = {
+        "strength",
+        "dexterity",
+        "constitution",
+        "intelligence",
+        "wisdom",
+        "charisma",
+    }
+    allowed = {"finesse", "ranged", "attack_stat", "damage_bonus"}
+
+    for weapon in weapons:
+        properties = weapon.get("properties")
+        if properties is None:
+            continue
+        assert isinstance(properties, dict), weapon["name"]
+        assert set(properties) <= allowed, weapon["name"]
+        if "attack_stat" in properties:
+            assert properties["attack_stat"] in abilities, weapon["name"]
+        if "damage_bonus" in properties:
+            assert isinstance(properties["damage_bonus"], int), weapon["name"]
+            assert properties["damage_bonus"] >= 0, weapon["name"]
+
+
 def test_shop_stock_references_existing_items():
     stock = _load(ROOT / "data" / "items" / "shop_stock.json")
     catalogue = set()

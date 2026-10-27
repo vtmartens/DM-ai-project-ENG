@@ -30,6 +30,24 @@ _STAT_LABELS = {
 }
 
 
+def describe_properties(properties) -> str:
+    """Returns a short summary of weapon metadata."""
+    if not isinstance(properties, dict) or not properties:
+        return ""
+    parts = []
+    if properties.get("ranged"):
+        parts.append("ranged")
+    if properties.get("finesse"):
+        parts.append("finesse")
+    attack_stat = properties.get("attack_stat")
+    if attack_stat:
+        parts.append(f"{str(attack_stat)[:3].upper()} attack")
+    damage_bonus = int(properties.get("damage_bonus", 0) or 0)
+    if damage_bonus:
+        parts.append(f"{damage_bonus:+d} damage")
+    return ", ".join(parts)
+
+
 def describe_effect(effect) -> str:
     """Returns a short human-readable summary of an item effect."""
     if not isinstance(effect, dict) or not effect:
@@ -105,6 +123,10 @@ def item_summary(definition: dict, category: str, sale=False) -> dict:
         "description": definition.get("description", ""),
         "effect": dict(definition.get("effect", {}) or {}),
         "effect_text": describe_effect(definition.get("effect", {})),
+        "properties": dict(definition.get("properties", {}) or {}),
+        "properties_text": describe_properties(
+            definition.get("properties", {})
+        ),
         "rarity": definition.get("rarity", "common"),
     }
 
@@ -167,6 +189,12 @@ def sellable_items(player) -> list[dict]:
                 "effect": dict(getattr(item, "effect", {}) or {}),
                 "effect_text": describe_effect(
                     getattr(item, "effect", {})
+                ),
+                "properties": dict(
+                    getattr(item, "properties", {}) or {}
+                ),
+                "properties_text": describe_properties(
+                    getattr(item, "properties", {})
                 ),
                 "rarity": getattr(item, "rarity", "common"),
                 "equipped": False,
@@ -277,6 +305,10 @@ def sell_item(player, item_name, game=None) -> dict:
             "description": getattr(match, "description", ""),
             "effect": dict(getattr(match, "effect", {}) or {}),
             "effect_text": describe_effect(getattr(match, "effect", {})),
+            "properties": dict(getattr(match, "properties", {}) or {}),
+            "properties_text": describe_properties(
+                getattr(match, "properties", {})
+            ),
             "rarity": getattr(match, "rarity", "common"),
         },
         "price": sale_price,

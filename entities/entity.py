@@ -341,10 +341,52 @@ class Entity:
         """Short alias for armor class used by API snapshots and clients."""
         return self.armor_class
 
+    @staticmethod
+    def _weapon_properties(weapon) -> dict:
+        if weapon is None or isinstance(weapon, str):
+            return {}
+        properties = getattr(weapon, "properties", {})
+        return properties if isinstance(properties, dict) else {}
+
+    def attack_ability(self) -> str:
+        """Returns the ability used for the equipped weapon's attack."""
+        properties = self._weapon_properties(getattr(self, "weapon", None))
+        attack_stat = properties.get("attack_stat")
+        if attack_stat in {
+            "strength",
+            "dexterity",
+            "constitution",
+            "intelligence",
+            "wisdom",
+            "charisma",
+        }:
+            return attack_stat
+        if properties.get("ranged"):
+            return "dexterity"
+        if properties.get("finesse"):
+            return (
+                "dexterity"
+                if int(self.dexterity) > int(self.strength)
+                else "strength"
+            )
+        return "strength"
+
+    @property
+    def attack_modifier(self) -> int:
+        return int(getattr(self, self.attack_ability(), 0) or 0)
+
+    @property
+    def attack_damage_modifier(self) -> int:
+        """Damage modifier for the equipped weapon, including weapon bonuses."""
+        properties = self._weapon_properties(getattr(self, "weapon", None))
+        return self.attack_modifier + int(
+            properties.get("damage_bonus", 0) or 0
+        )
+
     @property
     def attack_bonus(self):
         """Bonus added to a d20 attack roll."""
-        bonus = int(self.strength) + int(
+        bonus = self.attack_modifier + int(
             getattr(self, "proficiency_bonus", 0) or 0
         )
         weapon = getattr(self, "weapon", None)

@@ -1075,6 +1075,16 @@ class CombatState(BaseState):
         return strength + proficiency
 
     @staticmethod
+    def _attack_ability_for(attacker):
+        ability = getattr(attacker, "attack_ability", None)
+        if callable(ability):
+            try:
+                return str(ability())
+            except Exception:
+                pass
+        return "strength"
+
+    @staticmethod
     def _armor_class_for(target):
         """Returns the target's AC, with a fallback for simple combatants."""
         armor_class = getattr(target, "armor_class", None)
@@ -1122,6 +1132,8 @@ class CombatState(BaseState):
             roll_text = str(roll)
 
         bonus = self._attack_bonus_for(attacker)
+        ability = self._attack_ability_for(attacker)
+        ability_label = ability[:3].upper()
         total = roll + bonus
         target_ac = self._armor_class_for(target)
         defense_note = ""
@@ -1148,8 +1160,8 @@ class CombatState(BaseState):
         else:
             result = "hit" if hit else "miss"
         game.io.show_message(
-            f"{subject} {verb} {roll_text} + {bonus} = {total} "
-            f"vs {target_label} {target_ac}{defense_note}: {result}."
+            f"{subject} {verb} {roll_text} + {bonus} ({ability_label}) = "
+            f"{total} vs {target_label} {target_ac}{defense_note}: {result}."
         )
         return hit, critical
 
@@ -1174,7 +1186,7 @@ class CombatState(BaseState):
 
         # Use the player's effective strength, which includes weapon and accessory bonuses
         blessing = int(self.effects.pop("bless_attack", 0) or 0)
-        damage = player.strength + blessing
+        damage = player.attack_damage_modifier + blessing
         if blessing:
             game.io.show_message(f"Your blessing adds {blessing} damage.")
 

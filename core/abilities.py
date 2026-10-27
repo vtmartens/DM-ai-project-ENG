@@ -202,9 +202,17 @@ def use_ability(game, name, definition=None):
         if "flat" in effect:
             damage = int(effect["flat"])
         elif "multiplier" in effect:
-            damage = max(1, int(player.strength) * int(effect["multiplier"]))
+            damage = max(
+                1,
+                int(player.attack_damage_modifier)
+                * int(effect["multiplier"]),
+            )
         else:
-            damage = max(1, int(player.strength) + int(effect.get("bonus", 0)))
+            damage = max(
+                1,
+                int(player.attack_damage_modifier)
+                + int(effect.get("bonus", 0)),
+            )
         damage += blessing
         defense = (
             0
