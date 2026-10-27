@@ -21,6 +21,7 @@ _RECENT_SKIP_TYPES = {
     "hint",
     "recap",
     "description",
+    "dialogue_voice",
     "narration",
 }
 _RECENT_SKIP_PREFIXES = (

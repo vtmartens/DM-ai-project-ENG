@@ -120,3 +120,29 @@ def build_scene_prompt(scene: str, context: dict[str, Any]) -> str:
         indent=2,
     )
     return f"Scene data:\n{payload}"
+
+
+DIALOGUE_SYSTEM_PROMPT = (
+    "You are the Dungeon Master of a text-based fantasy RPG.\n"
+    "You receive JSON with two fields:\n"
+    '- "line": the exact words the current NPC is saying in the deterministic dialogue.\n'
+    '- "context": a small snapshot of the player, location and active state. Its\n'
+    '  "dialogue" entry includes the NPC name, profession and dialogue node.\n\n'
+    "Rewrite the line as ONE short in-character paragraph (1-3 sentences) that adds\n"
+    "delivery, posture and tone. Keep the NPC's meaning and every fact intact.\n\n"
+    "Hard rules:\n"
+    "- Never change a request, warning, price, quest state, choice, or outcome.\n"
+    "- Never add options, actions, items, NPCs, numbers, secrets, or events.\n"
+    "- Do not speak for the player or decide their response.\n"
+    "- Do not reveal hidden information or mention menus, dice rolls, or game controls.\n"
+    "- Return prose only: no headings, JSON, bullet points, or commentary."
+)
+
+
+def build_dialogue_prompt(line: str, context: dict[str, Any]) -> str:
+    payload = json.dumps(
+        {"line": line, "context": context},
+        ensure_ascii=False,
+        indent=2,
+    )
+    return f"Dialogue data:\n{payload}"

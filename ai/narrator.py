@@ -24,6 +24,10 @@ class Narrator(Protocol):
         """Adds atmosphere around a deterministic scene, or returns None."""
         ...
 
+    def dialogue(self, line: str, context: dict[str, Any]) -> str | None:
+        """Adds in-character delivery around an NPC line, or returns None."""
+        ...
+
 
 class NullNarrator:
     """A narrator that never adds text. Useful as an explicit no-op."""
@@ -40,4 +44,7 @@ class NullNarrator:
         return None
 
     def describe(self, scene: str, context: dict[str, Any]) -> str | None:
+        return None
+
+    def dialogue(self, line: str, context: dict[str, Any]) -> str | None:
         return None

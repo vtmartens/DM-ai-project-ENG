@@ -142,6 +142,7 @@ def home():
             "POST /bounties/accept": "Accept a bounty contract",
             "POST /bounties/claim": "Claim a ready bounty contract",
             "POST /dialogue": "Manage dialogue with an NPC",
+            "POST /dialogue/voice": "Add optional AI colour to the current NPC line",
             "POST /explore": "Explore the surrounding environment",
             "POST /preferences": "Save the user's preferences",
             "POST /delete_save": "Delete a save",
@@ -1256,6 +1257,49 @@ def manage_dialogue():
         "dialogue": dialogue,
         "options_dialogue": dialogue.get("options", []),
     })
+
+
+@app.route("/dialogue/voice", methods=["POST"])
+def dialogue_voice():
+    """Add optional in-character colour to the current deterministic line."""
+    data = request.json or {}
+    session_id = data.get("session_id")
+
+    session, error = get_session_or_error(session_id)
+    if error:
+        return error
+
+    from states.dialogue import DialogueState
+
+    current = session.game.current_state()
+    if not isinstance(current, DialogueState):
+        return jsonify({"error": "No dialogue is active."}), 409
+
+    from ai.dialogue import generate_dialogue_voice
+
+    narrator = getattr(getattr(session, "io_buffer", None), "narrator", None)
+    memory = getattr(getattr(session, "io_buffer", None), "memory", None)
+    result = generate_dialogue_voice(
+        session.game, narrator=narrator, memory=memory
+    )
+
+    # Only AI prose is logged; the engine line is already in the dialogue card
+    # and in the adventure log.
+    if result["source"] == "ai" and isinstance(
+        getattr(session, "event_log", None), list
+    ):
+        session.event_log.append(
+            {
+                "type": "dialogue_voice",
+                "text": result["voice"],
+                "time": time.time(),
+            }
+        )
+        if len(session.event_log) > 500:
+            del session.event_log[:-500]
+
+    return jsonify({"session_id": session_id, **result})
+
 
 @app.route("/explore", methods=["POST"])
 def explore_environment():

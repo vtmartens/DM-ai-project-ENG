@@ -152,6 +152,27 @@ def test_no_scene_skips_the_client():
     assert client.chat.completions.calls == []
 
 
+def test_dialogue_uses_the_dialogue_prompt_and_a_small_token_budget():
+    narrator, client = _narrator(FakeResponse("Durnan leans closer."))
+
+    assert (
+        narrator.dialogue("Durnan greets you.", CONTEXT)
+        == "Durnan leans closer."
+    )
+
+    call = client.chat.completions.calls[0]
+    assert call["max_tokens"] == 256
+    assert "dialogue" in call["messages"][0]["content"].lower()
+    assert "Durnan greets you." in call["messages"][1]["content"]
+
+
+def test_no_dialogue_line_skips_the_client():
+    narrator, client = _narrator(FakeResponse())
+
+    assert narrator.dialogue("", CONTEXT) is None
+    assert client.chat.completions.calls == []
+
+
 def test_hint_uses_the_hint_prompt_and_a_small_token_budget():
     narrator, client = _narrator(FakeResponse("The lock sighs open."))
 

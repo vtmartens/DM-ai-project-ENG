@@ -1362,6 +1362,24 @@ entirely. The doors that existed were also misaligned with the map exits.
   rewards, combat snapshots, Hex Bolt/Reckless Cleave/Grave Guard, road level gates and the
   tavern catalogue. The browser test now asserts the Elite tag. **736 tests pass.**
 
+## AI NPC dialogue colour (2026-10-27)
+
+- Added `ai/dialogue.py` and `POST /dialogue/voice`. The engine supplies the current
+  deterministic line plus NPC name, profession and node; the narrator may add delivery,
+  posture and tone without changing the line or options.
+- Added `dialogue` to the narrator protocol, `NullNarrator`, Claude and OpenAI adapters,
+  with a dedicated prompt and the same 256-token cap. Prompt rules forbid new choices,
+  actions, items, NPCs, numbers, quest changes and hidden information.
+- Engine fallback returns the exact NPC line with `source: "engine"` and leaves the dialogue
+  card and node unchanged. AI prose is logged as `dialogue_voice` and excluded from recap
+  recent-event input; engine fallback is not logged again.
+- The dialogue card gained a **Voice** button. With AI disabled/unavailable it shows a toast
+  instead of duplicating the line in the log. Assets are at `?v=48`.
+- Tests: `tests/test_dialogue_voice.py` covers engine fallback, no state mutation, context
+  shape, AI success/failure/decline, missing narrator, no active dialogue and the API 409.
+  Provider tests cover the dialogue prompt; the browser smoke test clicks Voice and asserts
+  the engine fallback toast. **748 tests pass.**
+
 ## Deliberate translation choices worth knowing
 
 - **`hp_base` / `mana_base` were left as-is.** They are consistent between code and JSON

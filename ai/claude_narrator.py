@@ -6,10 +6,12 @@ from typing import Any
 from ai import config
 from ai.narrator import Narrator
 from ai.prompts import (
+    DIALOGUE_SYSTEM_PROMPT,
     HINT_SYSTEM_PROMPT,
     RECAP_SYSTEM_PROMPT,
     SCENE_SYSTEM_PROMPT,
     SYSTEM_PROMPT,
+    build_dialogue_prompt,
     build_hint_prompt,
     build_recap_prompt,
     build_scene_prompt,
@@ -81,6 +83,15 @@ class ClaudeNarrator(Narrator):
         return self._complete(
             SCENE_SYSTEM_PROMPT,
             build_scene_prompt(scene, context),
+            min(self.max_tokens, 256),
+        )
+
+    def dialogue(self, line: str, context: dict[str, Any]) -> str | None:
+        if self._disabled or not line:
+            return None
+        return self._complete(
+            DIALOGUE_SYSTEM_PROMPT,
+            build_dialogue_prompt(line, context),
             min(self.max_tokens, 256),
         )
 

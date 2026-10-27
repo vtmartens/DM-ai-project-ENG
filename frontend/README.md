@@ -129,6 +129,10 @@ You can also set `localStorage["dm_api_base"]`.
   play area puts the Adventure log (with the DM narration first) at the top, and the NPC
   dialogue/options card below it. The log keeps the NPC text and consequences but omits
   the numbered choice list, which is shown only as buttons in the dialogue card.
+- **Voice** button in the dialogue card (`POST /dialogue/voice`) that asks the configured
+  narrator for an in-character delivery of the current NPC line. The engine line and its
+  options stay authoritative; with AI off or unavailable, the card is unchanged and a toast
+  says the written line is being used.
 - Inventory list with item details and use/equip actions. Keys can be used on an adjacent
   matching lock, poison applies over several combat turns, and antidotes clear poison.
 - **Shop** button in the market (`GET /shop`, `POST /shop/buy`, `POST /shop/sell`) opening a

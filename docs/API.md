@@ -42,8 +42,9 @@ emitted **before** the engine `narrative` messages it was generated from, so cli
 render in order show the DM paragraph first. `narrative` is the engine's own text and is
 authoritative; `narration` is optional prose and must never be treated as game state. `map`
 is preformatted ASCII; render it in a monospace, whitespace-preserving block. `hint` entries
-come from `POST /hint`, `description` entries from `POST /describe` and `recap` entries from
-`POST /recap`; all are also kept in the event log.
+come from `POST /hint`, `description` entries from `POST /describe`, `dialogue_voice`
+entries from `POST /dialogue/voice` and `recap` entries from `POST /recap`; all are also kept
+in the event log.
 
 ## Session flow
 
@@ -1009,6 +1010,29 @@ Returns `output`, `state`, and:
 For web sessions, `output` contains the NPC text and consequences but not the numbered
 choice list or “Choose an option” prompt; render `state.dialogue.options` as buttons
 instead. Terminal-style IO still logs the numbered choices.
+
+#### `POST /dialogue/voice`
+
+```json
+{"session_id": "uuid"}
+```
+
+Returns optional AI-written delivery around the current deterministic NPC line:
+
+```json
+{
+  "session_id": "uuid",
+  "voice": "Durnan wipes the bar and leans in...",
+  "source": "ai",
+  "npc": "Durnan",
+  "node": "start"
+}
+```
+
+The engine line and all options remain authoritative; `source` is `"engine"` when the
+narrator is disabled or fails, and the returned `voice` is then the exact line. AI output is
+logged as `type: "dialogue_voice"`; engine fallbacks are not logged again because the line is
+already in the dialogue card. The endpoint returns `409` outside `DialogueState`.
 
 #### `POST /explore`
 

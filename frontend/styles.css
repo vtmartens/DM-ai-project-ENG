@@ -547,6 +547,7 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
   color: var(--accent-strong);
   border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
 }
+.dialogue-actions { display: flex; flex-wrap: wrap; gap: 7px; }
 .dialogue-options { display: flex; flex-wrap: wrap; gap: 7px; }
 .dialogue-options button { text-align: left; }
 
@@ -637,6 +638,12 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
   border-left-color: var(--success);
   background: color-mix(in srgb, var(--success) 6%, var(--bg-input));
   color: color-mix(in srgb, var(--text) 90%, var(--success));
+}
+.log-entry.dialogue_voice {
+  border-left-color: var(--info);
+  background: color-mix(in srgb, var(--info) 6%, var(--bg-input));
+  color: color-mix(in srgb, var(--text) 90%, var(--info));
+  font-style: italic;
 }
 .log-entry.recap {
   border-left-color: var(--accent-strong);

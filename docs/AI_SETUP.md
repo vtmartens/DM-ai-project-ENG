@@ -1,12 +1,12 @@
 # AI Dungeon Master setup
 
 The AI Dungeon Master is optional. It appends one short atmospheric paragraph to a turn,
-can rephrase the engine's hints and session recaps, and can add colour to location
-descriptions; the deterministic engine text is always shown unchanged. It also keeps a
-small bounded memory of recent engine events so narration, hints, scenes and recaps can
-refer back to what just happened. If the model is unavailable, slow, misconfigured, or
-refuses, the game continues without the paragraph and these extras fall back to the engine
-wording.
+can rephrase the engine's hints and session recaps, add colour to location descriptions and
+voice the current NPC line; the deterministic engine text is always shown unchanged. It
+also keeps a small bounded memory of recent engine events so narration, hints, scenes,
+dialogue voice and recaps can refer back to what just happened. If the model is unavailable,
+slow, misconfigured, or refuses, the game continues without the paragraph and these extras
+fall back to the engine wording.
 
 This guide focuses on setups that do **not** require a paid API: local inference (Ollama,
 LM Studio) and free cloud tiers. For the default Claude provider, see the README.
@@ -172,6 +172,15 @@ facts in two to four sentences. The model cannot add locations, items, NPCs or o
 it never changes state. On failure, refusal or disabled narration, the engine description is
 returned with `source: "engine"`. Scenes use the same configuration as hints and narration.
 
+## Dialogue voice
+
+The dialogue card's **Voice** button calls `POST /dialogue/voice`. The engine supplies the
+current NPC line, name, profession and node; when a narrator is configured it adds delivery,
+posture and tone in a short in-character paragraph. The line and every option remain
+authoritative, and the model may not add choices, items, secrets or outcomes. On failure,
+refusal or disabled narration, the engine line is returned with `source: "engine"` and the
+card is unchanged. AI voice prose is logged as `dialogue_voice`.
+
 ## Recaps
 
 The web client's **Recap** button calls `POST /recap`. The engine builds a deterministic
@@ -183,7 +192,8 @@ returned with `source: "engine"`. Recaps use the same configuration as hints and
 
 ## Narrator context
 
-Narration, hints, scene descriptions and recaps share one compact serializable context:
+Narration, hints, scene descriptions, dialogue voice and recaps share one compact
+serializable context:
 
 - player name, class, level, HP, position and difficulty preset
 - active quests and completed-quest count
@@ -210,7 +220,7 @@ process memory only.
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `DM_AI_NARRATION` | off | Must be `1`, `true`, `yes`, or `on` to enable narration and AI-phrased hints/scenes/recaps |
+| `DM_AI_NARRATION` | off | Must be `1`, `true`, `yes`, or `on` to enable narration and AI-phrased hints/scenes/dialogue/recaps |
 | `DM_AI_PROVIDER` | `claude` | `claude`, or `openai` / `openai-compatible` |
 | `DM_AI_MODEL` | `claude-opus-5-5` (Claude), `gpt-4o-mini` (OpenAI-compatible) | Model name |
 | `DM_AI_BASE_URL` | — | OpenAI-compatible base URL; falls back to `OPENAI_BASE_URL` |

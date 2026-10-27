@@ -758,6 +758,16 @@ function renderDialogue(dialogue) {
   const text = document.createElement("p");
   text.textContent = dialogue.text || "";
 
+  const actions = document.createElement("div");
+  actions.className = "dialogue-actions";
+  const voice = document.createElement("button");
+  voice.type = "button";
+  voice.className = "ghost small";
+  voice.textContent = "Voice";
+  voice.title = "Ask the Dungeon Master to add voice, posture and tone";
+  voice.addEventListener("click", () => requestDialogueVoice(dialogue));
+  actions.appendChild(voice);
+
   const options = document.createElement("div");
   options.className = "dialogue-options";
   for (const option of dialogue.options || []) {
@@ -769,7 +779,37 @@ function renderDialogue(dialogue) {
     options.appendChild(button);
   }
 
-  el.dialogueCard.append(head, text, options);
+  el.dialogueCard.append(head, text, actions, options);
+}
+
+async function requestDialogueVoice(dialogue) {
+  if (!store.sessionId || store.busy) return;
+
+  store.busy = true;
+  setBusy(true, "Listening for the NPC's voice…");
+  try {
+    const data = await api("/dialogue/voice", {
+      method: "POST",
+      body: { session_id: store.sessionId, node: dialogue?.node },
+    });
+    if (data?.voice && data.source === "ai") {
+      appendMessage(data.voice, "dialogue_voice");
+      scrollLogToBottom();
+    } else if (data?.voice) {
+      showToast(
+        "AI voice is unavailable; the written line is shown.",
+        "info"
+      );
+    }
+  } catch (error) {
+    showToast(error.message, "error");
+    if (error.status === 404) {
+      clearSession();
+    }
+  } finally {
+    store.busy = false;
+    setBusy(false, "");
+  }
 }
 
 function renderStats(stats) {
@@ -1412,6 +1452,11 @@ function appendMessage(text, type = "narrative") {
     const kind = document.createElement("span");
     kind.className = "log-kind";
     kind.textContent = "Scene";
+    entry.appendChild(kind);
+  } else if (type === "dialogue_voice") {
+    const kind = document.createElement("span");
+    kind.className = "log-kind";
+    kind.textContent = "Voice";
     entry.appendChild(kind);
   } else if (type === "recap") {
     const kind = document.createElement("span");

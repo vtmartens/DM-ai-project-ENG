@@ -212,7 +212,17 @@ def test_web_client_smoke(live_server):
         )
         assert "Durnan" in driver.find_element(By.ID, "dialogue-card").text
 
+        # The Voice button remains deterministic when AI narration is off.
+        driver.find_element(
+            By.CSS_SELECTOR, "#dialogue-card .dialogue-actions button"
+        ).click()
+        wait.until(
+            lambda d: "AI voice is unavailable"
+            in d.find_element(By.ID, "toast").text
+        )
+
         # Map modal and its generated legend.
+        driver.execute_script("window.scrollTo(0, 0)")
         driver.find_element(By.ID, "show-map").click()
         wait.until(lambda d: d.find_element(By.ID, "map-modal").is_displayed())
         ascii_text = driver.find_element(By.ID, "map-ascii").text
