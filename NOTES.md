@@ -1023,6 +1023,22 @@ entirely. The doors that existed were also misaligned with the map exits.
 - Added maneuver data integrity checks and tests for enemy Trip/Shove, failure, condition
   skipping, cooldowns, Stand Up, ability blocking and enemy round trips. 575 tests pass.
 
+## Rune Trials post-campaign arena (2026-10-27)
+
+- Added `data/trials/rune_trials.json` and `core/trials.py`: five data-driven waves built
+  from existing monsters, three modifiers (Empowered/Warded/Frenzied) and three boons
+  (Mend/Focus/Cleanse).
+- Added `RuneTrialsState`, reachable from the cleared Sanctum. It tracks the current wave,
+  boons, active combat and phase; combat victory advances to boon selection, flight or
+  defeat ends the run, and a full clear grants the completion reward.
+- Added `CombatState.outcome` (`victory`/`fled`/`defeat`) so enclosing states can distinguish
+  the result after combat pops; it is serialized for completeness.
+- Persisted `Player.rune_trials_best` and `rune_trials_runs`, exposed under `state.rune_trials`.
+  Added Rune Trials Adept and Champion achievement conditions.
+- Added phase-dependent quick actions (`begin`, boons, `restart`) and state registry/server
+  support. Updated README, API docs, frontend notes and data integrity/tests.
+- 587 tests pass.
+
 ## Deliberate translation choices worth knowing
 
 - **`hp_base` / `mana_base` were left as-is.** They are consistent between code and JSON

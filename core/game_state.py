@@ -696,6 +696,14 @@ class GameState:
                 getattr(self.game.player, "stealthed", False)
             ),
             "reputation": self.get_reputation_state(),
+            "rune_trials": {
+                "best": int(
+                    getattr(self.game.player, "rune_trials_best", 0) or 0
+                ),
+                "runs": int(
+                    getattr(self.game.player, "rune_trials_runs", 0) or 0
+                ),
+            },
             "preferences": dict(self.preferences),
             "combat": self.get_combat_state(),
             "dialogue": self.get_dialogue_state(),

@@ -191,5 +191,29 @@
       "type": "area_cleared",
       "value": "sanctum"
     }
+  },
+  {
+    "id": "rune_trials_adept",
+    "name": "Rune Trials Adept",
+    "description": "Reach the third wave of the Rune Trials",
+    "icon": "achievement_combat.png",
+    "difficulty": "hard",
+    "score": 30,
+    "condition": {
+      "type": "rune_trials_best",
+      "value": 3
+    }
+  },
+  {
+    "id": "rune_trials_champion",
+    "name": "Rune Trials Champion",
+    "description": "Complete all five waves of the Rune Trials",
+    "icon": "achievement_combat.png",
+    "difficulty": "hard",
+    "score": 50,
+    "condition": {
+      "type": "rune_trials_runs",
+      "value": 1
+    }
   }
 ] 

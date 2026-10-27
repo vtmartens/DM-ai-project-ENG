@@ -66,6 +66,9 @@ class CombatState(BaseState):
         self.temporary_data = {}
         # Ability effects that persist across turns (guard, shield, evade, bless)
         self.effects = {}
+        # Set when combat ends, so enclosing states can distinguish victory,
+        # defeat and a successful escape.
+        self.outcome = None
         # A stealth opening skips the enemies' first turn; the opening weapon
         # attack also has advantage.
         self.surprised = bool(surprised)
@@ -1014,6 +1017,7 @@ class CombatState(BaseState):
         player = game.player
 
         if player.hp <= 0:
+            self.outcome = "defeat"
             last_enemy = self.opponent
             enemy_name = getattr(last_enemy, "name", "Your enemy")
             self._handle_defeat(game, enemy_name)
@@ -1022,6 +1026,7 @@ class CombatState(BaseState):
         self._process_defeated_enemies(game)
 
         if not self._alive_enemies():
+            self.outcome = "victory"
             if len(self.enemies) > 1:
                 game.io.show_message("\nYou have defeated all your enemies!")
             self._grant_encounter_reward(game)
@@ -1813,6 +1818,7 @@ class CombatState(BaseState):
         # Roll a d20 with DC 10 to escape
         roll_result = self.dice_d20.roll() + bonus
         if roll_result >= 10:
+            self.outcome = "fled"
             game.io.show_message(f"\nYou managed to escape! (Roll: {roll_result})")
             if game.current_state():
                 game.pop_state()
@@ -1866,6 +1872,8 @@ class CombatState(BaseState):
             self.effects = {}
         if not hasattr(self, "surprised"):
             self.surprised = False
+        if not hasattr(self, "outcome"):
+            self.outcome = None
         if not hasattr(self, "_initiative_checked"):
             self._initiative_checked = True
         if not hasattr(self, "last_ability_used"):
@@ -1937,6 +1945,7 @@ class CombatState(BaseState):
         state.temporary_data = data.get("temporary_data", {})
         state.effects = data.get("effects", {})
         state.surprised = bool(data.get("surprised", False))
+        state.outcome = data.get("outcome")
         state._initiative_checked = data.get("initiative_checked", True)
         state.damage_taken = int(data.get("damage_taken", 0) or 0)
         state.ability_cooldowns = {
@@ -1972,6 +1981,7 @@ class CombatState(BaseState):
             "temporary_data": self.temporary_data,
             "effects": dict(getattr(self, "effects", {}) or {}),
             "surprised": bool(getattr(self, "surprised", False)),
+            "outcome": getattr(self, "outcome", None),
             "initiative_checked": bool(
                 getattr(self, "_initiative_checked", False)
             ),

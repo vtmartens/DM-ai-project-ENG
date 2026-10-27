@@ -1,0 +1,98 @@
+{
+  "max_waves": 5,
+  "completion_reward": {"gold": 250, "experience": 500},
+  "modifiers": {
+    "empowered": {
+      "name": "Empowered",
+      "description": "The trial's runes feed the guardians: +20% HP and +1 damage.",
+      "enemy_hp_percent": 20,
+      "enemy_damage_bonus": 1
+    },
+    "warded": {
+      "name": "Warded",
+      "description": "Rune-light hardens every enemy: +1 AC.",
+      "enemy_ac_bonus": 1
+    },
+    "frenzied": {
+      "name": "Frenzied",
+      "description": "The trial drives its servants into a fury: +2 damage.",
+      "enemy_damage_bonus": 2
+    }
+  },
+  "boons": [
+    {
+      "id": "mend",
+      "name": "Mend",
+      "description": "Restore 25 HP before the next wave.",
+      "effect": {"type": "heal", "amount": 25}
+    },
+    {
+      "id": "focus",
+      "name": "Focus",
+      "description": "Restore 15 mana before the next wave.",
+      "effect": {"type": "mana", "amount": 15}
+    },
+    {
+      "id": "cleanse",
+      "name": "Cleanse",
+      "description": "Clear all active conditions.",
+      "effect": {"type": "clear_conditions"}
+    }
+  ],
+  "waves": [
+    {
+      "title": "The First Gate",
+      "description": "Two rune sentinels wake as the trial gate closes behind you.",
+      "modifier": "empowered",
+      "reward": {"gold": 25, "experience": 80},
+      "enemies": [
+        {"monster_type": "rune_sentinel", "name": "Gate Sentinel A"},
+        {"monster_type": "rune_sentinel", "name": "Gate Sentinel B"}
+      ]
+    },
+    {
+      "title": "The Broken Company",
+      "description": "Bandits and a lean wolf stalk the second hall.",
+      "modifier": "frenzied",
+      "reward": {"gold": 35, "experience": 120},
+      "enemies": [
+        {"monster_type": "bandit", "name": "Trial Bandit A"},
+        {"monster_type": "bandit", "name": "Trial Bandit B"},
+        {"monster_type": "wolf", "name": "Trial Wolf"}
+      ]
+    },
+    {
+      "title": "The Warded Hall",
+      "description": "Three rune sentinels lock their shields across the hall.",
+      "modifier": "warded",
+      "reward": {"gold": 50, "experience": 180},
+      "enemies": [
+        {"monster_type": "rune_sentinel", "name": "Ward Sentinel A"},
+        {"monster_type": "rune_sentinel", "name": "Ward Sentinel B"},
+        {"monster_type": "rune_sentinel", "name": "Ward Sentinel C"}
+      ]
+    },
+    {
+      "title": "The Smuggler's Echo",
+      "description": "The trial remembers the Underroad: a smuggler lord and his runners stand in the smoke.",
+      "modifier": "frenzied",
+      "reward": {"gold": 75, "experience": 260},
+      "enemies": [
+        {"monster_type": "smuggler_lord", "name": "Echo of the Smuggler Lord"},
+        {"monster_type": "smuggler", "name": "Echo Runner A"},
+        {"monster_type": "smuggler", "name": "Echo Runner B"}
+      ]
+    },
+    {
+      "title": "The Runeheart",
+      "description": "The Rune Warden rises one last time, its heart burning through the dark.",
+      "modifier": "empowered",
+      "reward": {"gold": 150, "experience": 600},
+      "enemies": [
+        {"monster_type": "rune_warden", "name": "Rune Warden Echo"},
+        {"monster_type": "rune_sentinel", "name": "Heart Sentinel A"},
+        {"monster_type": "rune_sentinel", "name": "Heart Sentinel B"}
+      ]
+    }
+  ]
+}

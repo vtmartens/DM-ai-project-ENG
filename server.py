@@ -826,7 +826,8 @@ def get_available_actions():
             "leave",
         ],
         "underroad": ["confront", "cache", "sanctum", "leave"],
-        "sanctum": ["amulet", "force", "confront", "vault", "leave"],
+        "sanctum": ["amulet", "force", "confront", "vault", "trials", "leave"],
+        "rune_trials": ["begin", "leave"],
         "bounty_board": ["accept", "claim", "leave"],
         "rune_pillar": ["study", "leave"],
         "road_event": ["leave"],
@@ -862,6 +863,14 @@ def get_available_actions():
         sanctum = session.game.current_state()
         chooser = getattr(sanctum, "available_actions", None)
         actions = chooser() if callable(chooser) else actions_context["sanctum"]
+    elif state_name == "RuneTrialsState":
+        trials = session.game.current_state()
+        chooser = getattr(trials, "available_actions", None)
+        actions = (
+            chooser()
+            if callable(chooser)
+            else actions_context["rune_trials"]
+        )
     elif state_name == "BountyBoardState":
         actions = actions_context["bounty_board"]
     elif state_name == "RunePillarState":

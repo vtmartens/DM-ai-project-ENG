@@ -24,7 +24,7 @@ class SanctumState(BaseGameState):
         if not self._ward_passed(game.player):
             return ["amulet", "force", "leave"]
         if self._cleared(game.player):
-            return ["vault", "leave"]
+            return ["vault", "trials", "leave"]
         return ["confront", "vault", "leave"]
 
     def run(self, game):
@@ -214,6 +214,8 @@ class SanctumState(BaseGameState):
         )
         game.io.show_message("2. Open the Runeheart vault")
         game.io.show_message("3. Return to the Underroad")
+        if cleared:
+            game.io.show_message("4. Enter the Rune Trials")
 
         choice = str(
             game.io.request_input("\nChoice: ") or ""
@@ -228,6 +230,9 @@ class SanctumState(BaseGameState):
         elif choice in {"3", "leave", "return", "underroad", "exit"}:
             self._leave(game)
             return
+        elif choice in {"4", "trials", "trial", "rune trials"}:
+            if self._enter_trials(game):
+                return
         else:
             game.io.show_message("Invalid choice.")
 
@@ -349,6 +354,21 @@ class SanctumState(BaseGameState):
         claimed.append("sanctum_vault")
         if reward_flag not in claimed:
             claimed.append(reward_flag)
+        return True
+
+    def _enter_trials(self, game):
+        if not self._cleared(game.player):
+            game.io.show_message(
+                "The trial gate is dark. Defeat the Rune Warden first."
+            )
+            return False
+        game.io.show_message(
+            "You lay one hand on the Runeheart gate. The sanctum answers "
+            "with a circle of white fire, and the first trial begins to form."
+        )
+        from states.rune_trials import RuneTrialsState
+
+        game.change_state(RuneTrialsState(game))
         return True
 
     def _leave(self, game):

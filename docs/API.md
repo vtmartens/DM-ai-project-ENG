@@ -118,6 +118,7 @@ a server restart. A stale `session_id` returns `404`.
     ],
     "shop_discount": 0
   },
+  "rune_trials": {"best": 0, "runs": 0},
   "preferences": {},
   "combat": {"in_combat": false},
   "dialogue": {"active": false}
@@ -746,9 +747,27 @@ After the Underroad is cleared and its cache has been claimed, the Underroad men
 - `leave` returns to the Underroad.
 
 `/available_actions` reflects the current phase (`amulet`/`force` before the ward, then
-`confront`/`vault`/`leave`). Mirt offers the chapter after the Underroad is completed,
-reminds, accepts the Rune Warden turn-in and provides the epilogue dialogue. The `sanctum`
-map is hidden from the destination menu and is reachable only through the Underroad.
+`confront`/`vault`/`trials`/`leave`). Mirt offers the chapter after the Underroad is
+completed, reminds, accepts the Rune Warden turn-in and provides the epilogue dialogue. The
+`sanctum` map is hidden from the destination menu and is reachable only through the
+Underroad.
+
+#### The Rune Trials
+
+After clearing the Sanctum, the cleared Sanctum menu offers **Enter the Rune Trials**.
+`RuneTrialsState` runs `data/trials/rune_trials.json`:
+
+- Five escalating waves built from existing monsters.
+- Data-driven modifiers (`Empowered`, `Warded`, `Frenzied`) adjust enemy HP, damage or AC.
+- After each non-final victory, choose one boon: restore HP, restore mana or clear
+  conditions.
+- `state.rune_trials.best` tracks the deepest wave reached; `runs` counts full clears.
+- A completed run grants the trial completion reward and unlocks the Rune Trials Adept and
+  Champion achievements. A defeat or flight ends the current run but preserves best depth.
+
+The state exposes phase-dependent quick actions: `begin`/`leave` while preparing,
+`mend`/`focus`/`cleanse`/`leave` while choosing a boon, and `restart`/`leave` after clearing
+all five waves. Trial and boon state survive save/load.
 
 #### The Rune Pillar
 
@@ -785,9 +804,9 @@ market it includes `shop`, `buy` and `sell`, which drive the shop modal and the 
 terminal shop. The map advertises `search`, `sneak` and its four movement directions. The waystation
 advertises `confront`, `strongbox`, `rest`, `underroad` and `leave`; the Underroad advertises
 `confront`, `cache` and `leave`, adding `sanctum` after the area is cleared; the Sealed
-Sanctum advertises its current `amulet`/`force` or `confront`/`vault` actions; the bounty
-board advertises `accept`, `claim` and `leave`; the Rune Pillar advertises `study` and
-`leave`.
+Sanctum advertises its current `amulet`/`force` or `confront`/`vault`/`trials` actions; the
+Rune Trials advertise `begin`/`leave`, then their current boons; the bounty board advertises
+`accept`, `claim` and `leave`; the Rune Pillar advertises `study` and `leave`.
 Bounty contracts are ordinary quests with `bounty: true` and `repeatable: true`, so their
 progress and ready state appear in `GET /missions` and the web quest panel. Claimed bounties
 return to the available list, while only the latest completion record is kept.

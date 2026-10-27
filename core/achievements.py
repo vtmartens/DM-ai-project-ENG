@@ -30,6 +30,8 @@ SUPPORTED_CONDITIONS = frozenset(
         "area_cleared",
         "defeats",
         "defeat_enemy",
+        "rune_trials_best",
+        "rune_trials_runs",
     }
 )
 
@@ -194,6 +196,16 @@ def condition_met(player, condition, game=None) -> bool:
             for name in stats["enemies_defeated"]
         }
         return _normalize(value) in defeated
+
+    if condition_type == "rune_trials_best":
+        return int(getattr(player, "rune_trials_best", 0) or 0) >= _as_int(
+            value, 1
+        )
+
+    if condition_type == "rune_trials_runs":
+        return int(getattr(player, "rune_trials_runs", 0) or 0) >= _as_int(
+            value, 1
+        )
 
     return False
 

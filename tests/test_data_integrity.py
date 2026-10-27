@@ -500,6 +500,39 @@ def test_monster_maneuvers_are_defined():
             assert 0 <= int(monster["maneuver_chance"]) <= 100, monster_id
 
 
+def test_rune_trial_definitions_are_well_formed():
+    trials = _load(ROOT / "data" / "trials" / "rune_trials.json")
+    monsters = _load(ROOT / "data" / "monsters" / "monsters.json")
+    waves = trials.get("waves", [])
+    modifiers = trials.get("modifiers", {})
+    boons = trials.get("boons", [])
+
+    assert waves
+    assert int(trials.get("max_waves", 0)) == len(waves)
+    for wave in waves:
+        assert wave.get("title"), wave
+        assert wave.get("description"), wave
+        assert wave.get("modifier") in modifiers, wave
+        reward = wave.get("reward") or {}
+        assert int(reward.get("gold", 0)) >= 0, wave
+        assert int(reward.get("experience", 0)) >= 0, wave
+        assert reward.get("gold") or reward.get("experience"), wave
+        for spec in wave.get("enemies", []) or []:
+            assert spec.get("monster_type") in monsters, spec
+
+    assert boons
+    for boon in boons:
+        assert boon.get("id"), boon
+        assert boon.get("name"), boon
+        assert boon.get("description"), boon
+        effect = boon.get("effect", {})
+        assert effect.get("type") in {
+            "heal",
+            "mana",
+            "clear_conditions",
+        }, boon
+
+
 def test_encounter_definitions_are_well_formed():
     encounters = _load(ROOT / "data" / "monsters" / "encounters.json")
     monsters = _load(ROOT / "data" / "monsters" / "monsters.json")

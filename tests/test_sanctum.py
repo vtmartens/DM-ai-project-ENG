@@ -274,7 +274,7 @@ def test_sanctum_quick_actions_follow_the_current_phase(recording_io):
     assert state.available_actions(game) == ["confront", "vault", "leave"]
 
     player.cleared_areas = ["underroad", "sanctum"]
-    assert state.available_actions(game) == ["vault", "leave"]
+    assert state.available_actions(game) == ["vault", "trials", "leave"]
 
 
 def test_sanctum_state_and_ward_survive_a_round_trip(recording_io):
