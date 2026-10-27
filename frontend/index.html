@@ -5,21 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark light">
   <title>DM AI — Dungeon Master</title>
-  <link rel="stylesheet" href="styles.css?v=19">
+  <link rel="stylesheet" href="styles.css?v=20">
 </head>
 <body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+
   <header class="topbar">
     <div class="brand">
       <span class="brand-mark" aria-hidden="true">D20</span>
       <span class="brand-text">DM AI <span class="brand-sub">Dungeon Master</span></span>
     </div>
     <div class="topbar-actions">
-      <span id="connection" class="badge" data-state="offline">offline</span>
-      <button id="theme-toggle" class="icon-button" type="button" title="Toggle light/dark theme">Theme</button>
+      <span id="connection" class="badge" data-state="offline" role="status" aria-live="polite">offline</span>
+      <button id="theme-toggle" class="icon-button" type="button" title="Toggle light/dark theme" aria-label="Switch to light theme">Theme</button>
     </div>
   </header>
 
-  <main class="shell">
+  <main id="main-content" class="shell" tabindex="-1">
     <!-- Start screen -->
     <section id="start-screen" class="start-screen">
       <div class="hero">
@@ -54,8 +56,9 @@
     </section>
 
     <!-- Game screen -->
-    <section id="game-screen" class="game-screen hidden">
-      <aside class="sidebar">
+    <section id="game-screen" class="game-screen hidden" aria-label="Game">
+      <a class="skip-link game-skip" href="#command-input">Skip to command input</a>
+      <aside class="sidebar" aria-label="Character, quests and inventory">
         <section class="card character-card">
           <div class="character-head">
             <div>
@@ -112,7 +115,7 @@
         </section>
       </aside>
 
-      <section class="play-area">
+      <section class="play-area" aria-label="Adventure">
         <div class="card log-card">
           <div class="card-header">
             <h2>Adventure log</h2>
@@ -124,7 +127,7 @@
             </div>
           </div>
 
-          <div id="log" class="log" aria-live="polite" aria-relevant="additions"></div>
+          <div id="log" class="log" role="log" aria-label="Adventure log" aria-live="polite" aria-relevant="additions"></div>
 
           <form id="command-form" class="command-form">
             <label class="sr-only" for="command-input">Command</label>
@@ -135,9 +138,9 @@
           <div id="quick-actions" class="quick-actions"></div>
         </div>
 
-        <section id="dialogue-card" class="card context-card hidden" aria-live="polite"></section>
-        <section id="combat-card" class="card context-card hidden" aria-live="polite"></section>
-        <section id="item-panel" class="card item-panel hidden" aria-live="polite"></section>
+        <section id="dialogue-card" class="card context-card hidden" role="region" aria-label="NPC dialogue" aria-live="polite"></section>
+        <section id="combat-card" class="card context-card hidden" role="region" aria-label="Combat" aria-live="polite"></section>
+        <section id="item-panel" class="card item-panel hidden" role="region" aria-label="Item details" aria-live="polite"></section>
       </section>
     </section>
   </main>
@@ -168,6 +171,6 @@
 
   <div id="toast" class="toast hidden" role="status"></div>
 
-  <script src="app.js?v=19"></script>
+  <script src="app.js?v=20"></script>
 </body>
 </html>

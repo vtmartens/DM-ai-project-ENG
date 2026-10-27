@@ -81,6 +81,18 @@ const el = {
 
 let toastTimer = null;
 let thinkingTimer = null;
+let activeModal = null;
+let modalTrigger = null;
+let modalKeydownHandler = null;
+
+const FOCUSABLE_SELECTOR = [
+  "a[href]",
+  "button:not([disabled])",
+  "input:not([disabled])",
+  "select:not([disabled])",
+  "textarea:not([disabled])",
+  "[tabindex]:not([tabindex='-1'])",
+].join(",");
 
 /* ------------------------------------------------------------------ API */
 
@@ -127,9 +139,13 @@ function storedTheme() {
 }
 
 function applyTheme(theme, persist = true) {
-  document.documentElement.dataset.theme = theme === "light" ? "light" : "dark";
-  if (persist) localStorage.setItem(THEME_KEY, theme);
-  el.themeToggle.textContent = theme === "light" ? "Dark" : "Light";
+  const light = theme === "light";
+  document.documentElement.dataset.theme = light ? "light" : "dark";
+  if (persist) localStorage.setItem(THEME_KEY, light ? "light" : "dark");
+  el.themeToggle.textContent = light ? "Dark" : "Light";
+  const label = light ? "Switch to dark theme" : "Switch to light theme";
+  el.themeToggle.setAttribute("aria-label", label);
+  el.themeToggle.title = label;
 }
 
 function toggleTheme() {
@@ -331,6 +347,7 @@ function clearSession() {
   el.achievementsCount.textContent = "0 / 0";
   store.achievements = [];
   closeMapModal();
+  closeLoadModal();
   refreshSaves();
 }
 
@@ -1170,13 +1187,93 @@ function renderSaves(container, saves) {
   }
 }
 
+function openModal(modal) {
+  if (!modal || activeModal === modal) return;
+
+  // Only one dialog is open at a time.
+  const trigger = document.activeElement;
+  if (activeModal && activeModal !== modal) {
+    closeModal(activeModal, { restoreFocus: false });
+  }
+
+  modalTrigger = trigger;
+  activeModal = modal;
+  modal.classList.remove("hidden");
+  document.body.classList.add("modal-open");
+  document.querySelector(".topbar")?.setAttribute("inert", "");
+  document.querySelector("main.shell")?.setAttribute("inert", "");
+  document.querySelectorAll(".skip-link").forEach((link) => link.setAttribute("inert", ""));
+
+  const focusable = focusableElements(modal);
+  const target = focusable[0] || modal;
+  if (target === modal && !modal.hasAttribute("tabindex")) {
+    modal.setAttribute("tabindex", "-1");
+  }
+  target.focus({ preventScroll: true });
+
+  modalKeydownHandler = (event) => trapModalFocus(event, modal);
+  document.addEventListener("keydown", modalKeydownHandler);
+}
+
+function focusableElements(modal) {
+  return Array.from(modal.querySelectorAll(FOCUSABLE_SELECTOR)).filter(
+    (element) => !element.disabled && element.offsetParent !== null
+  );
+}
+
+function trapModalFocus(event, modal) {
+  if (event.key !== "Tab") return;
+
+  const focusable = focusableElements(modal);
+  if (!focusable.length) {
+    event.preventDefault();
+    return;
+  }
+
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  const active = document.activeElement;
+  const outside = !modal.contains(active);
+
+  if (event.shiftKey && (active === first || outside)) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && (active === last || outside)) {
+    event.preventDefault();
+    first.focus();
+  }
+}
+
+function closeModal(modal, { restoreFocus = true } = {}) {
+  if (!modal || modal.classList.contains("hidden")) return;
+
+  modal.classList.add("hidden");
+  document.body.classList.remove("modal-open");
+  document.querySelector(".topbar")?.removeAttribute("inert");
+  document.querySelector("main.shell")?.removeAttribute("inert");
+  document.querySelectorAll(".skip-link").forEach((link) => link.removeAttribute("inert"));
+
+  if (modalKeydownHandler) {
+    document.removeEventListener("keydown", modalKeydownHandler);
+    modalKeydownHandler = null;
+  }
+
+  const trigger = modalTrigger;
+  if (activeModal === modal) activeModal = null;
+  modalTrigger = null;
+
+  if (restoreFocus && trigger && trigger.isConnected) {
+    trigger.focus({ preventScroll: true });
+  }
+}
+
 function openLoadModal() {
-  el.loadModal.classList.remove("hidden");
+  openModal(el.loadModal);
   refreshModalSaves();
 }
 
 function closeLoadModal() {
-  el.loadModal.classList.add("hidden");
+  closeModal(el.loadModal);
 }
 
 async function showMapView() {
@@ -1189,14 +1286,14 @@ async function showMapView() {
     el.mapMeta.textContent = `Position (${data.position.x}, ${data.position.y}) · ${data.width} × ${data.height}`;
     el.mapAscii.textContent = data.ascii;
     renderMapLegend(data.legend);
-    el.mapModal.classList.remove("hidden");
+    openModal(el.mapModal);
   } catch (error) {
     showToast(error.message, "error");
   }
 }
 
 function closeMapModal() {
-  el.mapModal.classList.add("hidden");
+  closeModal(el.mapModal);
 }
 
 function renderMapLegend(legend) {
@@ -1267,8 +1364,11 @@ function bindEvents() {
   });
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
-      closeLoadModal();
-      closeMapModal();
+      if (activeModal) {
+        event.preventDefault();
+        closeModal(activeModal);
+        return;
+      }
       closeItemPanel();
     }
   });

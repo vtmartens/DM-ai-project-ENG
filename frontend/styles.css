@@ -8,7 +8,7 @@
   --border-strong: #3a4a62;
   --text: #e6edf3;
   --text-muted: #98a7b8;
-  --text-faint: #6f7f92;
+  --text-faint: #7f8ea3;
   --accent: #e0a458;
   --accent-strong: #f0b86e;
   --accent-soft: rgba(224, 164, 88, 0.12);
@@ -32,7 +32,7 @@
   --border-strong: #cbbba4;
   --text: #2b241c;
   --text-muted: #6d6052;
-  --text-faint: #8d7f6d;
+  --text-faint: #75675a;
   --accent: #a8661f;
   --accent-strong: #8a4f12;
   --accent-soft: rgba(168, 102, 31, 0.12);
@@ -63,6 +63,30 @@ h1, h2, h3, p { margin: 0; }
 button, input, select { font: inherit; color: inherit; }
 
 .hidden { display: none !important; }
+
+.skip-link {
+  position: fixed;
+  top: 8px;
+  left: 50%;
+  transform: translate(-50%, -200%);
+  z-index: 100;
+  padding: 10px 16px;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  color: var(--text);
+  font-weight: 650;
+  text-decoration: none;
+  transition: transform 120ms ease;
+}
+
+.skip-link:focus {
+  transform: translate(-50%, 0);
+}
+
+#main-content:focus { outline: none; }
+
+body.modal-open { overflow: hidden; }
 
 .sr-only {
   position: absolute;
@@ -491,6 +515,7 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
 }
 
 .command-form { display: grid; grid-template-columns: 1fr auto; gap: 9px; }
+#command-input { scroll-margin-top: 90px; }
 .command-status { min-height: 18px; color: var(--text-faint); font-size: 12.5px; }
 
 .quick-actions { display: flex; flex-wrap: wrap; gap: 7px; }
@@ -533,7 +558,8 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
 .toast.error { border-color: var(--danger); color: var(--danger); }
 .toast.success { border-color: var(--success); color: var(--success); }
 
-button:focus-visible, input:focus-visible, select:focus-visible, .inventory-list button:focus-visible {
+button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible,
+[tabindex]:focus-visible, .inventory-list button:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
@@ -541,6 +567,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, .inventory-list
 @media (max-width: 980px) {
   .start-grid { grid-template-columns: 1fr; }
   .game-screen { grid-template-columns: 1fr; }
+  .play-area { order: -1; }
   .sidebar { position: static; grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .character-card { grid-column: 1 / -1; }
 }
@@ -555,6 +582,10 @@ button:focus-visible, input:focus-visible, select:focus-visible, .inventory-list
   .log-actions { flex-wrap: wrap; justify-content: flex-end; }
   .save-entry { align-items: flex-start; flex-direction: column; }
   .save-entry .save-actions { width: 100%; justify-content: flex-end; }
+  button, input, select { min-height: 44px; }
+  .small { padding: 9px 12px; }
+  .modal { padding: 12px; }
+  .modal-card { max-height: 88vh; }
 }
 
 @media (prefers-reduced-motion: reduce) {

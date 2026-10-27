@@ -65,6 +65,11 @@ You can also set `localStorage["dm_api_base"]`.
 - Save button that writes a timestamped save.
 - Light/dark theme, persisted through `POST /preferences` when a session exists.
 - Session resume from `localStorage` via `GET /state` and `GET /log`.
+- Accessibility: skip links, labelled landmarks, focus-trapped modals with focus restore
+  and an inert background, theme action labels for assistive tech, and text tokens that
+  meet WCAG AA contrast in both themes.
+- Mobile: the play area (log + command) comes first below 980px, controls have 44px touch
+  targets, and the map/load modals fit the viewport without horizontal page scroll.
 
 ## AI narration
 

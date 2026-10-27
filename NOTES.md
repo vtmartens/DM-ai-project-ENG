@@ -444,6 +444,27 @@ entirely. The doors that existed were also misaligned with the map exits.
   fast-travel gating, Violet's key hand-over, door save/load and the Rusty Key.
   `tests/test_quests.py` covers the end-to-end warehouse route. 285 tests pass.
 
+## Accessibility and mobile pass (2026-10-26)
+
+- **Modals** (`#load-modal`, `#map-modal`): opening one now captures the trigger, moves
+  focus to the first control, traps Tab/Shift+Tab inside, marks the topbar, main content
+  and skip links `inert`, and locks background scrolling. Closing (button, backdrop or
+  Escape) restores focus to the trigger.
+- **Navigation**: added “Skip to content” and “Skip to command input” links, a labelled
+  `<main>`, sidebar and play-area landmarks, and an action-oriented `aria-label` on the
+  theme toggle.
+- **Contrast**: `--text-faint` failed WCAG AA in both themes (dark 4.05:1, light 3.75:1
+  against cards). It is now `#7f8ea3` dark (4.98:1) and `#75675a` light (5.26:1). All text
+  tokens were checked against every background token at 4.5:1 or better.
+- **Mobile**: below 980px the play area now comes first, so the log and command input are
+  visible without scrolling past the sidebar. Below 640px, buttons/inputs get 44px touch
+  targets and modals use tighter padding. The layout has no horizontal page scroll at
+  390×844.
+- **Tests**: `tests/test_accessibility.py` checks the contrast ratios and static landmark,
+  skip-link and dialog semantics; `tests/test_web_browser.py` adds a keyboard focus-trap
+  test and a 390×844 mobile test (no horizontal scroll, command input above the fold,
+  44px targets, theme label, modal bounds). 290 tests pass. Client assets are at `?v=20`.
+
 ## Deliberate translation choices worth knowing
 
 - **`hp_base` / `mana_base` were left as-is.** They are consistent between code and JSON
@@ -472,7 +493,7 @@ entirely. The doors that existed were also misaligned with the map exits.
 | Residual Italian (glossary-derived denylist + accented characters) | 0 hits |
 | **Original Italian vs translated, identical input** | **46/46 placements, identical sequence** |
 | Flask API in-process (test client, no socket) | 31 × 200, 0 raised |
-| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, achievements, utility spells, locks, web client routes, browser smoke) | 285 passed |
+| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, achievements, utility spells, locks, accessibility, web client routes, browser smoke/mobile) | 290 passed |
 | Live smoke test (Flask server, `/app`, start/state/abilities/inventory/actions/command/save/load) | passed |
 
 The last comparison is the strongest evidence: the pristine Italian code and the finished

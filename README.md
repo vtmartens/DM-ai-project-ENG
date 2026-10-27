@@ -43,7 +43,7 @@ Each game phase (map exploration, combat, dialogues, inventory management) is ha
 - ASCII-based map system using a tile controller
 - Entity factory system for dynamic content generation
 - Full separation of game logic from user interface (ready for future web/GUI/AI integrations)
-- Dependency-free web client served at `/app` (character creation, log, quests, achievements, inventory, saves)
+- Dependency-free web client served at `/app` (character creation, log, quests, achievements, inventory, saves; focus-managed modals, skip links and a mobile-first layout)
 - Natural-language target commands in the tavern, market and map screen: “talk to Durnan”, “attack the goblin”, “use Healing Potion”, “go to the market”, “examine the chair”, “south”
 - Class abilities with mana costs in combat: Powerful Blow, Parry, Magic Missile, Mage Shield, Sneak Attack, Evade, Cure Wounds and Blessing. Use them from the combat menu, with `/use_ability`, or by typing “cast Magic Missile” / “use ability Cure Wounds”
 - Non-combat utility spells: Knock (open a locked door or chest within two steps without a key), Mage Hand (operate a door, chest or lever at range) and Guidance (+2 to the next ability check). Use them from the abilities panel or with `/use_ability`; they are refused in combat and do not spend mana when there is no valid target

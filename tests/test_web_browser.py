@@ -10,6 +10,7 @@ from werkzeug.serving import make_server
 pytest.importorskip("selenium")
 
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import Select, WebDriverWait
 
 
@@ -67,6 +68,20 @@ def live_server():
     finally:
         httpd.shutdown()
         thread.join(timeout=5)
+
+
+def _start_game(driver, wait, base_url, name="Browser Smoke"):
+    driver.get(f"{base_url}/app/")
+    wait.until(
+        lambda d: len(d.find_elements(By.CSS_SELECTOR, "#class-select option")) >= 4
+    )
+    Select(driver.find_element(By.ID, "class-select")).select_by_value("fighter")
+    field = driver.find_element(By.ID, "player-name")
+    field.clear()
+    field.send_keys(name)
+    driver.find_element(By.ID, "start-button").click()
+    wait.until(lambda d: d.find_element(By.ID, "game-screen").is_displayed())
+    wait.until(lambda d: len(d.find_elements(By.CSS_SELECTOR, "#log .log-entry")) > 0)
 
 
 def test_web_client_smoke(live_server):
@@ -137,5 +152,98 @@ def test_web_client_smoke(live_server):
             if entry.get("level") == "SEVERE" and "favicon.ico" not in entry.get("message", "")
         ]
         assert not severe, severe
+    finally:
+        driver.quit()
+
+
+def test_modal_keyboard_and_skip_links(live_server):
+    driver = _make_driver()
+    wait = WebDriverWait(driver, 40)
+
+    try:
+        _start_game(driver, wait, live_server, name="Keyboard Smoke")
+
+        # Skip link moves focus straight to the command input.
+        driver.execute_script("document.querySelector('.game-skip').focus()")
+        driver.switch_to.active_element.send_keys(Keys.ENTER)
+        assert driver.execute_script("return document.activeElement.id") == "command-input"
+
+        # The map dialog takes focus, traps Tab and restores focus on Escape.
+        driver.execute_script("document.getElementById('show-map').focus()")
+        driver.find_element(By.ID, "show-map").click()
+        wait.until(lambda d: d.find_element(By.ID, "map-modal").is_displayed())
+
+        assert driver.execute_script("return document.activeElement.id") == "close-map-modal"
+        assert driver.execute_script(
+            "return document.querySelector('main.shell').inert"
+        ) is True
+
+        for _ in range(6):
+            driver.switch_to.active_element.send_keys(Keys.TAB)
+            assert driver.execute_script(
+                "return document.getElementById('map-modal')"
+                ".contains(document.activeElement)"
+            ) is True
+
+        driver.switch_to.active_element.send_keys(Keys.ESCAPE)
+        wait.until(lambda d: not d.find_element(By.ID, "map-modal").is_displayed())
+        assert driver.execute_script("return document.activeElement.id") == "show-map"
+        assert driver.execute_script(
+            "return document.querySelector('main.shell').inert"
+        ) is False
+    finally:
+        driver.quit()
+
+
+def test_mobile_layout_and_targets(live_server):
+    driver = _make_driver()
+    driver.set_window_size(390, 844)
+    wait = WebDriverWait(driver, 40)
+
+    try:
+        _start_game(driver, wait, live_server, name="Mobile Smoke")
+
+        dimensions = driver.execute_script(
+            "return {scroll: document.documentElement.scrollWidth, "
+            "inner: window.innerWidth}"
+        )
+        assert dimensions["scroll"] <= dimensions["inner"] + 1, dimensions
+
+        command_box = driver.execute_script(
+            "const r = document.getElementById('command-input')"
+            ".getBoundingClientRect();"
+            "return {bottom: r.bottom, inner: window.innerHeight};"
+        )
+        assert command_box["bottom"] <= command_box["inner"], command_box
+
+        assert driver.find_element(By.ID, "send-button").size["height"] >= 44
+        wait.until(
+            lambda d: len(d.find_elements(By.CSS_SELECTOR, "#quick-actions button")) > 0
+        )
+        quick = driver.find_element(By.CSS_SELECTOR, "#quick-actions button")
+        assert quick.size["height"] >= 44
+
+        toggle = driver.find_element(By.ID, "theme-toggle")
+        assert toggle.get_attribute("aria-label") == "Switch to light theme"
+        toggle.click()
+        wait.until(
+            lambda d: d.find_element(By.ID, "theme-toggle").get_attribute(
+                "aria-label"
+            )
+            == "Switch to dark theme"
+        )
+
+        driver.find_element(By.ID, "show-map").click()
+        wait.until(lambda d: d.find_element(By.ID, "map-modal").is_displayed())
+        bounds = driver.execute_script(
+            "const r = document.querySelector('#map-modal .modal-card')"
+            ".getBoundingClientRect();"
+            "return {left: r.left, right: r.right, top: r.top, bottom: r.bottom,"
+            " width: window.innerWidth, height: window.innerHeight};"
+        )
+        assert bounds["left"] >= 0
+        assert bounds["right"] <= bounds["width"] + 1
+        assert bounds["top"] >= 0
+        assert bounds["bottom"] <= bounds["height"] + 1
     finally:
         driver.quit()
