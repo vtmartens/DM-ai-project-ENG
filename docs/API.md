@@ -547,7 +547,22 @@ the action, so `"attack"` with `"Goblin B"` attacks that enemy directly.
 #### `GET /missions?session_id=...`
 
 ```json
-{"active": [], "completed": [], "in_progress": {}}
+{
+  "active": [
+    {
+      "id": "shadows_of_the_market",
+      "title": "Shadows in the Market",
+      "description": "Hooded figures have been seen around the old warehouse...",
+      "objective": "Defeat Vargas and break up the cult cell in the old warehouse.",
+      "target": "Vargas",
+      "status": "active"
+    }
+  ],
+  "completed": [],
+  "in_progress": {
+    "shadows_of_the_market": {"status": "active"}
+  }
+}
 ```
 
 #### `GET /tutorial?session_id=...&type=combat`

@@ -41,6 +41,8 @@ def parse_targeted_command(command):
         "leave the market",
         "leave cellar",
         "leave the cellar",
+        "leave warehouse",
+        "leave the warehouse",
     }:
         return "go", "exit"
 
@@ -319,9 +321,27 @@ def handle_targeted_command(game, action, target, extra_npcs=()) -> bool:
         if npc is None:
             game.io.show_message(f"You don't see {target} here.")
             return False
+        from core.quests import build_ally_party
         from states.combat import CombatState
 
-        game.push_state(CombatState(hostile_npc=npc))
+        current_map = game.map_manager.get_map(game.player.current_map)
+        group = getattr(npc, "group", None)
+        enemies = [npc]
+        if group and current_map:
+            grouped = [
+                candidate
+                for candidate in current_map.npc.values()
+                if getattr(candidate, "group", None) == group
+            ]
+            if grouped:
+                enemies = grouped
+
+        game.push_state(
+            CombatState(
+                enemies=enemies,
+                allies=build_ally_party(game.player),
+            )
+        )
         return True
 
     if action == "ability":

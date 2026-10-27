@@ -34,6 +34,7 @@ class DataManager:
             "achievements": DATA_DIR / "achievements",
             "items": DATA_DIR / "items",
             "npc": DATA_DIR / "npc",
+            "quests": DATA_DIR / "quests",
             "assets_info": DATA_DIR / "assets_info"
         }
         
@@ -116,6 +117,10 @@ class DataManager:
     def get_achievements(self):
         """Get the game achievements."""
         return self.load_data("achievements")
+
+    def get_quests(self):
+        """Get the quest definitions."""
+        return self.load_data("quests", "quests.json")
     
     def get_items(self, category=None):
         """

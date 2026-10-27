@@ -47,6 +47,7 @@ class Player(Entity):
         self._initialize_for_char_class()
         self.initiative = self.modifier_dexterity
         self.conditions = {}
+        self.allies = []
         self._create_inventory_base()
     
     def _load_data_classes(self):
@@ -422,6 +423,7 @@ class Player(Entity):
             "mana_max": getattr(self, "mana_max", 0),
             "initiative": getattr(self, "initiative", 0),
             "conditions": dict(getattr(self, "conditions", {})),
+            "allies": list(getattr(self, "allies", [])),
         })
         
         return data
@@ -486,6 +488,7 @@ class Player(Entity):
         player.mana_max = data.get("mana_max", getattr(player, "mana_max", 0))
         player.initiative = data.get("initiative", player.modifier_dexterity)
         player.conditions = dict(data.get("conditions", {}))
+        player.allies = list(data.get("allies", []))
 
         # Handle quests
         player.progress_quests = data.get("progress_quests", {})

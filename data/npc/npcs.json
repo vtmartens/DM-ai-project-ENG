@@ -285,5 +285,100 @@
     ],
     "gold": 800,
     "friendly": true
+  },
+  "Vargas": {
+    "name": "Vargas",
+    "description": "A sharp-faced man in a dark coat, with the hungry look of someone who has sold too many promises.",
+    "profession": "Smuggler",
+    "level": 5,
+    "hp": 30,
+    "hp_max": 30,
+    "strength_base": 16,
+    "dexterity_base": 14,
+    "constitution_base": 14,
+    "intelligence_base": 12,
+    "wisdom_base": 10,
+    "charisma_base": 14,
+    "token": "V",
+    "inventory": [
+      {
+        "name": "Long Sword",
+        "type": "weapon",
+        "effect": {
+          "strength": 5
+        },
+        "value": 50,
+        "description": "A one-handed sword with a sharp blade"
+      },
+      {
+        "name": "Healing Potion",
+        "type": "heal",
+        "effect": {
+          "heal": 10
+        },
+        "value": 25,
+        "description": "A potion that restores 10 hit points"
+      }
+    ],
+    "gold": 120,
+    "friendly": false
+  },
+  "Hooded Cultist A": {
+    "name": "Hooded Cultist A",
+    "description": "A hooded figure with a curved knife and a muttered prayer.",
+    "profession": "Cultist",
+    "level": 2,
+    "hp": 12,
+    "hp_max": 12,
+    "strength_base": 12,
+    "dexterity_base": 10,
+    "constitution_base": 10,
+    "intelligence_base": 8,
+    "wisdom_base": 8,
+    "charisma_base": 8,
+    "token": "c",
+    "inventory": [
+      {
+        "name": "dagger",
+        "type": "weapon",
+        "effect": {
+          "strength": 2,
+          "dexterity": 2
+        },
+        "value": 10,
+        "description": "A small dagger for personal defense"
+      }
+    ],
+    "gold": 10,
+    "friendly": false
+  },
+  "Hooded Cultist B": {
+    "name": "Hooded Cultist B",
+    "description": "A hooded figure with a curved knife and a muttered prayer.",
+    "profession": "Cultist",
+    "level": 2,
+    "hp": 12,
+    "hp_max": 12,
+    "strength_base": 12,
+    "dexterity_base": 10,
+    "constitution_base": 10,
+    "intelligence_base": 8,
+    "wisdom_base": 8,
+    "charisma_base": 8,
+    "token": "d",
+    "inventory": [
+      {
+        "name": "dagger",
+        "type": "weapon",
+        "effect": {
+          "strength": 2,
+          "dexterity": 2
+        },
+        "value": 10,
+        "description": "A small dagger for personal defense"
+      }
+    ],
+    "gold": 10,
+    "friendly": false
   }
 }

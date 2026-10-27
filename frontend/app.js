@@ -45,6 +45,7 @@ const el = {
   statLocation: document.getElementById("stat-location"),
   statPosition: document.getElementById("stat-position"),
   statsGrid: document.getElementById("stats-grid"),
+  questList: document.getElementById("quest-list"),
   abilitiesList: document.getElementById("abilities-list"),
   skillsList: document.getElementById("skills-list"),
   inventoryList: document.getElementById("inventory-list"),
@@ -535,13 +536,15 @@ async function refreshSidePanels(state = null) {
       renderState(state);
     }
 
-    const [abilities, inventory, actions] = await Promise.all([
+    const [abilities, inventory, actions, missions] = await Promise.all([
       api(`/abilities?session_id=${encodeURIComponent(store.sessionId)}`),
       api(`/inventory?session_id=${encodeURIComponent(store.sessionId)}`),
       api(`/available_actions?session_id=${encodeURIComponent(store.sessionId)}`),
+      api(`/missions?session_id=${encodeURIComponent(store.sessionId)}`),
     ]);
 
     renderAbilities(abilities);
+    renderQuests(missions);
     renderInventory(inventory);
     renderQuickActions(actions);
   } catch (error) {
@@ -607,6 +610,32 @@ function renderAbilities(data) {
     tag.className = "tag skill";
     tag.textContent = skill;
     el.skillsList.appendChild(tag);
+  }
+}
+
+function renderQuests(data) {
+  el.questList.innerHTML = "";
+  const active = data.active || [];
+  if (!active.length) {
+    const note = document.createElement("li");
+    note.className = "empty-note";
+    note.textContent = "No active quests.";
+    el.questList.appendChild(note);
+    return;
+  }
+
+  for (const quest of active) {
+    const item = document.createElement("li");
+    const title = document.createElement("strong");
+    title.textContent =
+      typeof quest === "string" ? quest : quest.title || quest.id || "Quest";
+    const objective = document.createElement("span");
+    objective.textContent =
+      typeof quest === "string"
+        ? ""
+        : quest.objective || quest.description || "";
+    item.append(title, objective);
+    el.questList.appendChild(item);
   }
 }
 

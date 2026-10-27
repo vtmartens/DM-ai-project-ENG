@@ -704,6 +704,10 @@ class CombatState(BaseState):
                     f"You gained {gained_exp} experience points!"
                 )
 
+            from core.quests import record_enemy_defeat
+
+            record_enemy_defeat(player, getattr(enemy, "name", ""), game)
+
         alive = self._alive_enemies()
         if alive and (
             not (0 <= self._target_index < len(self.enemies))

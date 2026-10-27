@@ -166,6 +166,10 @@ class MapManager:
         for name, current in current_maps.items():
             existing = self.maps.get(name)
             if existing is None:
+                self.maps[name] = current
+                self.load_interactive_objects_from_json(current, name)
+                self.load_npcs_from_json(current, name)
+                logging.info(f"Added new map {name} from JSON")
                 continue
             if (
                 existing.grid != current.grid
@@ -230,6 +234,7 @@ class MapManager:
 
                 # Create the NPC
                 npc = NPC(npc_name)
+                npc.group = config.get("group")
 
                 # Place the NPC on the map
                 x, y = position

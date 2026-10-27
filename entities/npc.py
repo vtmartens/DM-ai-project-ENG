@@ -19,6 +19,7 @@ class NPC(Entity):
         self.current_state = "default"
         self.background = ""
         self.profession = ""
+        self.group = None
         
         # NPC-specific initializations
         self._initialize_attributes()
@@ -194,6 +195,7 @@ class NPC(Entity):
             "current_state": self.current_state,
             "background": self.background,
             "profession": self.profession,
+            "group": getattr(self, "group", None),
             # Conversations are not serialized because they are loaded dynamically
         })
         
@@ -249,5 +251,6 @@ class NPC(Entity):
         npc.current_state = data.get("current_state", "default")
         npc.background = data.get("background", "")
         npc.profession = data.get("profession", "")
-        
+        npc.group = data.get("group")
+
         return npc

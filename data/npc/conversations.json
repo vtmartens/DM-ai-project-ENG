@@ -245,6 +245,10 @@
     },
     "accept_job": {
       "text": "Excellent! Once you have spoken with him, come back here for your reward: 50 gold coins. And if he gives you the money directly, even better; you can keep 10%.",
+      "effect": {
+        "type": "start_quest",
+        "quest": "vargas_debt"
+      },
       "options": [
         ["Deal, see you soon.", null]
       ]
@@ -278,6 +282,49 @@
       "text": "Hmm... now that you mention it, yes. There have been some mysterious thefts. Objects vanishing without a trace, even when well guarded. And some merchants have seen hooded figures prowling about at night. Bizarre, is it not?",
       "options": [
         ["Very strange. I will keep my eyes open.", null]
+      ]
+    }
+  },
+  "Violet": {
+    "start": {
+      "text": "Violet looks up from a tray of dried herbs. 'You are the one asking about the hooded figures, yes? Good. I have seen them.'",
+      "options": [
+        ["Durnan said you have seen strange things around the market.", "strange_info"],
+        ["What do you sell here?", "shop_info"],
+        ["Just browsing, thanks.", null]
+      ]
+    },
+    "strange_info": {
+      "text": "Three nights running, hooded figures slipped into the old warehouse at the edge of the square. They carry crates in and nothing comes out. I am a healer, not a soldier, but I know poisons and I will not stand by while they poison this market.",
+      "options": [
+        ["I will help you investigate.", "accept_quest"],
+        ["What is in the warehouse?", "warehouse_info"],
+        ["This is not my concern.", null]
+      ]
+    },
+    "warehouse_info": {
+      "text": "Old cargo, smuggled herbs, and worse. The man leading them is Vargas. He owes Mirt money, and now he pays his debt in favours to something far worse. If we break his cell, the market may breathe again.",
+      "options": [
+        ["Then let us end it.", "accept_quest"],
+        ["Not now.", null]
+      ]
+    },
+    "accept_quest": {
+      "text": "Take this antidote - and I am coming with you. I can fight, and my herbs may keep us both alive. The warehouse is at the eastern edge of the market; look for the old loading door.",
+      "effect": [
+        {"type": "add_item", "item": "Antidote"},
+        {"type": "start_quest", "quest": "shadows_of_the_market"},
+        {"type": "recruit_ally", "npc": "Violet"}
+      ],
+      "options": [
+        ["Let us go to the warehouse.", null]
+      ]
+    },
+    "shop_info": {
+      "text": "Antidotes, salves, and a few herbs that are better not named aloud. If you are going into that warehouse, you will want an antidote more than perfume.",
+      "options": [
+        ["Tell me about the hooded figures.", "strange_info"],
+        ["I will come back later.", null]
       ]
     }
   }

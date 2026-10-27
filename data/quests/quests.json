@@ -1,0 +1,22 @@
+{
+  "shadows_of_the_market": {
+    "title": "Shadows in the Market",
+    "description": "Hooded figures have been seen around the old warehouse at the edge of the market. Violet believes they are cultists - and that someone is supplying them from inside the city.",
+    "objective": "Defeat Vargas and break up the cult cell in the old warehouse.",
+    "target": "Vargas",
+    "reward": {
+      "gold": 60,
+      "experience": 150
+    }
+  },
+  "vargas_debt": {
+    "title": "A Debt to Collect",
+    "description": "Mirt says Vargas has stopped paying an important debt and now hides in the old warehouse. Mirt wants him reminded of his moral responsibility.",
+    "objective": "Find Vargas in the old warehouse and collect Mirt's debt.",
+    "target": "Vargas",
+    "reward": {
+      "gold": 50,
+      "experience": 75
+    }
+  }
+}

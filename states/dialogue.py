@@ -19,6 +19,7 @@ class DialogueState(BaseState):
         self.current_state = "start"
         self.return_state = return_state
         self.contextual_data = {}  # To store data across multiple phases
+        self.last_effect_state = None
         
     def run(self, game):
         """
@@ -50,9 +51,13 @@ class DialogueState(BaseState):
             game.pop_state()  # Exit the current state
             return self.return_state or "map"
         
-        # Handle the effects tied to the conversation state
-        if "effect" in conversation_data:
+        # Apply a node's effect once when we enter that node, not every time
+        # the state re-renders while waiting for the next choice.
+        if "effect" in conversation_data and getattr(
+            self, "last_effect_state", None
+        ) != self.current_state:
             self._manage_effect(conversation_data["effect"], game)
+            self.last_effect_state = self.current_state
         
         # Show the conversation text
         io.show_message(f"{self.npc.name}: {conversation_data['text']}")
@@ -104,6 +109,11 @@ class DialogueState(BaseState):
     
     def _manage_effect(self, effect, game):
         """Apply special effects based on the effect type"""
+        if isinstance(effect, list):
+            for item in effect:
+                self._manage_effect(item, game)
+            return
+
         if isinstance(effect, str):
             # Handle simple effects
             if effect == "rest":
@@ -133,6 +143,21 @@ class DialogueState(BaseState):
                     self.npc.add_item(item)
                     game.io.show_message(f"\n*You gave {item} to {self.npc.name}*")
                     
+            elif type == "start_quest":
+                from core.quests import start_quest
+
+                start_quest(game.player, effect.get("quest"), game)
+
+            elif type == "complete_quest":
+                from core.quests import complete_quest
+
+                complete_quest(game.player, effect.get("quest"), game)
+
+            elif type == "recruit_ally":
+                from core.quests import recruit_ally
+
+                recruit_ally(game.player, effect.get("npc"), game)
+
             elif type == "trade":
                 item_name = effect.get("item")
                 cost = effect.get("cost", 0)
@@ -212,7 +237,8 @@ class DialogueState(BaseState):
             "current_state": self.current_state,
             "return_state": self.return_state,
             "contextual_data": self.contextual_data,
-            "last_input": self.last_input
+            "last_input": self.last_input,
+            "last_effect_state": getattr(self, "last_effect_state", None),
         })
         
         # Save the NPC information
@@ -252,9 +278,13 @@ class DialogueState(BaseState):
         state = cls(npc, return_state=data.get("return_state"))
         
         # Restore attributes
+        state.current_state = data.get("current_state", "start")
         state.contextual_data = data.get("contextual_data", {})
         state.last_input = data.get("last_input")
-        
+        state.last_effect_state = data.get(
+            "last_effect_state", state.current_state
+        )
+
         return state
         
     def __getstate__(self):

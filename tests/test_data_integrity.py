@@ -146,6 +146,34 @@ def test_ability_definitions_are_well_formed():
             assert effect.get("attack", 0) > 0 or effect.get("defense", 0) > 0
 
 
+def test_quest_targets_are_known_npcs():
+    quests = _load(ROOT / "data" / "quests" / "quests.json")
+    npcs = _load(ROOT / "data" / "npc" / "npcs.json")
+
+    for quest_id, quest in quests.items():
+        target = quest.get("target")
+        assert target in npcs, f"{quest_id}: unknown target {target!r}"
+        assert quest.get("title")
+        assert quest.get("objective")
+
+
+def test_map_refresh_adds_maps_missing_from_an_older_session():
+    from world.map_manager import MapManager
+
+    manager = MapManager()
+    manager.maps.pop("warehouse", None)
+
+    assert manager.refresh_static_map_data() is True
+
+    warehouse = manager.get_map("warehouse")
+    assert warehouse is not None
+    assert [npc.name for npc in warehouse.npc.values()] == [
+        "Vargas",
+        "Hooded Cultist A",
+        "Hooded Cultist B",
+    ]
+
+
 def test_npc_conversation_options_are_idempotent():
     from entities.npc import NPC
     from util.data_manager import get_data_manager

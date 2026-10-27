@@ -36,5 +36,22 @@
       "name": "Cultist",
       "position": [12, 8]
     }
+  ],
+  "warehouse": [
+    {
+      "name": "Vargas",
+      "position": [16, 5],
+      "group": "warehouse_cult"
+    },
+    {
+      "name": "Hooded Cultist A",
+      "position": [12, 3],
+      "group": "warehouse_cult"
+    },
+    {
+      "name": "Hooded Cultist B",
+      "position": [14, 7],
+      "group": "warehouse_cult"
+    }
   ]
 } 

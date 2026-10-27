@@ -420,8 +420,15 @@ class TavernState(BaseGameState):
             npc = self.contextual_data["npc_scelto"]
             confirm = self.last_input.lower()
             if confirm == "y":
+                from core.quests import build_ally_party
                 from states.combat import CombatState
-                game.push_state(CombatState(hostile_npc=npc))
+
+                game.push_state(
+                    CombatState(
+                        hostile_npc=npc,
+                        allies=build_ally_party(game.player),
+                    )
+                )
             else:
                 game.io.show_message("You have decided not to fight.")
 
@@ -671,6 +678,7 @@ class TavernState(BaseGameState):
         """
         Allow the user to choose an enemy to fight.
         """
+        from core.quests import build_ally_party
         from entities.enemy import Enemy
         from states.combat import CombatState
 
@@ -699,7 +707,11 @@ class TavernState(BaseGameState):
                 enemy = Enemy.create_random()
                 game.io.show_message(f"\nYou are about to face a {enemy.name}!")
                 press_enter(game)
-                game.push_state(CombatState(enemy=enemy))
+                game.push_state(
+                    CombatState(
+                        enemy=enemy, allies=build_ally_party(game.player)
+                    )
+                )
                 self.phase = "main_menu"
                 self.contextual_data.clear()
                 return
@@ -709,7 +721,11 @@ class TavernState(BaseGameState):
                 enemy = Enemy.create_random("easy")
                 game.io.show_message(f"\nYou are about to face a {enemy.name} (easy)!")
                 press_enter(game)
-                game.push_state(CombatState(enemy=enemy))
+                game.push_state(
+                    CombatState(
+                        enemy=enemy, allies=build_ally_party(game.player)
+                    )
+                )
                 self.phase = "main_menu"
                 self.contextual_data.clear()
                 return
@@ -719,7 +735,11 @@ class TavernState(BaseGameState):
                 enemy = Enemy.create_random("medium")
                 game.io.show_message(f"\nYou are about to face a {enemy.name} (medium)!")
                 press_enter(game)
-                game.push_state(CombatState(enemy=enemy))
+                game.push_state(
+                    CombatState(
+                        enemy=enemy, allies=build_ally_party(game.player)
+                    )
+                )
                 self.phase = "main_menu"
                 self.contextual_data.clear()
                 return
@@ -729,7 +749,11 @@ class TavernState(BaseGameState):
                 enemy = Enemy.create_random("hard")
                 game.io.show_message(f"\nYou are about to face a {enemy.name} (hard)!")
                 press_enter(game)
-                game.push_state(CombatState(enemy=enemy))
+                game.push_state(
+                    CombatState(
+                        enemy=enemy, allies=build_ally_party(game.player)
+                    )
+                )
                 self.phase = "main_menu"
                 self.contextual_data.clear()
                 return
@@ -770,7 +794,12 @@ class TavernState(BaseGameState):
                     "\nTwo goblins bar your way, blades drawn!"
                 )
                 press_enter(game)
-                game.push_state(CombatState(enemies=enemies))
+                game.push_state(
+                    CombatState(
+                        enemies=enemies,
+                        allies=build_ally_party(game.player),
+                    )
+                )
                 self.phase = "main_menu"
                 self.contextual_data.clear()
                 return
@@ -798,7 +827,12 @@ class TavernState(BaseGameState):
 
                     # Start the combat
                     press_enter(game)
-                    game.push_state(CombatState(enemy=enemy))
+                    game.push_state(
+                        CombatState(
+                            enemy=enemy,
+                            allies=build_ally_party(game.player),
+                        )
+                    )
                     self.phase = "main_menu"
                     self.contextual_data.clear()
                     return

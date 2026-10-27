@@ -494,8 +494,15 @@ class MarketState(BaseGameState):
         self.last_input = confirm
 
         if confirm.lower() == "y":
+            from core.quests import build_ally_party
             from states.combat import CombatState
-            game.push_state(CombatState(hostile_npc=npc))
+
+            game.push_state(
+                CombatState(
+                    hostile_npc=npc,
+                    allies=build_ally_party(game.player),
+                )
+            )
             # After the combat, return to the main menu
             self.phase = "main_menu"
         else:
