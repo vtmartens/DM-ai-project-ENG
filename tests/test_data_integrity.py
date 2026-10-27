@@ -154,6 +154,9 @@ def test_ability_definitions_are_well_formed():
         "knock",
         "mage_hand",
         "guidance",
+        "detect_magic",
+        "disguise_self",
+        "comprehend_languages",
     }
     ids = set()
 
@@ -782,6 +785,10 @@ def _assert_dialogue_condition(condition, quests, factions, label):
             for item in nested:
                 _assert_dialogue_condition(item, quests, factions, label)
             return
+
+    if "disguised" in condition:
+        assert isinstance(condition["disguised"], bool), label
+        return
 
     reputation = condition.get("reputation")
     if isinstance(reputation, dict):

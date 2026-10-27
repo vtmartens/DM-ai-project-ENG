@@ -41,8 +41,9 @@ You can also set `localStorage["dm_api_base"]`.
   preview. The stats panel also shows armor class, attack bonus and initiative. Class abilities are clickable
   buttons with mana costs; unavailable abilities
   (not enough mana, or combat-only outside combat) are disabled with an explanation.
-  Utility spells (Knock, Mage Hand, Guidance) are tinted blue and are disabled during
-  combat, while combat abilities are disabled outside it.
+  Utility spells (Knock, Mage Hand, Guidance, Detect Magic, Disguise Self, Comprehend
+  Languages) are tinted blue and are disabled during combat, while combat abilities are
+  disabled outside it.
   Progression abilities appear as dashed `Lv 3/5/7/10` entries until the player unlocks
   them, including the class capstones.
 - Ability use goes through `POST /use_ability`; using one is a combat action, so the enemy
@@ -85,8 +86,8 @@ You can also set `localStorage["dm_api_base"]`.
   status tags. Recruited allies show their stance in the combat card, and a **Party** panel
   sets Attack, Guard or Support through `GET /party` and `POST /party/stance`.
 - Conditions panel driven by `state.conditions`: poisoned duration/damage, Guidance,
-  advantage/disadvantage, and timed burning/frightened/weakened effects are rendered as
-  colour-coded tags and update after each action.
+  advantage/disadvantage, timed burning/frightened/weakened effects, plus Hidden and
+  Disguised status tags, are rendered as colour-coded tags and update after each action.
 - Quests panel driven by `GET /missions`, showing each active quest and its objective.
   Completed objectives change to “Ready to turn in — speak to …” until rewards are collected.
 - **Campaign** panel driven by `state.campaign` / `GET /campaign`, with seven chapter rows,

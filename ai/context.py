@@ -147,6 +147,7 @@ def build_context(game, memory=None) -> dict[str, Any]:
             "cycle": getattr(player, "cycle", 1),
             "hp": getattr(player, "hp", 0),
             "hp_max": getattr(player, "hp_max", 0),
+            "disguised": bool(getattr(player, "disguised", False)),
         }
     }
 

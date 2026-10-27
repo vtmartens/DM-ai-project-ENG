@@ -233,6 +233,7 @@ class Game:
         player.claimed_rewards = retained_rewards
         player.conditions = {}
         player.stealthed = False
+        player.disguised = False
         player.allies = []
         player.ally_stances = {}
         player.defeats = 0

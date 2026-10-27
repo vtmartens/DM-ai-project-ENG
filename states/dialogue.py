@@ -47,6 +47,13 @@ class DialogueState(BaseState):
                 self._condition_met(item, game) for item in any_conditions
             )
 
+        if "disguised" in condition:
+            player = (game or self.game).player
+            if bool(getattr(player, "disguised", False)) != bool(
+                condition["disguised"]
+            ):
+                return False
+
         reputation = condition.get("reputation")
         if isinstance(reputation, dict):
             player = (game or self.game).player
@@ -240,6 +247,9 @@ class DialogueState(BaseState):
                     int(effect.get("amount", 0) or 0),
                     game,
                 )
+
+            elif type == "clear_disguise":
+                game.player.disguised = False
 
             elif type == "trade":
                 item_name = effect.get("item")

@@ -91,6 +91,7 @@
     "disarm_dc": 13,
     "disarm_skill": "investigation",
     "trigger_on_failure": true,
+    "magical": true,
     "token": "T"
   },
   {
@@ -106,6 +107,7 @@
     "disarm_dc": 12,
     "disarm_skill": "investigation",
     "trigger_on_failure": false,
+    "magical": true,
     "token": "T"
   },
   {
@@ -115,6 +117,7 @@
     "state": "inactive",
     "token": "A",
     "provides_cover": true,
+    "magical": true,
     "state_descriptions": {
       "inactive": "An ancient altar with mysterious symbols that seem dormant",
       "active": "The altar emits an intense blue light and the symbols glow",
@@ -522,6 +525,7 @@
     "disarm_dc": 12,
     "disarm_skill": "investigation",
     "trigger_on_failure": true,
+    "magical": true,
     "state_descriptions": {
       "active": "A section of the floor with a pressure plate.",
       "deactivated": "A section of the floor with a deactivated spike trap.",
@@ -664,6 +668,7 @@
     "description": "A pillar of black stone covered in warding runes. One line reads: 'Only the sentinel's sigil opens the reliquary.'",
     "state": "inactive",
     "token": "R",
-    "provides_cover": true
+    "provides_cover": true,
+    "magical": true
   }
 ]

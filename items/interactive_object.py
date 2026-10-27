@@ -29,6 +29,8 @@ class InteractiveObject:
         self.detection_dc = 10
         # Whether an adjacent player can take cover behind this object.
         self.provides_cover = False
+        # Detect Magic can reveal and identify these objects.
+        self.magical = False
 
         # New attributes
         self.state_descriptions = {state: description}  # Descriptions for each state
@@ -237,6 +239,7 @@ class InteractiveObject:
             "provides_cover": bool(
                 getattr(self, "provides_cover", False)
             ),
+            "magical": bool(getattr(self, "magical", False)),
             "state_descriptions": self.state_descriptions,
             "possible_states": self.possible_states,
             "required_abilities": self.required_abilities,
@@ -299,6 +302,7 @@ class InteractiveObject:
         new_object.provides_cover = bool(
             data.get("provides_cover", False)
         )
+        new_object.magical = bool(data.get("magical", False))
         
         return new_object
 

@@ -257,6 +257,9 @@ def build_recap(game, memory=None, events=None) -> str:
     if conditions:
         parts.append("Affected by: " + ", ".join(conditions) + ".")
 
+    if bool(getattr(player, "disguised", False)):
+        parts.append("You are wearing a magical disguise.")
+
     party_summary = _party_summary(player)
     if party_summary:
         parts.append(party_summary)

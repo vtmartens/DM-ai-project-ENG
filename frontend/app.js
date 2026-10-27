@@ -411,7 +411,11 @@ function renderState(state) {
       : "—";
 
   renderStats(state.stats || {});
-  renderConditions(state.conditions || {}, Boolean(state.stealthed));
+  renderConditions(
+    state.conditions || {},
+    Boolean(state.stealthed),
+    Boolean(state.disguised)
+  );
   renderReputation(state.reputation || {});
   renderParty(state.party || {});
   renderCampaign(state.campaign || {});
@@ -581,7 +585,7 @@ function addStatusTag(container, text, kind) {
   container.appendChild(tag);
 }
 
-function renderConditions(conditions, stealthed = false) {
+function renderConditions(conditions, stealthed = false, disguised = false) {
   el.conditionsList.innerHTML = "";
   const entries =
     conditions && typeof conditions === "object"
@@ -595,9 +599,16 @@ function renderConditions(conditions, stealthed = false) {
     hidden.title = "Nearby observers have not noticed you.";
     el.conditionsList.appendChild(hidden);
   }
+  if (disguised) {
+    const mask = document.createElement("span");
+    mask.className = "tag condition condition-disguised";
+    mask.textContent = "Disguised";
+    mask.title = "An illusory identity grants advantage on Stealth checks.";
+    el.conditionsList.appendChild(mask);
+  }
 
   if (!entries.length) {
-    if (stealthed) return;
+    if (stealthed || disguised) return;
     const note = document.createElement("span");
     note.className = "empty-note";
     note.textContent = "None";

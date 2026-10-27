@@ -847,6 +847,7 @@ class GameState:
             "ac": getattr(player, "armor_class", 10),
             "attack_bonus": getattr(player, "attack_bonus", 0),
             "stealthed": bool(getattr(player, "stealthed", False)),
+            "disguised": bool(getattr(player, "disguised", False)),
             "rune_shards": int(getattr(player, "rune_shards", 0) or 0),
         }
 
@@ -1005,6 +1006,9 @@ class GameState:
             ),
             "stealthed": bool(
                 getattr(self.game.player, "stealthed", False)
+            ),
+            "disguised": bool(
+                getattr(self.game.player, "disguised", False)
             ),
             "reputation": self.get_reputation_state(),
             "party": self.get_party_state(),

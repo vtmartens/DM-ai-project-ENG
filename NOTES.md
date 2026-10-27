@@ -1151,6 +1151,22 @@ entirely. The doors that existed were also misaligned with the map exits.
 - Tests cover each landmark's status/actions, inactive states, `/state` exposure, the API
   endpoint and missing-session errors. 636 tests pass.
 
+## Non-combat utility magic (2026-10-27)
+
+- Added Wizard **Detect Magic**, Rogue **Disguise Self** and Cleric **Comprehend
+  Languages** to the starting ability catalogue. All use the existing utility-effect path:
+  refused in combat and no mana spent when there is no valid target.
+- Added `magical` metadata to interactive objects. Detect Magic reveals hidden magical traps
+  and identifies nearby magical objects, including the Rune Pillar and Magic Altar.
+- Disguise Self sets a persisted `player.disguised` state, grants advantage on Stealth checks,
+  and unlocks a one-use bluff option in Mirt's dialogue that consumes the disguise. Long rests
+  and New Cycles clear it; the client shows a Disguised condition tag and assets are at `v=40`.
+- Comprehend Languages reads the Bandit Ledger (starting the Underroad quest), Rune Pillar
+  inscriptions and magical altar text without a check.
+- Tests cover magical discovery, refused targets, stealth advantage, the dialogue bluff,
+  ledger/quest interaction, Rune Pillar text, mana spending and disguise persistence. 643
+  tests pass.
+
 ## Deliberate translation choices worth knowing
 
 - **`hp_base` / `mana_base` were left as-is.** They are consistent between code and JSON

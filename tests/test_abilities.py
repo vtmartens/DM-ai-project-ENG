@@ -38,6 +38,7 @@ def test_player_abilities_include_costs_and_descriptions():
         "Magic Missile",
         "Mage Shield",
         "Knock",
+        "Detect Magic",
     ]
     assert details[0]["mana_cost"] == 5
     assert details[0]["combat_only"] is True

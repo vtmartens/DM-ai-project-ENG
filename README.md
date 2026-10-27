@@ -46,7 +46,7 @@ Each game phase (map exploration, combat, dialogues, inventory management) is ha
 - Dependency-free web client served at `/app` (character creation, log, quests, achievements, inventory, saves; focus-managed modals, skip links and a mobile-first layout)
 - Natural-language target commands in the tavern, market and map screen: “talk to Durnan”, “attack the goblin”, “use Healing Potion”, “go to the market”, “examine the chair”, “south”
 - Class abilities with mana costs in combat: Powerful Blow, Parry, Magic Missile, Mage Shield, Sneak Attack, Evade, Cure Wounds and Blessing. Use them from the combat menu, with `/use_ability`, or by typing “cast Magic Missile” / “use ability Cure Wounds”
-- Non-combat utility spells: Knock (open a locked door or chest within two steps without a key), Mage Hand (operate a door, chest or lever at range) and Guidance (+2 to the next ability check). Use them from the abilities panel or with `/use_ability`; they are refused in combat and do not spend mana when there is no valid target
+- Non-combat utility spells: Knock (open a locked door or chest within two steps without a key), Mage Hand (operate a door, chest or lever at range), Guidance (+2 to the next ability check), Detect Magic (reveal hidden magical traps and objects), Disguise Self (advantage on Stealth and a one-use bluff in Mirt's dialogue) and Comprehend Languages (read the Bandit Ledger, Rune Pillar and ancient inscriptions). Use them from the abilities panel or with `/use_ability`; they are refused in combat and do not spend mana when there is no valid target
 - Class-based level progression: HP/mana growth follows the class data, and level-3/5/7 abilities unlock automatically (Fierce Attack, Fireball, Backstab, Restoration, and more). Level 10 adds class capstones: Last Stand, Meteor Swarm, Assassinate and Divine Intervention
 - Enemy abilities: goblins use Poison Arrow, orcs and the Iron Sentinel Shield Bash, cultists Dark Bolt, specters Spectral Touch, wolves/trolls Savage Bite, and the Sentinel repairs itself. Abilities have cooldowns, telegraphs in the combat log, poison/self-heal/guard effects, and fall back to basic attacks
 - Saving throws and advantage: Poison Arrow, Shield Bash, Dark Bolt, Dirty Trick and Bone Volley call for ability saves; success halves damage and prevents poison. Ability checks and saves support advantage/disadvantage from conditions, with both dice shown in the log
@@ -119,7 +119,7 @@ Each game phase (map exploration, combat, dialogues, inventory management) is ha
 🟡 Web client (dependency-free SPA in `frontend/`; React/Vite optional later)  
 🟡 Implement Dungeon Master AI (narration, hint and recap rephrasing slices; decisions remain deterministic)
 🟡 D&D rules improvement (saving throws, advantage/disadvantage, attack rolls and AC, conditions, maneuvers, cover and flanking); broader combat tuning remains future work
-🟡 Class abilities, mana and level-based unlocks; utility spells (Knock, Mage Hand, Guidance) added, broader non-combat spell utility remains future work\
+🟡 Class abilities, mana and level-based unlocks; utility spells (Knock, Mage Hand, Guidance, Detect Magic, Disguise Self, Comprehend Languages) added, broader non-combat spell utility remains future work\
 🟡 Multiple enemies, target selection, allies and curated encounters; broader encounter tuning and balancing remain future work\
 ⬜ Online multiplayer implementation  
 ⬜ AI-generated game scenarios and realistic NPC faces  

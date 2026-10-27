@@ -57,6 +57,7 @@ class Player(Entity):
         self.cycle = 1
         self.allies = []
         self.ally_stances = {}
+        self.disguised = False
         self.defeats = 0
         self.cleared_areas = []
         self.claimed_rewards = []
@@ -541,6 +542,7 @@ class Player(Entity):
             "cycle": int(getattr(self, "cycle", 1) or 1),
             "allies": list(getattr(self, "allies", [])),
             "ally_stances": dict(getattr(self, "ally_stances", {}) or {}),
+            "disguised": bool(getattr(self, "disguised", False)),
             "defeats": int(getattr(self, "defeats", 0) or 0),
             "cleared_areas": list(getattr(self, "cleared_areas", [])),
             "claimed_rewards": list(getattr(self, "claimed_rewards", [])),
@@ -628,6 +630,7 @@ class Player(Entity):
         player.cycle = max(1, int(data.get("cycle", 1) or 1))
         player.allies = list(data.get("allies", []))
         player.ally_stances = dict(data.get("ally_stances", {}) or {})
+        player.disguised = bool(data.get("disguised", False))
         player.defeats = int(data.get("defeats", 0) or 0)
         player.cleared_areas = list(data.get("cleared_areas", []) or [])
         player.claimed_rewards = list(data.get("claimed_rewards", []) or [])

@@ -296,5 +296,35 @@
       "type": "heal",
       "amount": 40
     }
+  },
+  "Detect Magic": {
+    "id": "detect_magic",
+    "class": "wizard",
+    "description": "Sense magical auras nearby, revealing hidden magical traps and objects.",
+    "mana_cost": 3,
+    "combat_only": false,
+    "effect": {
+      "type": "detect_magic"
+    }
+  },
+  "Disguise Self": {
+    "id": "disguise_self",
+    "class": "rogue",
+    "description": "Wear an illusory face and manner. Gain advantage on Stealth until you rest, and a one-use bluff in conversation.",
+    "mana_cost": 4,
+    "combat_only": false,
+    "effect": {
+      "type": "disguise_self"
+    }
+  },
+  "Comprehend Languages": {
+    "id": "comprehend_languages",
+    "class": "cleric",
+    "description": "Read ancient script and inscriptions without a check.",
+    "mana_cost": 3,
+    "combat_only": false,
+    "effect": {
+      "type": "comprehend_languages"
+    }
   }
 }

@@ -55,7 +55,11 @@ def attempt_stealth(player, game, radius=4, moving=False):
         return True
 
     result = skill_check_total(
-        player, "stealth", game=game, consume_guidance=True
+        player,
+        "stealth",
+        game=game,
+        consume_guidance=True,
+        advantage=True if getattr(player, "disguised", False) else None,
     )
     guidance_text = (
         f", +{result['guidance']} Guidance" if result["guidance"] else ""

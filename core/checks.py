@@ -29,9 +29,22 @@ def _skill_bonus(entity, skill, game):
     return int(getattr(entity, f"modifier_{skill}", 0) or 0)
 
 
-def _roll_skill(entity, skill, game=None, consume_guidance=False):
+def _roll_skill(
+    entity,
+    skill,
+    game=None,
+    consume_guidance=False,
+    advantage=None,
+    disadvantage=None,
+):
     """Rolls one skill check and returns its component values."""
-    advantage, disadvantage = entity.roll_flags("check")
+    condition_advantage, condition_disadvantage = entity.roll_flags("check")
+    if advantage is None:
+        advantage = condition_advantage
+    if disadvantage is None:
+        disadvantage = condition_disadvantage
+    advantage = bool(advantage)
+    disadvantage = bool(disadvantage)
     roll, rolls = roll_d20(advantage, disadvantage)
     if rolls and game:
         mode = (
@@ -54,13 +67,22 @@ def _roll_skill(entity, skill, game=None, consume_guidance=False):
     }
 
 
-def skill_check_total(entity, skill, game=None, consume_guidance=False):
+def skill_check_total(
+    entity,
+    skill,
+    game=None,
+    consume_guidance=False,
+    advantage=None,
+    disadvantage=None,
+):
     """Rolls one skill check and returns its roll, bonus and total."""
     return _roll_skill(
         entity,
         skill,
         game=game,
         consume_guidance=consume_guidance,
+        advantage=advantage,
+        disadvantage=disadvantage,
     )
 
 

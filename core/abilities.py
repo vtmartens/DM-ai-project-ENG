@@ -9,7 +9,14 @@ from items.keys import find_matching_key
 from util.data_manager import get_data_manager
 
 COMBAT_EFFECTS = {"damage", "heal", "guard", "shield", "evade", "bless"}
-UTILITY_EFFECTS = {"knock", "mage_hand", "guidance"}
+UTILITY_EFFECTS = {
+    "knock",
+    "mage_hand",
+    "guidance",
+    "detect_magic",
+    "disguise_self",
+    "comprehend_languages",
+}
 SUPPORTED_EFFECTS = COMBAT_EFFECTS | UTILITY_EFFECTS
 
 # Utility spells operate on the map, so they are refused during combat.
@@ -312,6 +319,95 @@ def use_ability(game, name, definition=None):
         )
         target.interact(player, game)
         message = None
+
+    elif kind == "detect_magic":
+        targets = _nearby_objects(
+            game,
+            predicate=lambda obj: bool(
+                getattr(obj, "magical", False)
+            ),
+        )
+        if not targets:
+            game.io.show_message(
+                "You sense no magical auras within reach."
+            )
+            return False
+
+        found = []
+        for target in targets:
+            is_hidden = getattr(target, "is_hidden", None)
+            if callable(is_hidden) and is_hidden():
+                target.reveal(
+                    game,
+                    message=f"Your spell reveals {target.display_name}.",
+                )
+            found.append(
+                getattr(target, "display_name", getattr(target, "name", "aura"))
+            )
+        game.io.show_message(
+            "You sense magic nearby: " + ", ".join(found) + "."
+        )
+        message = None
+
+    elif kind == "disguise_self":
+        if bool(getattr(player, "disguised", False)):
+            game.io.show_message("You are already wearing a disguise.")
+            return False
+        player.disguised = True
+        message = (
+            "You weave an illusory face and manner. Your next Stealth "
+            "checks have advantage until you rest, and you carry one "
+            "conversational bluff."
+        )
+
+    elif kind == "comprehend_languages":
+        ledger = next(
+            (
+                item
+                for item in (getattr(player, "inventory", []) or [])
+                if getattr(item, "name", item) == "Bandit Ledger"
+            ),
+            None,
+        )
+        if ledger is not None:
+            from core.quests import start_quest
+
+            start_quest(player, "underroad_chapter", game)
+            message = (
+                "The ledger's cipher unfolds. It names the Smuggler Lord, "
+                "the hidden route beneath the waystation and the buyers who "
+                "paid for silence."
+            )
+        else:
+            inscription = next(
+                iter(
+                    _nearby_objects(
+                        game,
+                        predicate=lambda obj: bool(
+                            getattr(obj, "magical", False)
+                        )
+                        and getattr(obj, "type", "")
+                        in {"rune_pillar", "interactive_object"},
+                    )
+                ),
+                None,
+            )
+            if inscription is None:
+                game.io.show_message(
+                    "There is no ancient text or inscription within reach."
+                )
+                return False
+            name = getattr(inscription, "name", "the inscription")
+            if getattr(inscription, "type", "") == "rune_pillar":
+                message = (
+                    f"The runes on {name} resolve into words: 'Only the "
+                    "sentinel's sigil opens the reliquary.'"
+                )
+            else:
+                message = (
+                    f"The old script on {name} speaks of a ward bound to a "
+                    "rune-marked sigil."
+                )
 
     elif kind == "guidance":
         bonus = int(effect.get("bonus", 2) or 2)

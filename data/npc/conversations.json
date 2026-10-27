@@ -208,7 +208,8 @@
         ["About the sealed sanctum...", "sanctum_reminder", {"quest": "sanctum_chapter", "status": "active"}],
         ["The Rune Warden is destroyed.", "sanctum_turn_in", {"quest": "sanctum_chapter", "status": "ready"}],
         ["What lies beyond the sanctum?", "sanctum_done", {"quest": "sanctum_chapter", "status": "completed"}],
-        ["Any work for a trusted friend?", "mirt_trusted", {"reputation": {"faction": "mirt_network", "min": 10}}]
+        ["Any work for a trusted friend?", "mirt_trusted", {"reputation": {"faction": "mirt_network", "min": 10}}],
+        ["You do not recognize me, merchant.", "disguise_bluff", {"disguised": true}]
       ]
     },
     "business_info": {
@@ -348,6 +349,13 @@
       "text": "Mirt leans back and studies you. 'A trusted friend. That is a rare thing in this city.' He taps the table. 'Keep your purse full of potions and your name clean, and my people will keep their prices kind.'",
       "options": [
         ["I can live with that.", null]
+      ]
+    },
+    "disguise_bluff": {
+      "text": "Mirt squints at your borrowed face, then laughs. 'A new face, but the same boots. Sit down before someone less friendly notices.' Your illusion holds long enough to carry the bluff, then fades.",
+      "effect": {"type": "clear_disguise"},
+      "options": [
+        ["A pleasure doing business.", null]
       ]
     },
     "show_items": {

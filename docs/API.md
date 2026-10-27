@@ -105,6 +105,7 @@ a server restart. A stale `session_id` returns `404`.
   "timestamp_achievements": {},
   "conditions": {},
   "stealthed": false,
+  "disguised": false,
   "reputation": {
     "factions": [
       {
@@ -390,7 +391,7 @@ Returns the full class catalogue from `data/classes/classes.json`:
 
 ```json
 {
-  "abilities": ["Magic Missile", "Mage Shield", "Knock"],
+  "abilities": ["Magic Missile", "Mage Shield", "Knock", "Detect Magic"],
   "ability_details": [
     {
       "id": "magic_missile",
@@ -446,7 +447,8 @@ use `unlocked` and `required_level` to render them as disabled “Lv 3/5/7/10”
 Level 10 unlocks each class capstone: Last Stand, Meteor Swarm, Assassinate or Divine
 Intervention.
 `combat_only` abilities are refused outside combat; `usable_in_combat: false` marks utility
-spells (Knock, Mage Hand, Guidance), which are refused inside combat. `in_combat` reports
+spells (Knock, Mage Hand, Guidance, Detect Magic, Disguise Self, Comprehend Languages),
+which are refused inside combat. `in_combat` reports
 the current context.
 
 #### `POST /use_ability`
@@ -468,7 +470,8 @@ Use `ability_id` or `ability_name` (`"Magic Missile"`). The response has the sam
 
 An unknown or not-yet-unlocked ability is `404`. A known, unlocked ability that cannot
 currently be used (no mana, a combat-only ability outside combat, a utility spell inside
-combat, or no valid target for Knock/Mage Hand) returns `200` with `"used": false` and an
+combat, or no valid target for Knock/Mage Hand/Comprehend Languages/Detect Magic) returns
+`200` with `"used": false` and an
 explanatory message in `output`; no mana is spent. In combat the ability consumes the
 player's action, then the enemy retaliates or victory resolves normally.
 
