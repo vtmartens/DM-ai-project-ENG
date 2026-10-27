@@ -433,7 +433,9 @@ Returns the full class catalogue from `data/classes/classes.json`:
 
 `abilities` remains a name list for simple clients and contains only unlocked abilities.
 `ability_details` includes every class ability, including locked progression abilities;
-use `unlocked` and `required_level` to render them as disabled “Lv 3/5/7” entries.
+use `unlocked` and `required_level` to render them as disabled “Lv 3/5/7/10” entries.
+Level 10 unlocks each class capstone: Last Stand, Meteor Swarm, Assassinate or Divine
+Intervention.
 `combat_only` abilities are refused outside combat; `usable_in_combat: false` marks utility
 spells (Knock, Mage Hand, Guidance), which are refused inside combat. `in_combat` reports
 the current context.

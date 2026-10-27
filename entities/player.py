@@ -364,6 +364,10 @@ class Player(Entity):
                 game.io.show_message(f"You learned {ability_name}!")
             game.io.show_message("You have grown stronger!")
 
+        from core.achievements import record_event
+
+        record_event(self, "level_up", game=game)
+
         return unlocked
 
     def move(self, dx, dy, map_manager):

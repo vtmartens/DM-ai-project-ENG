@@ -250,5 +250,51 @@
       "type": "guidance",
       "bonus": 2
     }
+  },
+  "Last Stand": {
+    "id": "last_stand",
+    "class": "fighter",
+    "description": "A level-10 capstone: plant your feet and turn the next exchange in your favor. Adds 5 damage and prevents 5 damage.",
+    "mana_cost": 0,
+    "combat_only": true,
+    "effect": {
+      "type": "bless",
+      "attack": 5,
+      "defense": 5
+    }
+  },
+  "Meteor Swarm": {
+    "id": "meteor_swarm",
+    "class": "wizard",
+    "description": "A level-10 capstone: call down a storm of falling stars for 30 damage that ignores armor.",
+    "mana_cost": 18,
+    "combat_only": true,
+    "ignore_defense": true,
+    "effect": {
+      "type": "damage",
+      "flat": 30
+    }
+  },
+  "Assassinate": {
+    "id": "assassinate",
+    "class": "rogue",
+    "description": "A level-10 capstone: strike a lethal opening for four times your normal damage.",
+    "mana_cost": 8,
+    "combat_only": true,
+    "effect": {
+      "type": "damage",
+      "multiplier": 4
+    }
+  },
+  "Divine Intervention": {
+    "id": "divine_intervention",
+    "class": "cleric",
+    "description": "A level-10 capstone: a miracle of light restores 40 hit points.",
+    "mana_cost": 12,
+    "combat_only": false,
+    "effect": {
+      "type": "heal",
+      "amount": 40
+    }
   }
 }

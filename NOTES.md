@@ -1039,6 +1039,20 @@ entirely. The doors that existed were also misaligned with the map exits.
   support. Updated README, API docs, frontend notes and data integrity/tests.
 - 587 tests pass.
 
+## Level 10 class capstones (2026-10-27)
+
+- Added one capstone per class to `data/classes/abilities.json` and level 10 progression in
+  `data/classes/classes.json`: Fighter **Last Stand** (+5 attack/-5 incoming), Wizard
+  **Meteor Swarm** (30 armor-ignoring damage), Rogue **Assassinate** (4x weapon damage) and
+  Cleric **Divine Intervention** (40 HP heal).
+- The existing ability engine already supports all four effects, so capstones use the same
+  combat resolution, mana costs, UI progression rows and save/load path as earlier tiers.
+- Added the **Legend** achievement for reaching level 10 and a `level` achievement condition.
+  `Player._ascend_level` now records a `level_up` event so the achievement unlocks on the
+  level-up itself.
+- Tests cover lock/unlock at level 9/10, each capstone effect and the Legend achievement.
+  593 tests pass.
+
 ## Deliberate translation choices worth knowing
 
 - **`hp_base` / `mana_base` were left as-is.** They are consistent between code and JSON

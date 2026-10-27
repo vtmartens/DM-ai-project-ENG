@@ -18,7 +18,8 @@
       "abilities_per_level": {
         "3": "Fierce Attack",
         "5": "Multiattack",
-        "7": "Weapon Mastery"
+        "7": "Weapon Mastery",
+        "10": "Last Stand"
       }
     }
   },
@@ -42,7 +43,8 @@
       "abilities_per_level": {
         "3": "Fireball",
         "5": "Lightning Bolt",
-        "7": "Teleport"
+        "7": "Teleport",
+        "10": "Meteor Swarm"
       }
     }
   },
@@ -66,7 +68,8 @@
       "abilities_per_level": {
         "3": "Backstab",
         "5": "Evasion",
-        "7": "Poison Mastery"
+        "7": "Poison Mastery",
+        "10": "Assassinate"
       }
     }
   },
@@ -90,7 +93,8 @@
       "abilities_per_level": {
         "3": "Remove Curse",
         "5": "Restoration",
-        "7": "Divine Armor"
+        "7": "Divine Armor",
+        "10": "Divine Intervention"
       }
     }
   }

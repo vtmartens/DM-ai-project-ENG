@@ -32,6 +32,7 @@ SUPPORTED_CONDITIONS = frozenset(
         "defeat_enemy",
         "rune_trials_best",
         "rune_trials_runs",
+        "level",
     }
 )
 
@@ -206,6 +207,9 @@ def condition_met(player, condition, game=None) -> bool:
         return int(getattr(player, "rune_trials_runs", 0) or 0) >= _as_int(
             value, 1
         )
+
+    if condition_type == "level":
+        return int(getattr(player, "level", 1) or 1) >= _as_int(value, 1)
 
     return False
 

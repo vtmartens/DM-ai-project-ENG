@@ -215,5 +215,17 @@
       "type": "rune_trials_runs",
       "value": 1
     }
+  },
+  {
+    "id": "legend",
+    "name": "Legend",
+    "description": "Reach level 10 and unlock your class capstone",
+    "icon": "achievement_combat.png",
+    "difficulty": "hard",
+    "score": 75,
+    "condition": {
+      "type": "level",
+      "value": 10
+    }
   }
 ] 
