@@ -1,4 +1,5 @@
 import os
+import re
 import threading
 import time
 from urllib.request import urlopen
@@ -86,6 +87,21 @@ def test_web_client_smoke(live_server):
 
         wait.until(lambda d: d.find_element(By.ID, "game-screen").is_displayed())
         wait.until(lambda d: len(d.find_elements(By.CSS_SELECTOR, "#log .log-entry")) > 0)
+
+        # Achievements panel: catalogue rendered, count badge populated.
+        wait.until(
+            lambda d: len(
+                d.find_elements(By.CSS_SELECTOR, "#achievements-list .achievement")
+            )
+            > 0
+        )
+        achievements_text = driver.find_element(By.ID, "achievements-list").text
+        assert "First Step" in achievements_text
+        assert "Locked" in achievements_text
+        assert re.fullmatch(
+            r"\d+ / \d+",
+            driver.find_element(By.ID, "achievements-count").text.strip(),
+        )
 
         # Natural-language targeting: this used to open the NPC list.
         driver.find_element(By.ID, "command-input").send_keys("talk to Durnan")

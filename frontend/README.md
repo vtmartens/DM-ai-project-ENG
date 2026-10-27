@@ -51,6 +51,9 @@ You can also set `localStorage["dm_api_base"]`.
   Recruited allies appear below the enemies.
 - Quests panel driven by `GET /missions`, showing each active quest and its objective.
   Completed objectives change to “Ready to turn in — speak to …” until rewards are collected.
+- Achievements panel driven by `GET /achievements`, with an unlocked/total count, score,
+  description and unlock date for each entry. Locked achievements stay visible as goals,
+  and a toast announces new unlocks as they happen.
 - Clickable dialogue options (from `state.dialogue`), in addition to typing numbers. The
   play area puts the Adventure log (with the DM narration first) at the top, and the NPC
   dialogue/options card below it. The log keeps the NPC text and consequences but omits

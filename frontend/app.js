@@ -18,6 +18,7 @@ const store = {
   sessionId: localStorage.getItem(SESSION_KEY) || null,
   state: null,
   classes: {},
+  achievements: [],
   log: [],
   busy: false,
 };
@@ -46,6 +47,8 @@ const el = {
   statPosition: document.getElementById("stat-position"),
   statsGrid: document.getElementById("stats-grid"),
   questList: document.getElementById("quest-list"),
+  achievementsList: document.getElementById("achievements-list"),
+  achievementsCount: document.getElementById("achievements-count"),
   abilitiesList: document.getElementById("abilities-list"),
   skillsList: document.getElementById("skills-list"),
   inventoryList: document.getElementById("inventory-list"),
@@ -324,6 +327,9 @@ function clearSession() {
   el.combatCard.innerHTML = "";
   el.dialogueCard.classList.add("hidden");
   el.dialogueCard.innerHTML = "";
+  el.achievementsList.innerHTML = "";
+  el.achievementsCount.textContent = "0 / 0";
+  store.achievements = [];
   closeMapModal();
   refreshSaves();
 }
@@ -372,6 +378,26 @@ function renderState(state) {
   if (state.dialogue?.active) {
     window.requestAnimationFrame(scrollLogToLatestNarration);
   }
+}
+
+function applyState(state) {
+  const before = new Set(store.state?.achievements || []);
+  renderState(state);
+  notifyNewAchievements(before, state?.achievements);
+}
+
+function notifyNewAchievements(before, after) {
+  const fresh = (after || []).filter((id) => !before.has(id));
+  if (!fresh.length) return;
+
+  const names = new Map(
+    (store.achievements || []).map((achievement) => [achievement.id, achievement.name])
+  );
+  const label = fresh.map((id) => names.get(id)).filter(Boolean).join(", ");
+  showToast(
+    label ? `Achievement unlocked: ${label}` : "Achievement unlocked!",
+    "success"
+  );
 }
 
 function renderCombat(combat) {
@@ -537,15 +563,17 @@ async function refreshSidePanels(state = null) {
       renderState(state);
     }
 
-    const [abilities, inventory, actions, missions] = await Promise.all([
+    const [abilities, inventory, actions, missions, achievements] = await Promise.all([
       api(`/abilities?session_id=${encodeURIComponent(store.sessionId)}`),
       api(`/inventory?session_id=${encodeURIComponent(store.sessionId)}`),
       api(`/available_actions?session_id=${encodeURIComponent(store.sessionId)}`),
       api(`/missions?session_id=${encodeURIComponent(store.sessionId)}`),
+      api(`/achievements?session_id=${encodeURIComponent(store.sessionId)}`),
     ]);
 
     renderAbilities(abilities);
     renderQuests(missions);
+    renderAchievements(achievements);
     renderInventory(inventory);
     renderQuickActions(actions);
   } catch (error) {
@@ -642,6 +670,56 @@ function renderQuests(data) {
           : quest.objective || quest.description || "";
     item.append(title, objective);
     el.questList.appendChild(item);
+  }
+}
+
+function renderAchievements(data) {
+  const achievements = Array.isArray(data?.achievements) ? data.achievements : [];
+  const unlocked = Number(data?.unlocked ?? 0);
+  const total = Number(data?.total ?? achievements.length);
+  store.achievements = achievements;
+
+  el.achievementsList.innerHTML = "";
+  el.achievementsCount.textContent = `${unlocked} / ${total}`;
+
+  if (!achievements.length) {
+    const note = document.createElement("li");
+    note.className = "empty-note";
+    note.textContent = "No achievements available.";
+    el.achievementsList.appendChild(note);
+    return;
+  }
+
+  for (const achievement of achievements) {
+    const entry = document.createElement("li");
+    entry.className = `achievement ${achievement.unlocked ? "unlocked" : "locked"}`;
+    if (achievement.difficulty) entry.dataset.difficulty = achievement.difficulty;
+
+    const head = document.createElement("div");
+    head.className = "achievement-head";
+    const name = document.createElement("strong");
+    name.textContent = achievement.name || achievement.id || "Achievement";
+    const score = document.createElement("span");
+    score.className = "achievement-score";
+    score.textContent = achievement.unlocked
+      ? `${achievement.score ?? 0} pts`
+      : "Locked";
+    head.append(name, score);
+
+    const description = document.createElement("span");
+    description.className = "achievement-desc";
+    description.textContent = achievement.description || "";
+
+    entry.append(head, description);
+
+    if (achievement.unlocked && achievement.unlock_date) {
+      const date = document.createElement("span");
+      date.className = "achievement-date";
+      date.textContent = achievement.unlock_date;
+      entry.appendChild(date);
+    }
+
+    el.achievementsList.appendChild(entry);
   }
 }
 
@@ -826,7 +904,7 @@ async function sendCommand(command) {
       body: { session_id: store.sessionId, command: text },
     });
     appendOutput(data.output);
-    if (data.state) renderState(data.state);
+    if (data.state) applyState(data.state);
     if (data.end) {
       showToast("The game has ended. Start a new game to continue.", "error");
     }
@@ -861,7 +939,7 @@ async function useAbility(name) {
       body: { session_id: store.sessionId, ability_name: name },
     });
     appendOutput(data.output || []);
-    if (data.state) renderState(data.state);
+    if (data.state) applyState(data.state);
     refreshSidePanels(data.state);
   } catch (error) {
     appendMessage(error.message, "error");
@@ -966,7 +1044,7 @@ async function useItem(name, action) {
       body: { session_id: store.sessionId, item: name, action },
     });
     appendOutput(data.output);
-    if (data.state) renderState(data.state);
+    if (data.state) applyState(data.state);
     closeItemPanel();
     refreshSidePanels(data.state);
   } catch (error) {

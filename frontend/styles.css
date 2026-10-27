@@ -319,6 +319,69 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
 .quest-list span { font-size: 12px; color: var(--text-muted); line-height: 1.35; }
 .quest-list .empty-note { padding: 0; background: none; border: 0; }
 
+.achievement-count {
+  color: var(--text-muted);
+  font-family: var(--mono);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.achievement-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+  max-height: 340px;
+  overflow-y: auto;
+}
+
+.achievement {
+  display: grid;
+  gap: 3px;
+  padding: 8px 9px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-input);
+}
+
+.achievement.locked { border-style: dashed; }
+
+.achievement.unlocked {
+  border-color: color-mix(in srgb, var(--success) 45%, var(--border));
+  background: color-mix(in srgb, var(--success) 7%, var(--bg-input));
+}
+
+.achievement-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.achievement-head strong { font-size: 13px; }
+.achievement.locked .achievement-head strong { color: var(--text-muted); }
+.achievement.unlocked .achievement-head strong { color: var(--success); }
+
+.achievement-score {
+  flex-shrink: 0;
+  color: var(--text-faint);
+  font-family: var(--mono);
+  font-size: 11px;
+}
+.achievement.unlocked .achievement-score { color: var(--success); }
+
+.achievement-desc { font-size: 12px; color: var(--text-muted); line-height: 1.35; }
+.achievement.locked .achievement-desc { color: var(--text-faint); }
+
+.achievement-date {
+  color: var(--text-faint);
+  font-family: var(--mono);
+  font-size: 10.5px;
+}
+
+.achievement-list .empty-note { padding: 0; background: none; border: 0; }
+
 .inventory-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; max-height: 230px; overflow-y: auto; }
 .inventory-list button {
   width: 100%;

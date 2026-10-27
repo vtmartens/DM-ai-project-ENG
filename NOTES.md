@@ -373,6 +373,10 @@ emitted an `achievements` key. The feature is now backed by real tracking:
 - Tests: `tests/test_achievements.py` covers each condition, deduplication, save/load,
   the `/achievements` API, and the Violet → Mirt dialogue route. 258 tests pass (including
   the headless-browser smoke test).
+- Web client: the sidebar has an Achievements card driven by `GET /achievements`, showing
+  the unlocked/total count, score, description and unlock date, with locked entries styled
+  as goals. New unlocks also raise a toast. The browser smoke test asserts the panel
+  renders and the count badge is populated.
 
 ## Deliberate translation choices worth knowing
 
