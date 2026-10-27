@@ -94,5 +94,13 @@
     "value": 160,
     "rarity": "rare",
     "description": "A flat courier's satchel with hidden pockets and a reinforced strap"
+  },
+  {
+    "name": "Smuggler's Nightglass",
+    "type": "accessory",
+    "effect": {"dexterity": 2, "initiative": 2},
+    "value": 240,
+    "rarity": "rare",
+    "description": "A dark monocle that shows the quickest way out of a room"
   }
 ]

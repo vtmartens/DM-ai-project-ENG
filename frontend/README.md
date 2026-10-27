@@ -111,6 +111,9 @@ You can also set `localStorage["dm_api_base"]`.
 - **Forge** button in the Sanctum opens a focus-trapped modal (`GET /forge`,
   `POST /forge/craft`) listing recipes, Rune Shard/gold costs, requirements and one-time
   forged status.
+- **Black market** button in the cleared Underroad opens Nessa's cache
+  (`GET /black_market`, `POST /black_market/buy`). It shows the current standing tier,
+  discounts, stock with locked tiers, unique/sold status, prices and purchase buttons.
 - **Hint** button (`POST /hint`) that appends a Dungeon Master hint to the log. The engine
   always supplies a deterministic hint; when AI narration is enabled the model may rephrase
   it, and any failure falls back to the engine wording.

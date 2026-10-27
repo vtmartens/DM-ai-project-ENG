@@ -341,6 +341,29 @@ def test_weapon_properties_are_well_formed():
             assert properties["damage_bonus"] >= 0, weapon["name"]
 
 
+def test_black_market_stock_is_well_formed():
+    stock = _load(ITEMS_DIR / "black_market_stock.json")
+    tiers = stock.get("tiers", {})
+    entries = stock.get("items", [])
+    item_names = {
+        item["name"]
+        for file_name in INVENTORY_FILES
+        for item in _load(ITEMS_DIR / file_name)
+    }
+
+    assert 1 <= int(stock.get("access_reputation", 0)) <= 100
+    assert tiers and entries
+    for tier_id, tier in tiers.items():
+        assert tier.get("label"), tier_id
+        assert int(tier.get("min", 0)) >= 1, tier_id
+        assert 0 <= int(tier.get("discount", 0)) <= 50, tier_id
+
+    for entry in entries:
+        assert entry.get("name") in item_names, entry
+        assert entry.get("tier") in tiers, entry
+        assert isinstance(entry.get("unique", False), bool), entry
+
+
 def test_shop_stock_references_existing_items():
     stock = _load(ROOT / "data" / "items" / "shop_stock.json")
     catalogue = set()

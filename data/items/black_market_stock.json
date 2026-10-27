@@ -1,0 +1,41 @@
+{
+  "access_reputation": 5,
+  "tiers": {
+    "runner": {
+      "min": 5,
+      "label": "Runner's Cache",
+      "discount": 0
+    },
+    "friendly": {
+      "min": 10,
+      "label": "Friendly Stock",
+      "discount": 0
+    },
+    "trusted": {
+      "min": 25,
+      "label": "Trusted Stock",
+      "discount": 5
+    },
+    "allied": {
+      "min": 40,
+      "label": "Allied Reserve",
+      "discount": 10
+    }
+  },
+  "items": [
+    {"name": "Smoke Bomb", "tier": "runner"},
+    {"name": "Antidote", "tier": "runner"},
+    {"name": "Spider Poison", "tier": "runner"},
+    {"name": "Healing Potion", "tier": "runner"},
+    {"name": "Greater Healing Potion", "tier": "friendly"},
+    {"name": "Thief's Gloves", "tier": "friendly"},
+    {"name": "Dexterity Potion", "tier": "friendly"},
+    {"name": "Boots of Speed", "tier": "trusted"},
+    {
+      "name": "Smuggler's Nightglass",
+      "tier": "trusted",
+      "unique": true
+    },
+    {"name": "Rune Draught", "tier": "allied"}
+  ]
+}

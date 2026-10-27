@@ -14,6 +14,7 @@ STATE_MODULES = {
     "SanctumState": "states.sanctum",
     "RuneTrialsState": "states.rune_trials",
     "ForgeState": "states.forge",
+    "BlackMarketState": "states.black_market",
     "BountyBoardState": "states.bounty_board",
     "RunePillarState": "states.rune_pillar",
     "RoadEventState": "states.road_event",

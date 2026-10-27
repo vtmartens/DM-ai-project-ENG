@@ -1284,6 +1284,34 @@ entirely. The doors that existed were also misaligned with the map exits.
   `describe`, no state mutation and the API/logging path. Narrator adapter tests cover the
   scene prompt on both providers. 703 tests pass.
 
+## Nessa's black market (2026-10-27)
+
+- New `data/items/black_market_stock.json` defines access at Underroad reputation 5,
+  four tier thresholds and ten data-driven stock entries. Runner's Cache sells Smoke Bomb,
+  Antidote, Spider Poison and Healing Potion; Friendly adds Greater Healing Potion,
+  Thief's Gloves and Dexterity Potion; Trusted adds Boots of Speed and the unique
+  **Smuggler's Nightglass** (dexterity +2, initiative +2); Allied adds Rune Draught.
+- `core/black_market.py` handles access (requires completed `quiet_cargo` plus positive
+  Underroad standing), tier selection, prices, discounts (5% trusted, 10% allied), locked
+  and purchased states, and purchases. Unique purchases use the
+  `black_market:<item name>` claimed-reward flag, which New Cycle now retains alongside
+  `crafted:*` flags so an inventory-persisted unique item cannot be bought twice.
+- `BlackMarketState` is a new menu state reached from Underroad menu option 6 /
+  `Nessa's cache`. It lists every stock row, including locked tiers and their requirements,
+  and returns to the Underroad with `leave`. It is registered for save/load.
+- API: `GET /black_market` and `POST /black_market/buy`, restricted to `BlackMarketState`.
+  Purchases add `black_market` snapshots and engine output. `GET /black_market` outside the
+  state returns `409`; the buy call returns `bought: false`.
+- Web client: a **Black market** log-action button appears only in the state and opens
+  Nessa's Cache modal with tier, standing, gold, discount, locked stock, unique/sold status
+  and per-item Buy buttons. Assets are at `?v=44`.
+- Underroad `available_actions` exposes `Nessa's cache` once unlocked, and the `Underroad`
+  landmark panel inherits it.
+- Tests: `tests/test_black_market.py` covers access gating, tier stock, discounts, purchase
+  success, locked/insufficient-gold refusal, unique exhaustion and player-round-trip state,
+  menu access and the API. Data integrity validates the stock definition.
+  **715 tests pass.**
+
 ## Deliberate translation choices worth knowing
 
 - **`hp_base` / `mana_base` were left as-is.** They are consistent between code and JSON

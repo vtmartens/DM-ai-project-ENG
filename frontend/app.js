@@ -93,6 +93,11 @@ const el = {
   closeForgeModal: document.getElementById("close-forge-modal"),
   forgeMeta: document.getElementById("forge-meta"),
   forgeList: document.getElementById("forge-list"),
+  showBlackMarket: document.getElementById("show-black-market"),
+  blackMarketModal: document.getElementById("black-market-modal"),
+  closeBlackMarketModal: document.getElementById("close-black-market-modal"),
+  blackMarketMeta: document.getElementById("black-market-meta"),
+  blackMarketList: document.getElementById("black-market-list"),
   askHint: document.getElementById("ask-hint"),
   showScene: document.getElementById("show-scene"),
   showRecap: document.getElementById("show-recap"),
@@ -444,6 +449,12 @@ function renderState(state) {
   const inForge = state.state === "ForgeState";
   el.showForge.classList.toggle("hidden", !inForge);
   if (!inForge && activeModal === el.forgeModal) closeForgeModal();
+
+  const inBlackMarket = state.state === "BlackMarketState";
+  el.showBlackMarket.classList.toggle("hidden", !inBlackMarket);
+  if (!inBlackMarket && activeModal === el.blackMarketModal) {
+    closeBlackMarketModal();
+  }
 }
 
 function applyState(state) {
@@ -1465,6 +1476,7 @@ function setBusy(busy, status = "") {
   if (el.showShop) el.showShop.disabled = busy;
   if (el.showBounties) el.showBounties.disabled = busy;
   if (el.showForge) el.showForge.disabled = busy;
+  if (el.showBlackMarket) el.showBlackMarket.disabled = busy;
   el.commandStatus.textContent = status;
 }
 
@@ -1967,6 +1979,120 @@ async function forgeAction(recipeId) {
   }
 }
 
+async function showBlackMarket() {
+  if (!store.sessionId || store.busy) return;
+  try {
+    const data = await api(
+      `/black_market?session_id=${encodeURIComponent(store.sessionId)}`
+    );
+    renderBlackMarket(data);
+    openModal(el.blackMarketModal);
+  } catch (error) {
+    showToast(error.message, "error");
+  }
+}
+
+function closeBlackMarketModal() {
+  closeModal(el.blackMarketModal);
+}
+
+function renderBlackMarket(data) {
+  const tier = data?.tier_label || "No standing";
+  const reputation = Number(data?.reputation || 0);
+  const gold = Number(data?.gold || 0);
+  const discount = Number(data?.discount || 0);
+  el.blackMarketMeta.textContent =
+    `${tier} · Underroad +${reputation} · Gold: ${gold}` +
+    (discount ? ` · ${discount}% discount` : "");
+  el.blackMarketList.innerHTML = "";
+
+  const items = data?.items || [];
+  if (!items.length) {
+    const note = document.createElement("p");
+    note.className = "empty-note";
+    note.textContent = "Nessa's cache is empty.";
+    el.blackMarketList.appendChild(note);
+    return;
+  }
+
+  for (const item of items) {
+    const row = document.createElement("div");
+    row.className = "shop-entry";
+    const info = document.createElement("div");
+    info.className = "shop-info";
+    const name = document.createElement("strong");
+    name.textContent = item.name || "Item";
+    const meta = document.createElement("p");
+    meta.className = "shop-meta";
+    meta.textContent =
+      `${item.tier_label || "Stock"} · ${item.price} gold` +
+      (item.unique ? " · Unique" : "");
+    info.append(name, meta);
+    if (item.description) {
+      const description = document.createElement("p");
+      description.className = "shop-description";
+      description.textContent = item.description;
+      info.appendChild(description);
+    }
+    if (item.reasons?.length) {
+      const reasons = document.createElement("p");
+      reasons.className = "shop-meta";
+      reasons.textContent = item.reasons.join(" · ");
+      info.appendChild(reasons);
+    }
+
+    const action = document.createElement("div");
+    action.className = "shop-action";
+    const status = document.createElement("span");
+    status.className = "shop-price";
+    status.textContent = item.purchased
+      ? "Sold"
+      : item.unique
+        ? "Unique"
+        : "Repeatable";
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "primary small";
+    button.textContent = item.purchased ? "Sold" : "Buy";
+    button.disabled = !item.can_buy;
+    if (!item.can_buy && item.reasons?.length) {
+      button.title = item.reasons.join("; ");
+    }
+    button.addEventListener("click", () => blackMarketBuy(item.name));
+    action.append(status, button);
+    row.append(info, action);
+    el.blackMarketList.appendChild(row);
+  }
+}
+
+async function blackMarketBuy(itemName) {
+  if (!store.sessionId || store.busy) return;
+
+  store.busy = true;
+  setBusy(true, "Buying from Nessa's cache…");
+  try {
+    const data = await api("/black_market/buy", {
+      method: "POST",
+      body: { session_id: store.sessionId, item: itemName },
+    });
+    appendOutput(data.output);
+    if (data.state) applyState(data.state);
+    if (data.black_market) renderBlackMarket(data.black_market);
+    if (data.message) {
+      showToast(data.message, data.bought ? "success" : "error");
+    }
+    refreshSidePanels(data.state);
+  } catch (error) {
+    showToast(error.message, "error");
+    if (error.status === 404) {
+      clearSession();
+    }
+  } finally {
+    store.busy = false;
+    setBusy(false, "");
+  }
+}
+
 function renderBounties(data) {
   const gold = Number(data?.gold || 0);
   const active = Number(data?.active_count || 0);
@@ -2309,6 +2435,7 @@ function bindEvents() {
   el.showShop.addEventListener("click", showShop);
   el.showBounties.addEventListener("click", showBountyBoard);
   el.showForge.addEventListener("click", showForge);
+  el.showBlackMarket.addEventListener("click", showBlackMarket);
   el.askHint.addEventListener("click", askHint);
   el.showScene.addEventListener("click", describeScene);
   el.showRecap.addEventListener("click", showRecap);
@@ -2317,6 +2444,7 @@ function bindEvents() {
   el.closeShopModal.addEventListener("click", closeShopModal);
   el.closeBountyModal.addEventListener("click", closeBountyModal);
   el.closeForgeModal.addEventListener("click", closeForgeModal);
+  el.closeBlackMarketModal.addEventListener("click", closeBlackMarketModal);
   el.loadModal.addEventListener("click", (event) => {
     if (event.target === el.loadModal) closeLoadModal();
   });
@@ -2331,6 +2459,9 @@ function bindEvents() {
   });
   el.forgeModal.addEventListener("click", (event) => {
     if (event.target === el.forgeModal) closeForgeModal();
+  });
+  el.blackMarketModal.addEventListener("click", (event) => {
+    if (event.target === el.blackMarketModal) closeBlackMarketModal();
   });
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {

@@ -652,6 +652,52 @@ crafts consume shards and gold, add the result item and mark unique recipes with
 `crafted:<recipe_id>` reward flag. Outside `ForgeState`, `/forge` and `/forge/craft` return
 `409`.
 
+#### `GET /black_market?session_id=...`
+
+Available while the current state is `BlackMarketState`, reached from Nessa's cache in the
+cleared Underroad. Returns the player's tier, standing, gold, discount and stock:
+
+```json
+{
+  "unlocked": true,
+  "reputation": 16,
+  "tier": "friendly",
+  "tier_label": "Friendly Stock",
+  "discount": 0,
+  "gold": 100,
+  "items": [
+    {
+      "name": "Greater Healing Potion",
+      "tier": "friendly",
+      "tier_label": "Friendly Stock",
+      "price": 40,
+      "unique": false,
+      "purchased": false,
+      "available": true,
+      "can_buy": true,
+      "reasons": []
+    }
+  ]
+}
+```
+
+Stock lives in `data/items/black_market_stock.json`. The shop opens only after
+`quiet_cargo` is completed and Underroad Smugglers standing is at least 5. Lower tiers remain
+buyable at higher standing; locked rows stay visible with their requirement. Trusted standing
+adds a 5% discount, Allied adds 10%. `unique` stock is one-time and is recorded in
+`claimed_rewards` as `black_market:<item name>`.
+
+#### `POST /black_market/buy`
+
+```json
+{"session_id": "uuid", "item": "Smoke Bomb"}
+```
+
+Returns `output`, `state`, `bought`, `message` and the refreshed `black_market` object.
+Purchases charge gold and add the item to the inventory. Locked, already-sold or unaffordable
+items return `bought: false` with an explanatory message. Outside `BlackMarketState`,
+`GET /black_market` returns `409` and the buy call returns `bought: false`.
+
 #### `GET /bounties?session_id=...`
 
 Returns the tavern bounty board. Only available in `TavernState` or `BountyBoardState`;
@@ -814,6 +860,10 @@ warehouse for the Cargo Manifest, then return to her. The manifest can go to Nes
 unlock The Quiet Cargo achievement. The wagon is a hidden object with detection DC 13, so
 it is found through the map's normal `search` action.
 
+Completing The Quiet Cargo with positive Underroad standing also adds `Nessa's cache`
+(menu option 6) to the cleared Underroad. It opens `BlackMarketState` and the tiered
+contraband stock described under `GET /black_market`.
+
 #### The Sealed Sanctum
 
 After the Underroad is cleared and its cache has been claimed, the Underroad menu offers
@@ -892,11 +942,13 @@ restores HP and mana and clears conditions) and `bounties` opens the bounty boar
 market it includes `shop`, `buy` and `sell`, which drive the shop modal and the numbered
 terminal shop. The map advertises `search`, `sneak` and its four movement directions. The waystation
 advertises `confront`, `strongbox`, `rest`, `underroad` and `leave`; the Underroad advertises
-`confront`, `cache` and `leave`, adding `sanctum` after the area is cleared; the Sealed
+`confront`, `cache`, `sanctum`, `talk to Nessa` and `leave` after the area is cleared, adding
+`Nessa's cache` when the black market is unlocked; the Sealed
 Sanctum advertises its current `amulet`/`force` or `confront`/`vault`/`trials`/`forge`
 actions; the Rune Trials advertise `begin`/`leave`, then their current boons; the Rune Forge
-advertises its recipe ids and `leave`; the bounty board advertises `accept`, `claim` and
-`leave`; the Rune Pillar advertises `study` and `leave`.
+advertises its recipe ids and `leave`; Nessa's cache advertises its purchasable item names
+and `leave`; the bounty board advertises `accept`, `claim` and `leave`; the Rune Pillar
+advertises `study` and `leave`.
 Bounty contracts are ordinary quests with `bounty: true` and `repeatable: true`, so their
 progress and ready state appear in `GET /missions` and the web quest panel. Claimed bounties
 return to the available list, while only the latest completion record is kept.
@@ -1212,7 +1264,8 @@ cycle**. The same action is available as `new cycle` / `ng+`. A confirmation pro
 calls `Game.start_new_cycle()`:
 
 - resets quests, cleared areas, campaign flags, map state, conditions, allies and defeats
-- clears `claimed_rewards` except `crafted:*` forge flags
+- clears `claimed_rewards` except `crafted:*` forge flags and `black_market:*` unique
+  purchase flags
 - keeps level, XP, equipment, inventory, gold, achievements, faction standing, Rune Shards,
   Rune Trials best/runs and forged gear
 - increments `player.cycle`, restores HP/mana and returns to the Tavern

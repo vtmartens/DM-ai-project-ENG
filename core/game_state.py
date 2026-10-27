@@ -580,6 +580,36 @@ class GameState:
         self._record_output()
         return result
 
+    def get_black_market_state(self):
+        """Returns Nessa's cache stock, tier and gold."""
+        from core.black_market import black_market_state
+        from states.black_market import BlackMarketState
+
+        current = self.game.current_state()
+        if not isinstance(current, BlackMarketState):
+            return None
+        return black_market_state(self.game.player)
+
+    def black_market_buy(self, item_name):
+        """Buys one black-market item and records its engine output."""
+        from core.black_market import buy_black_market_item
+        from states.black_market import BlackMarketState
+
+        current = self.game.current_state()
+        if not isinstance(current, BlackMarketState):
+            return {
+                "success": False,
+                "message": "Nessa's cache is not open.",
+            }
+
+        self.io_buffer.clear()
+        result = buy_black_market_item(
+            self.game.player, item_name, self.game
+        )
+        self.io_buffer.flush()
+        self._record_output()
+        return result
+
     def shop_buy(self, item_name):
         """Buys a market item and records its engine output."""
         from core.shop import buy_item

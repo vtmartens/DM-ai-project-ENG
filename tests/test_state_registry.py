@@ -21,6 +21,7 @@ def test_new_states_are_registered():
         "SanctumState",
         "RuneTrialsState",
         "ForgeState",
+        "BlackMarketState",
         "BountyBoardState",
         "RunePillarState",
         "MapState",

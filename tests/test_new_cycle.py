@@ -23,6 +23,7 @@ def _game(recording_io):
     player.achievement_timestamps = {"first_step": 1}
     player.claimed_rewards = [
         "crafted:rune_forged_blade",
+        "black_market:smuggler's nightglass",
         "runeheart_mirt",
         "sanctum_vault",
         "underroad_cache",
@@ -57,7 +58,10 @@ def test_new_cycle_resets_story_and_preserves_meta_progress(recording_io):
     assert player.completed_quests == []
     assert player.progress_quests == {}
     assert player.cleared_areas == []
-    assert player.claimed_rewards == ["crafted:rune_forged_blade"]
+    assert player.claimed_rewards == [
+        "crafted:rune_forged_blade",
+        "black_market:smuggler's nightglass",
+    ]
     assert player.conditions == {}
     assert player.stealthed is False
     assert player.allies == []

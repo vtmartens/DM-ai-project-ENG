@@ -223,7 +223,11 @@ class Game:
         retained_rewards = [
             flag
             for flag in (getattr(player, "claimed_rewards", []) or [])
-            if isinstance(flag, str) and flag.startswith("crafted:")
+            if isinstance(flag, str)
+            and (
+                flag.startswith("crafted:")
+                or flag.startswith("black_market:")
+            )
         ]
 
         player.active_quests = []

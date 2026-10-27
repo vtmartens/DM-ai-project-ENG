@@ -135,6 +135,8 @@ def home():
             "POST /shop/sell": "Sell an inventory item",
             "GET /forge": "Get the Sanctum Forge recipes",
             "POST /forge/craft": "Craft a Rune Shard recipe",
+            "GET /black_market": "Get Nessa's cache stock",
+            "POST /black_market/buy": "Buy from Nessa's cache",
             "GET /bounties": "Get the tavern bounty board",
             "POST /bounties/accept": "Accept a bounty contract",
             "POST /bounties/claim": "Claim a ready bounty contract",
@@ -865,10 +867,11 @@ def get_available_actions():
             "underroad",
             "leave",
         ],
-        "underroad": ["confront", "cache", "sanctum", "leave"],
+        "underroad": ["confront", "cache", "sanctum", "talk to Nessa", "leave"],
         "sanctum": ["amulet", "force", "confront", "vault", "trials", "forge", "leave"],
         "rune_trials": ["begin", "leave"],
         "forge": ["rune_draught", "rune_forged_blade", "rune_ward_plate", "leave"],
+        "black_market": ["leave"],
         "bounty_board": ["accept", "claim", "leave"],
         "rune_pillar": ["study", "leave"],
         "road_event": ["leave"],
@@ -919,6 +922,14 @@ def get_available_actions():
             chooser()
             if callable(chooser)
             else actions_context["forge"]
+        )
+    elif state_name == "BlackMarketState":
+        market = session.game.current_state()
+        chooser = getattr(market, "available_actions", None)
+        actions = (
+            chooser()
+            if callable(chooser)
+            else actions_context["black_market"]
         )
     elif state_name == "BountyBoardState":
         actions = actions_context["bounty_board"]
@@ -1052,6 +1063,49 @@ def craft_at_forge():
         "crafted": bool(result.get("success")),
         "message": result.get("message", ""),
         "forge": session.get_forge_state(),
+    })
+
+
+@app.route("/black_market", methods=["GET"])
+def get_black_market():
+    """Get Nessa's cache stock and the player's tier."""
+    session_id = request.args.get("session_id")
+    session, error = get_session_or_error(session_id)
+    if error:
+        return error
+
+    stock = session.get_black_market_state()
+    if stock is None:
+        return jsonify(
+            {"error": "Nessa's cache is only available in the Underroad."}
+        ), 409
+    return jsonify(stock)
+
+
+@app.route("/black_market/buy", methods=["POST"])
+def buy_from_black_market():
+    """Buy one item from Nessa's cache."""
+    data = request.json or {}
+    session_id = data.get("session_id")
+    item_name = data.get("item")
+    if not item_name:
+        return jsonify({"error": "Item not provided"}), 400
+
+    session, error = get_session_or_error(session_id)
+    if error:
+        return error
+
+    result = session.black_market_buy(str(item_name))
+    save_session(session_id, session)
+    structured_output = session.io_buffer.get_structured_output()
+    session.io_buffer.clear()
+
+    return jsonify({
+        "output": structured_output,
+        "state": session.get_current_state(),
+        "bought": bool(result.get("success")),
+        "message": result.get("message", ""),
+        "black_market": session.get_black_market_state(),
     })
 
 

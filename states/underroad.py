@@ -19,13 +19,18 @@ class UnderroadState(BaseGameState):
     def available_actions(self, game=None):
         game = game or getattr(self, "game", None)
         if game is not None and self._cleared(game.player):
-            return [
+            actions = [
                 "confront",
                 "cache",
                 "sanctum",
                 "talk to Nessa",
-                "leave",
             ]
+            from core.black_market import black_market_unlocked
+
+            if black_market_unlocked(game.player):
+                actions.append("Nessa's cache")
+            actions.append("leave")
+            return actions
         return ["confront", "cache", "leave"]
 
     def run(self, game):
@@ -103,6 +108,10 @@ class UnderroadState(BaseGameState):
         if cleared:
             game.io.show_message("4. Enter the Sealed Sanctum")
             game.io.show_message("5. Speak with Nessa")
+            from core.black_market import black_market_unlocked
+
+            if black_market_unlocked(player):
+                game.io.show_message("6. Visit Nessa's cache")
 
         choice = str(
             game.io.request_input("\nChoice: ") or ""
@@ -136,6 +145,18 @@ class UnderroadState(BaseGameState):
             "talk",
         }:
             if self._talk_to_nessa(game):
+                return
+        elif choice in {
+            "6",
+            "black market",
+            "black_market",
+            "nessa's cache",
+            "nessas cache",
+            "runner's cache",
+            "runners cache",
+            "smugglers market",
+        }:
+            if self._open_black_market(game):
                 return
         elif choice in {"3", "leave", "return", "waystation", "exit"}:
             self._leave(game)
@@ -241,6 +262,27 @@ class UnderroadState(BaseGameState):
         from states.dialogue import DialogueState
 
         game.push_state(DialogueState(NPC("Nessa")))
+        return True
+
+    def _open_black_market(self, game):
+        """Opens Nessa's cache once the side quest and standing allow it."""
+        from core.black_market import black_market_unlocked
+        from states.black_market import BlackMarketState
+
+        if not self._cleared(game.player):
+            game.io.show_message(
+                "The smugglers still hold the tunnel. Nessa's cache is not "
+                "open."
+            )
+            return False
+        if not black_market_unlocked(game.player):
+            game.io.show_message(
+                "Nessa's cache is closed. Finish The Quiet Cargo and earn "
+                "the Underroad's trust."
+            )
+            return False
+
+        game.push_state(BlackMarketState(game))
         return True
 
     def _leave(self, game):
