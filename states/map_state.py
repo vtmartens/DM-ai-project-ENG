@@ -13,7 +13,9 @@ class MapState(BaseState):
         self.origin_state = origin_state
         self.show_legend = True
         self.phase = "main_menu"
-        
+        # A short grace period after entering a map; only the road uses it.
+        self.encounter_cooldown = 2
+
         # Movement directions
         self.directions = {
             "north": (0, -1),
@@ -325,11 +327,47 @@ class MapState(BaseState):
             # If the map changed after the movement
             if previous_map != game.player.current_map:
                 game.io.show_message(f"You passed through a door to {game.player.current_map}!")
-                
+
+                if game.player.current_map == "road":
+                    from core.wilderness import ROAD_GRACE_STEPS
+
+                    self.encounter_cooldown = max(
+                        self.encounter_cooldown, ROAD_GRACE_STEPS
+                    )
+                    game.io.show_message(
+                        "The trade road stretches ahead. Danger may find you here."
+                    )
+
                 # State handling based on the map change
                 self._manage_change_map(game, previous_map, game.player.current_map)
+            elif game.player.current_map == "road":
+                self._maybe_road_encounter(game)
         else:
             game.io.error_message("You cannot move in that direction!")
+
+    def _maybe_road_encounter(self, game):
+        """Rolls for a wandering encounter after a road step."""
+        from core.wilderness import (
+            ROAD_ENCOUNTER_COOLDOWN,
+            should_trigger_encounter,
+            start_road_encounter,
+        )
+
+        try:
+            cooldown = int(getattr(self, "encounter_cooldown", 0) or 0)
+        except (TypeError, ValueError):
+            cooldown = 0
+
+        if cooldown > 0:
+            self.encounter_cooldown = cooldown - 1
+            return
+
+        if not should_trigger_encounter():
+            return
+
+        encounter = start_road_encounter(game)
+        if encounter is not None:
+            self.encounter_cooldown = ROAD_ENCOUNTER_COOLDOWN
             
     def to_dict(self):
         """
@@ -345,6 +383,7 @@ class MapState(BaseState):
         data.update({
             "show_legend": self.show_legend,
             "phase": self.phase,
+            "encounter_cooldown": getattr(self, "encounter_cooldown", 0),
         })
         
         # Save the origin state if present
@@ -369,6 +408,9 @@ class MapState(BaseState):
         # Restore attributes
         state.show_legend = data.get("show_legend", True)
         state.phase = data.get("phase", "main_menu")
+        state.encounter_cooldown = int(
+            data.get("encounter_cooldown", 0) or 0
+        )
         
         # Note: origin_state will be handled after the complete loading
         # of the state stack, since it might require circular references

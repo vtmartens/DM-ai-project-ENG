@@ -2,15 +2,9 @@
 
 from __future__ import annotations
 
+from core.item_catalogue import item_catalogue
 from items.item import Item
 from util.data_manager import get_data_manager
-
-CATALOGUE_FILES = (
-    "weapons.json",
-    "armor.json",
-    "accessories.json",
-    "potions.json",
-)
 
 SELLABLE_TYPES = {
     "weapon",
@@ -63,20 +57,6 @@ def describe_effect(effect) -> str:
     return ", ".join(parts)
 
 
-def _catalogue_items() -> dict[str, dict]:
-    manager = get_data_manager()
-    items = {}
-    for file_name in CATALOGUE_FILES:
-        entries = manager.load_data("items", file_name)
-        if not isinstance(entries, list):
-            continue
-        for entry in entries:
-            if not isinstance(entry, dict) or not entry.get("name"):
-                continue
-            items[str(entry["name"]).casefold()] = entry
-    return items
-
-
 def _fallback_stock(catalogue: dict[str, dict]) -> list[dict]:
     category_for_type = {
         "weapon": "Weapons",
@@ -94,7 +74,7 @@ def _fallback_stock(catalogue: dict[str, dict]) -> list[dict]:
 
 
 def _stock_definitions() -> list[dict]:
-    catalogue = _catalogue_items()
+    catalogue = item_catalogue()
     config = get_data_manager().load_data("items", "shop_stock.json")
     if not isinstance(config, dict) or not config:
         return _fallback_stock(catalogue)

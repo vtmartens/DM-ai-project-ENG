@@ -49,7 +49,8 @@ You can also set `localStorage["dm_api_base"]`.
 - Map modal (`GET /map_view`) with the ASCII map, the player's position, and a token
   legend generated from the objects/NPCs actually on the map; characters are labelled
   `(NPC)` so it is clear who can be talked to. Map exits are shown as `>` and named in the
-  legend (“Exit to market”).
+  legend (“Exit to market”). The **Road** area is on the same map, and moving there can
+  trigger wandering encounters; their loot appears in the inventory.
 - Combat card with every enemy's name/HP, armor class and the current round (from `state.combat`).
   With multiple enemies, each row has a Target button; the current target is marked.
   Defending and Aiming effects appear as status tags, and if the player is defeated the log

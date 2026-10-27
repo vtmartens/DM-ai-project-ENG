@@ -607,6 +607,13 @@ keeps the type per name, so clients can label characters — the web client appe
 
 `direction` is `north`, `south`, `east`, or `west`. Returns `{"movement": true, "state": {...}}`.
 
+The `road` map is reachable from the market at `(33, 7)` and starts at `(2, 7)`. Moving on
+the road (via `POST /move`, direction commands, or the map menu) can start a wandering
+encounter after a two-step grace period, with a three-step cooldown after each encounter.
+At level 1–2 the encounter table uses Goblin Scouts and Wolf Pack; Orc Patrol is added from
+level 3. Victories use the curated encounter reward and can additionally roll loot from
+`data/monsters/loot_tables.json` into the player's inventory.
+
 #### `GET /npcs?session_id=...`
 
 Returns a list of NPC names placed on the current map.

@@ -278,6 +278,35 @@ def test_monster_armor_classes_are_well_formed():
         assert 5 <= int(armor_class) <= 30, monster_id
 
 
+def test_loot_tables_reference_existing_monsters_and_items():
+    loot = _load(ROOT / "data" / "monsters" / "loot_tables.json")
+    monsters = _load(ROOT / "data" / "monsters" / "monsters.json")
+    item_names = set()
+    for file_name in (
+        "weapons.json",
+        "armor.json",
+        "accessories.json",
+        "potions.json",
+    ):
+        for item in _load(ITEMS_DIR / file_name):
+            item_names.add(item["name"])
+
+    assert loot
+    for monster_id, entries in loot.items():
+        assert monster_id in monsters, monster_id
+        assert entries, monster_id
+        for entry in entries:
+            assert entry.get("item") in item_names, (monster_id, entry)
+            assert 1 <= int(entry.get("chance", 0)) <= 100, (monster_id, entry)
+
+
+def test_road_encounter_ids_are_defined():
+    from core.encounters import encounter_catalogue
+    from core.wilderness import ROAD_ENCOUNTER_IDS
+
+    assert set(ROAD_ENCOUNTER_IDS) <= set(encounter_catalogue())
+
+
 def test_enemy_ability_references_are_defined():
     abilities = set(_load(ROOT / "data" / "monsters" / "abilities.json"))
     conditions = set(_load(ROOT / "data" / "conditions" / "conditions.json"))

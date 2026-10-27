@@ -1,0 +1,29 @@
+{
+  "goblin": [
+    {"item": "Light Healing Potion", "chance": 30},
+    {"item": "Short Sword", "chance": 10}
+  ],
+  "orc": [
+    {"item": "Healing Potion", "chance": 25},
+    {"item": "Chainmail", "chance": 5}
+  ],
+  "wolf": [
+    {"item": "Healing Potion", "chance": 15}
+  ],
+  "skeleton": [
+    {"item": "Light Healing Potion", "chance": 20}
+  ],
+  "giant_spider": [
+    {"item": "Antidote", "chance": 30}
+  ],
+  "troll": [
+    {"item": "Greater Healing Potion", "chance": 20},
+    {"item": "Belt of the Giant", "chance": 5}
+  ],
+  "young_dragon": [
+    {"item": "Greater Healing Potion", "chance": 50}
+  ],
+  "zombie": [
+    {"item": "Light Healing Potion", "chance": 10}
+  ]
+}

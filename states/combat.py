@@ -764,6 +764,13 @@ class CombatState(BaseState):
                 player.add_item(item)
                 game.io.show_message(f"You obtained: {item.name}")
 
+            if isinstance(self.encounter, dict) and self.encounter.get("loot"):
+                from core.loot import roll_loot
+
+                for loot_item in roll_loot(enemy, self.dice_d100):
+                    player.add_item(loot_item)
+                    game.io.show_message(f"You loot {loot_item.name}.")
+
             if hasattr(enemy, "experience_value"):
                 gained_exp = enemy.experience_value * (
                     1 + getattr(enemy, "level", 0)

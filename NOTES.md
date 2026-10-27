@@ -736,7 +736,28 @@ entirely. The doors that existed were also misaligned with the map exits.
 - Tests: stock integrity and pricing, buying/refusal, selling/equipped refusal, full
   equipment effects and AC/attack updates, save round trip, API buy/sell and market-only
   restrictions, direct buy commands, terminal sell flow, and the browser Shop modal.
-  433 tests pass.
+
+## Road and wilderness encounters (2026-10-27)
+
+- Added the `road` outdoor map east of the market: market `(33,7)` ↔ road `(23,7)`, with
+  the player entering at `(2,7)`. The map loads through the normal JSON map pipeline, so
+  `/map_view`, travel commands and the web map legend work without special cases.
+- `core/wilderness.py` defines the road encounter chance (30%), a two-step grace period
+  after entering the map, and a three-step cooldown after a fight. Encounter choice uses the
+  existing curated encounter definitions; Orc Patrol is added at level 3+ while lower levels
+  see Goblin Scouts and Wolf Pack.
+- `MapState` rolls after a successful road step (not on other maps), pushes a
+  `CombatState` with the encounter metadata and recruited allies, and persists the cooldown
+  through save/load. `MapState` uses `encounter_cooldown` so existing maps are unaffected.
+- Added `core/loot.py` and `data/monsters/loot_tables.json`. Road encounters carry
+  `loot: true`; defeated enemies roll their table with `CombatState.dice_d100`, and dropped
+  items are added to the inventory with a log message. Non-road encounters do not roll loot,
+  so existing fight rewards and tests are unchanged.
+- Added `core/item_catalogue.py` as the shared item-definition lookup used by both the shop
+  and loot tables.
+- Tests: map connection, deterministic encounter triggering, grace/cooldown sequencing,
+  level-gated encounter tables, road-only loot, non-road no-loot behavior, API travel to the
+  road, loot-table integrity and road encounter id integrity. 445 tests pass.
 
 ## Deliberate translation choices worth knowing
 
@@ -766,7 +787,7 @@ entirely. The doors that existed were also misaligned with the map exits.
 | Residual Italian (glossary-derived denylist + accented characters) | 0 hits |
 | **Original Italian vs translated, identical input** | **46/46 placements, identical sequence** |
 | Flask API in-process (test client, no socket) | 31 × 200, 0 raised |
-| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, AI memory, hints, achievements, utility spells, locks, vault, quests, enemy abilities, encounters, saving throws, conditions, combat status, attack rolls/AC, Defend/Aim, defeat recovery, session recap, equipment economy, rest, accessibility, web client routes, browser smoke/mobile) | 433 passed |
+| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, AI memory, hints, achievements, utility spells, locks, vault, quests, enemy abilities, encounters, saving throws, conditions, combat status, attack rolls/AC, Defend/Aim, defeat recovery, session recap, equipment economy, road/wilderness/loot, rest, accessibility, web client routes, browser smoke/mobile) | 445 passed |
 | Live smoke test (Flask server, `/app`, start/state/abilities/inventory/actions/command/save/load) | passed |
 
 The last comparison is the strongest evidence: the pristine Italian code and the finished
