@@ -175,6 +175,85 @@ def test_get_current_state_exposes_achievements(recording_io):
     assert state["timestamp_achievements"]["first_step"] > 0
 
 
+def test_new_progression_achievements_unlock_from_recorded_events(recording_io):
+    player, game = _game(recording_io)
+
+    for _ in range(3):
+        record_event(player, "bounty_claimed", game=game)
+    assert "contractor" in player.achievements
+
+    for _ in range(5):
+        record_event(player, "road_victory", game=game)
+    assert "roadwarden" in player.achievements
+
+    player.cleared_areas = ["waystation"]
+    record_event(player, "area_cleared", game=game, area="waystation")
+    assert "waystation_liberator" in player.achievements
+
+    for _ in range(3):
+        record_event(
+            player, "item_bought", game=game, item_type="weapon"
+        )
+    assert "well_equipped" in player.achievements
+    assert player.achievement_stats["equipment_bought"] == 3
+    assert player.achievement_stats["items_bought"] == 3
+
+    player.defeats = 1
+    record_event(player, "combat_defeat", game=game)
+    assert "back_on_your_feet" in player.achievements
+
+    record_event(
+        player, "enemy_defeated", game=game, enemy="Iron Sentinel"
+    )
+    assert "vaultbreaker" in player.achievements
+
+
+def test_shop_purchases_count_toward_well_equipped(recording_io):
+    from core.shop import buy_item
+
+    player, game = _game(recording_io)
+    player.gold = 1000
+
+    for item_name in ("Chainmail", "Short Sword", "Ring of Strength"):
+        assert buy_item(player, item_name, game)["success"] is True
+
+    assert player.achievement_stats["items_bought"] == 3
+    assert player.achievement_stats["equipment_bought"] == 3
+    assert "well_equipped" in player.achievements
+
+
+def test_road_victory_and_area_clear_hooks(recording_io):
+    player, game = _game(recording_io)
+    enemy = Enemy("Training Dummy", hp=1)
+    combat = CombatState(
+        enemy=enemy,
+        encounter={
+            "title": "Road Fight",
+            "source": "road",
+            "clears_area": "waystation",
+            "reward": {"gold": 0, "experience": 0},
+        },
+    )
+    game.push_state(combat)
+
+    assert combat._grant_encounter_reward(game) is True
+
+    assert player.achievement_stats["road_victories"] == 1
+    assert "waystation" in player.cleared_areas
+    assert "waystation_liberator" in player.achievements
+
+
+def test_vaultbreaker_via_enemy_defeat_hook(recording_io):
+    from core.quests import record_enemy_defeat
+
+    player, game = _game(recording_io)
+
+    record_enemy_defeat(player, "Iron Sentinel", game)
+
+    assert "Iron Sentinel" in player.achievement_stats["enemies_defeated"]
+    assert "vaultbreaker" in player.achievements
+
+
 def test_every_catalogue_condition_type_is_supported():
     definitions = get_data_manager().get_achievements()
     assert definitions

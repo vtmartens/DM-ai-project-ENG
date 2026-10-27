@@ -203,6 +203,9 @@ def buy_item(player, item_name, game=None) -> dict:
     player.gold -= price
     item = Item.from_dict(definition)
     player.add_item(item)
+    from core.achievements import record_event
+
+    record_event(player, "item_bought", game=game, item_type=item.type)
     message = f"You buy {name} for {price} gold."
     if game:
         game.io.show_message(message)

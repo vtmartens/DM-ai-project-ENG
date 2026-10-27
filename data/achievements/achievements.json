@@ -95,5 +95,77 @@
       "type": "quest_without_combat",
       "value": 1
     }
+  },
+  {
+    "id": "contractor",
+    "name": "Contractor",
+    "description": "Claim 3 bounty contracts at the tavern board",
+    "icon": "achievement_gold.png",
+    "difficulty": "medium",
+    "score": 20,
+    "condition": {
+      "type": "bounty_claimed",
+      "value": 3
+    }
+  },
+  {
+    "id": "roadwarden",
+    "name": "Roadwarden",
+    "description": "Win 5 encounters along the Trade Road",
+    "icon": "achievement_map.png",
+    "difficulty": "medium",
+    "score": 25,
+    "condition": {
+      "type": "road_victory",
+      "value": 5
+    }
+  },
+  {
+    "id": "waystation_liberator",
+    "name": "Waystation Liberator",
+    "description": "Clear the Broken Waystation",
+    "icon": "achievement_combat.png",
+    "difficulty": "medium",
+    "score": 20,
+    "condition": {
+      "type": "area_cleared",
+      "value": "waystation"
+    }
+  },
+  {
+    "id": "well_equipped",
+    "name": "Well Equipped",
+    "description": "Buy 3 pieces of equipment from the market",
+    "icon": "achievement_equipment.png",
+    "difficulty": "easy",
+    "score": 10,
+    "condition": {
+      "type": "equipment_bought",
+      "value": 3
+    }
+  },
+  {
+    "id": "back_on_your_feet",
+    "name": "Back on Your Feet",
+    "description": "Recover from a defeat and return to the tavern",
+    "icon": "achievement_defense.png",
+    "difficulty": "easy",
+    "score": 10,
+    "condition": {
+      "type": "defeats",
+      "value": 1
+    }
+  },
+  {
+    "id": "vaultbreaker",
+    "name": "Vaultbreaker",
+    "description": "Defeat the Iron Sentinel in the Sealed Vault",
+    "icon": "achievement_combat.png",
+    "difficulty": "hard",
+    "score": 30,
+    "condition": {
+      "type": "defeat_enemy",
+      "value": "Iron Sentinel"
+    }
   }
 ] 

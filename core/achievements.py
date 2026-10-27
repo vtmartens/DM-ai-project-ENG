@@ -24,6 +24,12 @@ SUPPORTED_CONDITIONS = frozenset(
         "coins",
         "combat_without_damage",
         "quest_without_combat",
+        "bounty_claimed",
+        "road_victory",
+        "equipment_bought",
+        "area_cleared",
+        "defeats",
+        "defeat_enemy",
     }
 )
 
@@ -34,6 +40,11 @@ DEFAULT_ACHIEVEMENT_STATS = {
     "areas_visited": [],
     "combat_without_damage": 0,
     "quests_without_combat": 0,
+    "bounties_claimed": 0,
+    "road_victories": 0,
+    "items_bought": 0,
+    "equipment_bought": 0,
+    "enemies_defeated": [],
 }
 
 
@@ -86,6 +97,16 @@ def _as_int(value, default=1) -> int:
         return int(value)
     except (TypeError, ValueError):
         return default
+
+
+def _normalize(value) -> str:
+    return (
+        str(value or "")
+        .replace("_", " ")
+        .replace("-", " ")
+        .strip()
+        .casefold()
+    )
 
 
 def _all_map_names(game) -> set:
@@ -146,6 +167,33 @@ def condition_met(player, condition, game=None) -> bool:
 
     if condition_type == "quest_without_combat":
         return stats["quests_without_combat"] >= _as_int(value, 1)
+
+    if condition_type == "bounty_claimed":
+        return stats["bounties_claimed"] >= _as_int(value, 1)
+
+    if condition_type == "road_victory":
+        return stats["road_victories"] >= _as_int(value, 1)
+
+    if condition_type == "equipment_bought":
+        return stats["equipment_bought"] >= _as_int(value, 1)
+
+    if condition_type == "area_cleared":
+        cleared = {
+            _normalize(area)
+            for area in getattr(player, "cleared_areas", []) or []
+            if isinstance(area, str)
+        }
+        return _normalize(value) in cleared
+
+    if condition_type == "defeats":
+        return int(getattr(player, "defeats", 0) or 0) >= _as_int(value, 1)
+
+    if condition_type == "defeat_enemy":
+        defeated = {
+            _normalize(name)
+            for name in stats["enemies_defeated"]
+        }
+        return _normalize(value) in defeated
 
     return False
 
@@ -215,5 +263,17 @@ def record_event(entity, event, game=None, **details) -> list:
     elif event == "quest_completed":
         if _as_int(details.get("combat_encounters"), 0) == 0:
             stats["quests_without_combat"] += 1
+    elif event == "bounty_claimed":
+        stats["bounties_claimed"] += 1
+    elif event == "road_victory":
+        stats["road_victories"] += 1
+    elif event == "item_bought":
+        stats["items_bought"] += 1
+        if details.get("item_type") in {"weapon", "armor", "accessory"}:
+            stats["equipment_bought"] += 1
+    elif event == "enemy_defeated":
+        name = details.get("enemy")
+        if isinstance(name, str) and name and name not in stats["enemies_defeated"]:
+            stats["enemies_defeated"].append(name)
 
     return evaluate(entity, game)

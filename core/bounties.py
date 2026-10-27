@@ -105,4 +105,9 @@ def claim_bounty(player, bounty_id, game=None) -> bool:
         if game:
             game.io.show_message("That bounty is not ready to claim yet.")
         return False
-    return complete_quest(player, bounty_id, game)
+    claimed = complete_quest(player, bounty_id, game)
+    if claimed:
+        from core.achievements import record_event
+
+        record_event(player, "bounty_claimed", game=game)
+    return claimed

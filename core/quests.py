@@ -259,6 +259,16 @@ def record_enemy_defeat(player, enemy_name, game=None, monster_type=None):
     Bounty quests may track a monster type and a required count. Plain quests
     continue to match the exact target name.
     """
+    if enemy_name:
+        from core.achievements import record_event
+
+        record_event(
+            player,
+            "enemy_defeated",
+            game=game,
+            enemy=enemy_name,
+        )
+
     changed = []
     for quest in list(getattr(player, "active_quests", [])):
         if not isinstance(quest, dict):

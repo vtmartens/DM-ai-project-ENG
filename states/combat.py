@@ -832,6 +832,11 @@ class CombatState(BaseState):
         if bonus:
             game.io.show_message(f"Encounter bonus: {', '.join(bonus)}.")
 
+        from core.achievements import record_event
+
+        if self.encounter.get("source") == "road":
+            record_event(game.player, "road_victory", game=game)
+
         area = self.encounter.get("clears_area")
         if isinstance(area, str) and area:
             cleared = getattr(game.player, "cleared_areas", None)
@@ -842,6 +847,12 @@ class CombatState(BaseState):
                 cleared.append(area)
                 label = area.replace("_", " ").title()
                 game.io.show_message(f"The {label} is clear.")
+                record_event(
+                    game.player,
+                    "area_cleared",
+                    game=game,
+                    area=area,
+                )
         return True
 
     def _handle_defeat(self, game, enemy_name):
