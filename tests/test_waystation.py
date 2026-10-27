@@ -83,7 +83,12 @@ def test_strongbox_gives_the_unique_reward_once(recording_io):
     assert "waystation_chest" in player.claimed_rewards
 
     start_quest(player, "waystation_trouble", game)
-    assert player.active_quests[0]["status"] == "ready"
+    waystation_quest = next(
+        quest
+        for quest in player.active_quests
+        if quest.get("id") == "waystation_trouble"
+    )
+    assert waystation_quest["status"] == "ready"
 
     assert state._open_strongbox(game) is False
     assert player.gold == 150

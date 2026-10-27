@@ -102,5 +102,16 @@
       "gold": 60,
       "experience": 80
     }
+  },
+  "underroad_chapter": {
+    "title": "The Underroad",
+    "description": "The bandit chief's ledger points to a hidden route beneath the Broken Waystation, where a Smuggler Lord is moving goods and paying for silence.",
+    "objective": "Descend into the Underroad and defeat the Smuggler Lord.",
+    "target": "Smuggler Lord",
+    "turn_in": "Mirt",
+    "reward": {
+      "gold": 100,
+      "experience": 200
+    }
   }
 }

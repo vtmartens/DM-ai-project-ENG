@@ -75,6 +75,7 @@
   ],
   "road": [],
   "waystation": [],
+  "underroad": [],
   "warehouse": [
     {
       "name": "Vault Door",

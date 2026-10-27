@@ -39,6 +39,7 @@
   ],
   "road": [],
   "waystation": [],
+  "underroad": [],
   "warehouse": [
     {
       "name": "Vargas",

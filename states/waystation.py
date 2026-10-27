@@ -70,7 +70,11 @@ class WaystationState(BaseGameState):
         )
         game.io.show_message("2. Open the strongbox")
         game.io.show_message("3. Rest at the campfire")
-        game.io.show_message("4. Return to the road")
+        if cleared:
+            game.io.show_message("4. Return to the road")
+            game.io.show_message("5. Descend into the Underroad")
+        else:
+            game.io.show_message("4. Return to the road")
 
         choice = str(
             game.io.request_input("\nChoice: ") or ""
@@ -87,6 +91,9 @@ class WaystationState(BaseGameState):
         elif choice in {"4", "leave", "return", "road", "exit"}:
             self._leave(game)
             return
+        elif choice in {"5", "underroad", "descend", "tunnel"}:
+            if self._descend(game):
+                return
         else:
             game.io.show_message("Invalid choice.")
             press_enter(game)
@@ -148,12 +155,45 @@ class WaystationState(BaseGameState):
             player.add_item(Item.from_dict(definition))
             game.io.show_message("You found the Wayfarer's Cloak in the strongbox!")
 
+        ledger = Item(
+            "Bandit Ledger",
+            "common",
+            {},
+            20,
+            "A ledger naming buyers and a hidden route beneath the waystation",
+        )
+        player.add_item(ledger)
+        game.io.show_message(
+            "Among the coins is a bandit ledger. It names a Smuggler Lord "
+            "in a hidden Underroad beneath the waystation."
+        )
+        from core.quests import start_quest
+
+        start_quest(player, "underroad_chapter", game)
+
         claimed = getattr(player, "claimed_rewards", None)
         if not isinstance(claimed, list):
             claimed = []
             player.claimed_rewards = claimed
         claimed.append("waystation_chest")
         player.add_gold(50, game)
+        return True
+
+    def _descend(self, game):
+        if not self._is_cleared(game.player):
+            game.io.show_message(
+                "The passage beneath the waystation is still held by the bandits."
+            )
+            return False
+
+        game.io.show_message(
+            "You lift the old trapdoor and descend into the Underroad."
+        )
+        game.player.set_position("underroad", 2, 7)
+        game.map_manager.set_current_map("underroad")
+        from states.underroad import UnderroadState
+
+        game.change_state(UnderroadState(game))
         return True
 
     def _rest_at_campfire(self, game):

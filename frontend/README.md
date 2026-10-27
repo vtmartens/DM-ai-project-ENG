@@ -52,8 +52,10 @@ You can also set `localStorage["dm_api_base"]`.
   legend (“Exit to market”). The **Road** area is on the same map, and moving there can
   trigger wandering encounters; their loot appears in the inventory. Its far end leads to
   the **Broken Waystation**, a menu-driven boss landmark with a strongbox, a cleared-area
-  campfire rest and a Mirt quest hook. The vault's Rune Pillar is also interactive: use
-  `interact with Rune Pillar` nearby to attempt its Arcana challenge.
+  campfire rest and a Mirt quest hook. After clearing it, descend into the Underroad
+  chapter, fight the Smuggler Lord and claim the unique cache reward. The vault's Rune
+  Pillar is also interactive: use `interact with Rune Pillar` nearby to attempt its Arcana
+  challenge.
 - **Bounties** quick action in the tavern opens the bounty board. Accepted contracts appear
   in the Quests panel with their progress; ready contracts are claimed at the board for gold
   and XP.

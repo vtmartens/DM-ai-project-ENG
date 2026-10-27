@@ -626,6 +626,16 @@ The road's far end leads to the **Broken Waystation** (`WaystationState`). Its a
 grants the unique Wayfarer's Cloak and 50 gold; the cleared campfire fully restores HP, mana
 and clears conditions.
 
+#### The Underroad
+
+After clearing the Broken Waystation, the strongbox yields a Bandit Ledger and starts Mirt's
+`underroad_chapter` quest. The Waystation menu then offers **Descend into the Underroad**,
+which opens `UnderroadState` with `confront`, `cache` and `leave`. Confronting the Smuggler
+Lord starts the fixed `underroad_boss` encounter; victory clears `underroad`, readies the
+quest and unlocks the Underroad Delver achievement. The cleared cache grants the unique
+Underroad Signet and 75 gold once. The Underroad map is hidden from the destination menu
+until the Waystation is cleared.
+
 #### The Rune Pillar
 
 The vault's Rune Pillar is a `RunePillar` interactive object. Interacting with it opens
@@ -654,11 +664,12 @@ Returns a list of NPC names placed on the current map.
 ```
 
 The action list depends on the current state: combat, dialogue, market, inventory, the
-tavern, the Broken Waystation, the bounty board and the Rune Pillar each advertise their own
-commands. In the tavern, `rest` is the long-rest action (10 gold; restores HP and mana and
-clears conditions) and `bounties` opens the bounty board. In the market it includes `shop`,
-`buy` and `sell`, which drive the shop modal and the numbered terminal shop. The waystation
-advertises `confront`, `strongbox`, `rest` and `leave`; the bounty board advertises `accept`,
+tavern, the Broken Waystation, the Underroad, the bounty board and the Rune Pillar each
+advertise their own commands. In the tavern, `rest` is the long-rest action (10 gold; restores
+HP and mana and clears conditions) and `bounties` opens the bounty board. In the market it
+includes `shop`, `buy` and `sell`, which drive the shop modal and the numbered terminal shop.
+The waystation advertises `confront`, `strongbox`, `rest`, `underroad` and `leave`; the
+Underroad advertises `confront`, `cache` and `leave`; the bounty board advertises `accept`,
 `claim` and `leave`; the Rune Pillar advertises `study` and `leave`.
 Bounty contracts are ordinary quests with `bounty: true` and `repeatable: true`, so their
 progress and ready state appear in `GET /missions` and the web quest panel. Claimed bounties

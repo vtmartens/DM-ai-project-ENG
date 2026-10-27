@@ -46,8 +46,15 @@ class MapSelectionState(BaseGameState):
         # Show the map selection menu
         game.io.show_message("\n=== DESTINATION SELECTION ===")
         
-        # Get the list of available maps from the map manager in a stable order.
-        available_maps = sorted(game.map_manager.maps.keys())
+        # The Underroad is hidden until the Waystation is cleared.
+        available_maps = [
+            name
+            for name in sorted(game.map_manager.maps.keys())
+            if name != "underroad"
+            or "waystation" in (
+                getattr(game.player, "cleared_areas", []) or []
+            )
+        ]
         
         # Show the options
         game.io.show_message("Where do you want to go?")
@@ -157,6 +164,10 @@ class MapSelectionState(BaseGameState):
                 from states.waystation import WaystationState
 
                 new_state = WaystationState(game)
+            elif destination_map == "underroad":
+                from states.underroad import UnderroadState
+
+                new_state = UnderroadState(game)
             else:
                 # For other maps, use MapState with the correct state as origin
                 new_state = MapState()

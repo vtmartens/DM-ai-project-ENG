@@ -10,6 +10,7 @@ STATE_MODULES = {
     "CombatState": "states.combat",
     "MarketState": "states.market",
     "WaystationState": "states.waystation",
+    "UnderroadState": "states.underroad",
     "BountyBoardState": "states.bounty_board",
     "RunePillarState": "states.rune_pillar",
     "InventoryManagementState": "states.inventory_management",

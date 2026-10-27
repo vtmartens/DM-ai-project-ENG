@@ -200,7 +200,10 @@
         ["You look worried. What troubles you?", "waystation_offer", {"quest": "waystation_trouble", "status": "not_started"}],
         ["About the Broken Waystation...", "waystation_reminder", {"quest": "waystation_trouble", "status": "active"}],
         ["The waystation is clear.", "waystation_turn_in", {"quest": "waystation_trouble", "status": "ready"}],
-        ["What will happen to the trade road now?", "waystation_done", {"quest": "waystation_trouble", "status": "completed"}]
+        ["What will happen to the trade road now?", "waystation_done", {"quest": "waystation_trouble", "status": "completed"}],
+        ["About the Underroad...", "underroad_reminder", {"quest": "underroad_chapter", "status": "active"}],
+        ["The Underroad is clear.", "underroad_turn_in", {"quest": "underroad_chapter", "status": "ready"}],
+        ["What was in the Underroad?", "underroad_done", {"quest": "underroad_chapter", "status": "completed"}]
       ]
     },
     "business_info": {
@@ -282,6 +285,25 @@
       "text": "Mirt's caravans have started moving again. 'If you find more trouble on that road, I want to hear about it before it reaches my ledgers.'",
       "options": [
         ["I will keep my eyes open.", null]
+      ]
+    },
+    "underroad_reminder": {
+      "text": "Mirt taps the ledger. 'The tunnel beneath the waystation is older than the bandits. If the Smuggler Lord is using it, every quiet road in the region is for sale.'",
+      "options": [
+        ["I will go below.", null]
+      ]
+    },
+    "underroad_turn_in": {
+      "text": "Mirt reads the names in the ledger twice, then closes it. 'The Underroad is clear and the buyers will scatter. That is worth more than the coin, but take this anyway.'",
+      "effect": {"type": "complete_quest", "quest": "underroad_chapter"},
+      "options": [
+        ["A fair trade.", null]
+      ]
+    },
+    "underroad_done": {
+      "text": "Mirt has already begun tracing the names from the ledger. 'The Underroad is quiet for now. If another buyer appears, I will know where to send you.'",
+      "options": [
+        ["Until then.", null]
       ]
     },
     "show_items": {

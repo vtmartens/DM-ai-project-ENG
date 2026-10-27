@@ -167,5 +167,17 @@
       "type": "defeat_enemy",
       "value": "Iron Sentinel"
     }
+  },
+  {
+    "id": "underroad_delver",
+    "name": "Underroad Delver",
+    "description": "Clear the Underroad beneath the Broken Waystation",
+    "icon": "achievement_map.png",
+    "difficulty": "hard",
+    "score": 30,
+    "condition": {
+      "type": "area_cleared",
+      "value": "underroad"
+    }
   }
 ] 

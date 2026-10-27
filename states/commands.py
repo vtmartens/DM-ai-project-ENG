@@ -266,6 +266,10 @@ def _enter_destination_state(game, destination):
         from states.waystation import WaystationState
 
         game.change_state(WaystationState(game))
+    elif destination == "underroad":
+        from states.underroad import UnderroadState
+
+        game.change_state(UnderroadState(game))
     else:
         from states.map_state import MapState
 

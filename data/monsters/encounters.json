@@ -51,5 +51,18 @@
       {"monster_type": "bandit", "name": "Bandit A"},
       {"monster_type": "bandit", "name": "Bandit B"}
     ]
+  },
+  "underroad_boss": {
+    "title": "The Underroad",
+    "description": "The Smuggler Lord and two tunnel runners guard the hidden cache beneath the waystation.",
+    "difficulty": "hard",
+    "location": "underroad",
+    "clears_area": "underroad",
+    "reward": {"gold": 80, "experience": 250},
+    "enemies": [
+      {"monster_type": "smuggler_lord", "name": "Smuggler Lord"},
+      {"monster_type": "smuggler", "name": "Underroad Runner A"},
+      {"monster_type": "smuggler", "name": "Underroad Runner B"}
+    ]
   }
 }

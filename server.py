@@ -806,7 +806,14 @@ def get_available_actions():
             "map",
             "save",
         ],
-        "waystation": ["confront", "strongbox", "rest", "leave"],
+        "waystation": [
+            "confront",
+            "strongbox",
+            "rest",
+            "underroad",
+            "leave",
+        ],
+        "underroad": ["confront", "cache", "leave"],
         "bounty_board": ["accept", "claim", "leave"],
         "rune_pillar": ["study", "leave"]
     }
@@ -823,6 +830,8 @@ def get_available_actions():
         actions = actions_context["tavern"]
     elif state_name == "WaystationState":
         actions = actions_context["waystation"]
+    elif state_name == "UnderroadState":
+        actions = actions_context["underroad"]
     elif state_name == "BountyBoardState":
         actions = actions_context["bounty_board"]
     elif state_name == "RunePillarState":

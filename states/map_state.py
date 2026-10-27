@@ -188,6 +188,11 @@ class MapState(BaseState):
 
             game.change_state(WaystationState(game))
             return
+        if destination_map == "underroad":
+            from states.underroad import UnderroadState
+
+            game.change_state(UnderroadState(game))
+            return
 
         # Web sessions do not need the extra y/n pause: enter the destination
         # state directly when it has one (market/tavern). Cellar has no state,

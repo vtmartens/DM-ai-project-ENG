@@ -207,5 +207,47 @@
     "token": "C",
     "difficulty": "hard",
     "abilities": ["shield_bash"]
+  },
+  "smuggler": {
+    "name": "Underroad Smuggler",
+    "description": "A tunnel runner in a dark hood, knife in hand.",
+    "stats": {
+      "hp": 18,
+      "strength": 12,
+      "dexterity": 14,
+      "ac": 14,
+      "constitution": 12,
+      "intelligence": 10,
+      "wisdom": 8,
+      "charisma": 8
+    },
+    "weapons": ["Short Sword"],
+    "armor": "Leather Armor",
+    "gold": 15,
+    "experience": 80,
+    "token": "s",
+    "difficulty": "medium",
+    "abilities": ["cheap_shot"]
+  },
+  "smuggler_lord": {
+    "name": "Smuggler Lord",
+    "description": "A velvet-voiced crime lord who runs the Underroad from the shadows.",
+    "stats": {
+      "hp": 55,
+      "strength": 16,
+      "dexterity": 14,
+      "ac": 16,
+      "constitution": 14,
+      "intelligence": 12,
+      "wisdom": 10,
+      "charisma": 14
+    },
+    "weapons": ["Long Sword"],
+    "armor": "Shadow Cloak",
+    "gold": 60,
+    "experience": 300,
+    "token": "L",
+    "difficulty": "hard",
+    "abilities": ["dirty_trick"]
   }
 } 

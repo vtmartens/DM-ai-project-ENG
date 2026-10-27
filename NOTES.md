@@ -843,6 +843,20 @@ entirely. The doors that existed were also misaligned with the map exits.
   loading/map round trips, interaction, success/reward-once, failure/retry and Guidance
   consumption. 481 tests pass.
 
+## The Underroad chapter (2026-10-27)
+
+- Added the `underroad` dungeon map beneath the Waystation and an `UnderroadState` with
+  confront/cache/leave actions. Access is offered after the Waystation is cleared; the map
+  is hidden from the destination menu until then.
+- The Waystation strongbox now also yields a Bandit Ledger and starts Mirt's
+  `underroad_chapter` quest. The Underroad state ensures the quest starts for older saves.
+- Added Smuggler and Smuggler Lord monsters, the fixed `underroad_boss` encounter and the
+  unique Underroad Signet cache reward. Victory clears the area, readies the quest and
+  unlocks the **Underroad Delver** achievement; Mirt provides the turn-in dialogue.
+- Added state restore handling and server quick actions (`confront`, `cache`, `leave`).
+  Tests cover map/encounter data, access gating, boss victory, quest readiness, cache
+  once-only rewards, return travel, dialogue and the waystation ledger hook. 493 tests pass.
+
 ## Hardening pass (2026-10-27)
 
 - Removed the unused legacy `world/map_controller.py`; all live map/state navigation goes
@@ -893,7 +907,7 @@ entirely. The doors that existed were also misaligned with the map exits.
 | Residual Italian (glossary-derived denylist + accented characters) | 0 hits |
 | **Original Italian vs translated, identical input** | **46/46 placements, identical sequence** |
 | Flask API in-process (test client, no socket) | 31 × 200, 0 raised |
-| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, AI memory, hints, achievements, utility spells, locks, vault, quests, enemy abilities, encounters, saving throws, conditions, combat status, attack rolls/AC, Defend/Aim, defeat recovery, session recap, equipment economy, road/wilderness/loot, Broken Waystation, bounty board, progression achievements, weapon properties, Rune Pillar, hardening, rest, accessibility, web client routes, browser smoke/mobile) | 485 passed |
+| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, AI memory, hints, achievements, utility spells, locks, vault, quests, enemy abilities, encounters, saving throws, conditions, combat status, attack rolls/AC, Defend/Aim, defeat recovery, session recap, equipment economy, road/wilderness/loot, Broken Waystation, Underroad, bounty board, progression achievements, weapon properties, Rune Pillar, hardening, rest, accessibility, web client routes, browser smoke/mobile) | 493 passed |
 | Live smoke test (Flask server, `/app`, start/state/abilities/inventory/actions/command/save/load) | passed |
 
 The last comparison is the strongest evidence: the pristine Italian code and the finished
