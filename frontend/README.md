@@ -75,6 +75,8 @@ You can also set `localStorage["dm_api_base"]`.
   the adventure log, and the card reflects HP changes. Status tags show each enemy's physical
   guard, ability cooldowns and conditions such as Prone or Staggered. Trip and Shove are
   available as quick actions; their contested Athletics checks and outcomes appear in the log.
+  Enemies can also Trip/Shove the player. A prone player gets a **Stand up** quick action, and
+  Staggered disables ability use, matching the enemy rules.
 - Conditions panel driven by `state.conditions`: poisoned duration/damage, Guidance,
   advantage/disadvantage, and timed burning/frightened/weakened effects are rendered as
   colour-coded tags and update after each action.

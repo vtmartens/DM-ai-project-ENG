@@ -373,6 +373,7 @@ class GameState:
 
         current = self.game.current_state()
         if isinstance(current, CombatState) and getattr(current, "enemies", None):
+            from core.conditions import condition_stand_up
             from core.enemy_abilities import load_abilities
             from core.maneuvers import maneuver_actions
 
@@ -392,6 +393,8 @@ class GameState:
                 "flee",
                 *maneuver_actions(),
             ]
+            if condition_stand_up(self.game.player):
+                actions.append("stand up")
             if len(living) > 1:
                 actions.append("choose target")
 
@@ -440,6 +443,9 @@ class GameState:
                                 }
                                 for ability_id, remaining in cooldowns.items()
                                 if int(remaining or 0) > 0
+                                and not str(ability_id).startswith(
+                                    "maneuver:"
+                                )
                             ]
                             if alive
                             else []

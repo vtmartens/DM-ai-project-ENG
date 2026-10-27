@@ -80,34 +80,77 @@ def skill_check(player, skill, difficulty, game=None):
     return result["total"] >= difficulty
 
 
-def contested_skill_check(
-    player, player_skill, target, target_skill, game=None
+def _is_player(entity, game):
+    return game is not None and entity is getattr(game, "player", None)
+
+
+def contested_check(
+    attacker, attacker_skill, defender, defender_skill, game=None
 ):
-    """Rolls opposing skill checks and returns both totals and the winner."""
-    player_result = _roll_skill(
-        player, player_skill, game=game, consume_guidance=True
+    """Rolls opposing skill checks and reports whether the attacker wins."""
+    attacker_is_player = _is_player(attacker, game)
+    defender_is_player = _is_player(defender, game)
+    attacker_result = _roll_skill(
+        attacker,
+        attacker_skill,
+        game=game,
+        consume_guidance=attacker_is_player,
     )
-    target_result = _roll_skill(
-        target, target_skill, game=game, consume_guidance=False
+    defender_result = _roll_skill(
+        defender,
+        defender_skill,
+        game=game,
+        consume_guidance=defender_is_player and not attacker_is_player,
     )
+
     if game:
         guidance_text = (
-            f", +{player_result['guidance']} Guidance"
-            if player_result["guidance"]
+            f", +{attacker_result['guidance']} Guidance"
+            if attacker_result["guidance"]
+            else ""
+        )
+        if attacker_is_player:
+            attacker_label = ""
+        else:
+            attacker_label = (
+                f"{getattr(attacker, 'name', 'The attacker')} "
+            )
+        game.io.show_message(
+            f"{attacker_label}{attacker_skill.title()} check: "
+            f"{attacker_result['roll']} + {attacker_result['bonus']}"
+            f"{guidance_text} = {attacker_result['total']}."
+        )
+
+        if defender_is_player:
+            defender_label = "Your "
+        else:
+            defender_label = (
+                f"{getattr(defender, 'name', 'The target')} "
+            )
+        defender_guidance = (
+            f", +{defender_result['guidance']} Guidance"
+            if defender_result["guidance"]
             else ""
         )
         game.io.show_message(
-            f"{player_skill.title()} check: {player_result['roll']} + "
-            f"{player_result['bonus']}{guidance_text} = "
-            f"{player_result['total']}."
+            f"{defender_label}{defender_skill.title()} check: "
+            f"{defender_result['roll']} + {defender_result['bonus']}"
+            f"{defender_guidance} = {defender_result['total']}."
         )
-        game.io.show_message(
-            f"{getattr(target, 'name', 'The target')} {target_skill.title()} "
-            f"check: {target_result['roll']} + {target_result['bonus']} = "
-            f"{target_result['total']}."
-        )
+
     return {
-        "success": player_result["total"] >= target_result["total"],
-        "player_total": player_result["total"],
-        "target_total": target_result["total"],
+        "success": attacker_result["total"] >= defender_result["total"],
+        "attacker_total": attacker_result["total"],
+        "defender_total": defender_result["total"],
+        "player_total": attacker_result["total"],
+        "target_total": defender_result["total"],
     }
+
+
+def contested_skill_check(
+    player, player_skill, target, target_skill, game=None
+):
+    """Player-initiated contested check, kept as a compatibility wrapper."""
+    return contested_check(
+        player, player_skill, target, target_skill, game
+    )

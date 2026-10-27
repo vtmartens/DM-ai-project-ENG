@@ -25,6 +25,10 @@ class Enemy(Entity):
                 self.monster_type = monster_type
                 self.ability_ids = list(monster_data.get("abilities", []))
                 self.abilities = load_abilities(self.ability_ids)
+                self.maneuvers = list(monster_data.get("maneuvers", []))
+                self.maneuver_chance = int(
+                    monster_data.get("maneuver_chance", 35) or 0
+                )
                 stats = monster_data.get("stats", {})
                 ac = stats.get("ac")
                 self.armor_class_value = int(ac) if ac is not None else None
@@ -69,6 +73,8 @@ class Enemy(Entity):
         self.monster_type = None
         self.ability_ids = []
         self.abilities = []
+        self.maneuvers = []
+        self.maneuver_chance = 35
         self.armor_class_value = None
         self.attack_stat = None
         self.damage_bonus = 0
@@ -163,6 +169,10 @@ class Enemy(Entity):
             "experience": self.experience_value,
             "monster_type": self.monster_type,
             "ability_ids": list(getattr(self, "ability_ids", [])),
+            "maneuvers": list(getattr(self, "maneuvers", [])),
+            "maneuver_chance": int(
+                getattr(self, "maneuver_chance", 35) or 0
+            ),
             "armor_class_value": getattr(self, "armor_class_value", None),
             "attack_stat": getattr(self, "attack_stat", None),
             "damage_bonus": int(getattr(self, "damage_bonus", 0) or 0),
@@ -190,6 +200,12 @@ class Enemy(Entity):
             if "name" in data:
                 enemy.name = data["name"]
             enemy.conditions = dict(data.get("conditions", {}) or {})
+            if "maneuvers" in data:
+                enemy.maneuvers = list(data.get("maneuvers", []) or [])
+            if "maneuver_chance" in data:
+                enemy.maneuver_chance = int(
+                    data.get("maneuver_chance", 35) or 0
+                )
 
             return enemy
         
@@ -211,6 +227,10 @@ class Enemy(Entity):
         enemy.monster_type = data.get("monster_type", None)
         enemy.ability_ids = list(data.get("ability_ids", []) or [])
         enemy.abilities = load_abilities(enemy.ability_ids)
+        enemy.maneuvers = list(data.get("maneuvers", []) or [])
+        enemy.maneuver_chance = int(
+            data.get("maneuver_chance", 35) or 0
+        )
         enemy.armor_class_value = data.get("armor_class_value")
         enemy.attack_stat = data.get("attack_stat")
         enemy.damage_bonus = int(data.get("damage_bonus", 0) or 0)

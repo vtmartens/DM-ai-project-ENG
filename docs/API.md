@@ -854,6 +854,7 @@ Runs `look` and returns `output`, `state`, plus nearby `items`, `exits`, and `np
     "flee",
     "trip",
     "shove",
+    "stand up",
     "choose target"
   ]
 }
@@ -881,6 +882,13 @@ spends its next action standing up. Shove applies `staggered`: disadvantage on a
 no special abilities for a round. Both conditions affect the target's next action, appear in
 the log, and are included in the enemy snapshot.
 
+Monsters may also declare `maneuvers` in their data. Wolves Trip, bandits/smugglers/sentinels
+Shove, and the Rune Warden uses both. An enemy checks its maneuver chance with a d100, skips
+maneuvers whose condition is already on the player, and starts a two-round maneuver cooldown
+after using one. A prone player can use the `stand up` action from the combat menu, quick
+actions or `/combat_action`; it costs the turn and clears Prone. Staggered prevents the player
+from using class abilities, matching the enemy rule.
+
 Outside combat: `{"in_combat": false}`.
 
 #### `POST /combat_action`
@@ -894,7 +902,8 @@ the action, so `"attack"` with `"Goblin B"` attacks that enemy directly. `"defen
 the turn for +4 AC until the next round, and `"aim"` spends it to give the next weapon attack
 advantage; both also work as normal commands via `POST /command`. `"trip"` and `"shove"`
 resolve contested skill checks and apply their condition to the selected target; they are
-also available as normal commands, menu options 9 and 10, and quick actions.
+also available as normal commands, menu options 9 and 10, and quick actions. `"stand up"`
+spends the turn to clear the player's Prone condition and is advertised only while prone.
 
 Enemies also act on data-driven abilities with cooldowns. Their telegraphs and effects appear
 in `output`; `combat.enemies` reflects the resulting HP. Abilities may deal damage, poison,

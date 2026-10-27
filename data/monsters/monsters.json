@@ -65,7 +65,9 @@
     "experience": 75,
     "token": "L",
     "difficulty": "easy",
-    "abilities": ["savage_bite"]
+    "abilities": ["savage_bite"],
+    "maneuvers": ["trip"],
+    "maneuver_chance": 45
   },
   "skeleton": {
     "name": "skeleton",
@@ -198,7 +200,9 @@
     "experience": 60,
     "token": "b",
     "difficulty": "easy",
-    "abilities": ["cheap_shot"]
+    "abilities": ["cheap_shot"],
+    "maneuvers": ["shove"],
+    "maneuver_chance": 35
   },
   "bandit_chief": {
     "name": "Waystation Chief",
@@ -220,7 +224,9 @@
     "experience": 250,
     "token": "C",
     "difficulty": "hard",
-    "abilities": ["shield_bash"]
+    "abilities": ["shield_bash"],
+    "maneuvers": ["shove"],
+    "maneuver_chance": 40
   },
   "smuggler": {
     "name": "Underroad Smuggler",
@@ -243,7 +249,9 @@
     "experience": 80,
     "token": "s",
     "difficulty": "medium",
-    "abilities": ["cheap_shot"]
+    "abilities": ["cheap_shot"],
+    "maneuvers": ["shove"],
+    "maneuver_chance": 30
   },
   "smuggler_lord": {
     "name": "Smuggler Lord",
@@ -266,7 +274,9 @@
     "experience": 300,
     "token": "L",
     "difficulty": "hard",
-    "abilities": ["dirty_trick"]
+    "abilities": ["dirty_trick"],
+    "maneuvers": ["shove"],
+    "maneuver_chance": 35
   },
   "rune_sentinel": {
     "name": "Rune Sentinel",
@@ -289,7 +299,9 @@
     "experience": 90,
     "token": "r",
     "difficulty": "medium",
-    "abilities": ["rune_lash"]
+    "abilities": ["rune_lash"],
+    "maneuvers": ["shove"],
+    "maneuver_chance": 30
   },
   "rune_warden": {
     "name": "Rune Warden",
@@ -312,6 +324,8 @@
     "experience": 500,
     "token": "W",
     "difficulty": "hard",
-    "abilities": ["rune_pulse", "warding_light", "gravity_well"]
+    "abilities": ["rune_pulse", "warding_light", "gravity_well"],
+    "maneuvers": ["trip", "shove"],
+    "maneuver_chance": 55
   }
 } 

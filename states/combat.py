@@ -1,5 +1,5 @@
 from states.base_state import BaseState
-from core.checks import contested_skill_check
+from core.checks import contested_check, contested_skill_check
 from core.conditions import (
     apply_condition,
     condition_blocks_abilities,
@@ -9,7 +9,7 @@ from core.conditions import (
     tick_conditions,
 )
 from core.enemy_abilities import choose_ability, load_abilities
-from core.maneuvers import maneuver_definitions
+from core.maneuvers import get_maneuver, maneuver_definitions
 from entities.enemy import Enemy
 from entities.player import Player
 from entities.npc import NPC
@@ -17,6 +17,8 @@ from util.dice import Dice
 
 class CombatState(BaseState):
     DEFEAT_GOLD_LOSS = 20
+    ENEMY_MANEUVER_COOLDOWN = 2
+    DEFAULT_MANEUVER_CHANCE = 35
 
     def __init__(
         self,
@@ -168,6 +170,14 @@ class CombatState(BaseState):
     def _maneuvers(self):
         return maneuver_definitions()
 
+    def _parse_stand_command(self, command):
+        """Matches the dynamic Stand Up menu option or its text aliases."""
+        text = str(command or "").strip().casefold()
+        if not text:
+            return False
+        stand_number = str(9 + len(self._maneuvers()))
+        return text in {stand_number, "stand", "stand up", "rise"}
+
     def _parse_maneuver_command(self, command):
         """Matches a maneuver id/name or its menu number (9 onward)."""
         text = str(command or "").strip().casefold()
@@ -279,6 +289,9 @@ class CombatState(BaseState):
                 f"{offset}. {maneuver.get('name', 'Maneuver')} — "
                 f"{maneuver.get('description', '')}"
             )
+        if condition_stand_up(player):
+            stand_number = 9 + len(maneuver_definitions())
+            game.io.show_message(f"{stand_number}. Stand up")
 
         # Get the command from the input (already set by the web system)
         game.io.request_input("Choice: ")
@@ -293,7 +306,9 @@ class CombatState(BaseState):
         # Function to process the textual commands
         def process_command_combat(cmd):
             cmd = cmd.lower().strip()
-            
+            if cmd.isdigit():
+                return cmd
+
             # Mapping of text commands to actions
             if any(x in cmd for x in ["attack", "hit", "1"]):
                 return "1"
@@ -331,6 +346,12 @@ class CombatState(BaseState):
         ability_name = self._parse_ability_command(player, selection_input)
         if ability_name:
             self._manage_ability(player, game, ability_name)
+            return
+
+        if condition_stand_up(player) and self._parse_stand_command(
+            selection_input
+        ):
+            self._manage_stand(player, game)
             return
 
         maneuver = self._parse_maneuver_command(selection_input)
@@ -660,6 +681,14 @@ class CombatState(BaseState):
 
     def _manage_ability(self, player, game, ability_name):
         from core.abilities import resolve_ability, use_ability
+
+        if condition_blocks_abilities(player):
+            game.io.show_message(
+                "\nYou are staggered and cannot use special abilities."
+            )
+            self.last_ability_used = False
+            self.phase = "selection"
+            return
 
         name, definition = resolve_ability(player, ability_name)
         if not name:
@@ -1332,6 +1361,17 @@ class CombatState(BaseState):
         )
         self.phase = "enemy_attack" if self._alive_enemies() else "end_turn"
 
+    def _manage_stand(self, player, game):
+        """Spends the turn standing up from a prone condition."""
+        condition_id = condition_stand_up(player)
+        if not condition_id:
+            game.io.show_message("\nYou are already on your feet.")
+            self.phase = "selection"
+            return
+        remove_condition(player, condition_id)
+        game.io.show_message("\nYou climb back to your feet.")
+        self.phase = "enemy_attack" if self._alive_enemies() else "end_turn"
+
     def _manage_maneuver(self, player, game, maneuver):
         """Resolves a contested maneuver and applies its condition."""
         target = self.opponent
@@ -1463,6 +1503,77 @@ class CombatState(BaseState):
             game.io.show_message("You take no damage.")
         return effective_damage
 
+    def _choose_enemy_maneuver(self, enemy, player, index):
+        """Returns a useful off-cooldown maneuver after the chance roll."""
+        cooldowns = self.ability_cooldowns.setdefault(str(index), {})
+        conditions = getattr(player, "conditions", None)
+        conditions = conditions if isinstance(conditions, dict) else {}
+
+        options = []
+        for maneuver_id in getattr(enemy, "maneuvers", []) or []:
+            if int(
+                cooldowns.get(f"maneuver:{maneuver_id}", 0) or 0
+            ) > 0:
+                continue
+            maneuver = get_maneuver(maneuver_id)
+            if maneuver is None:
+                continue
+            condition_id = maneuver.get("condition")
+            if condition_id and condition_id in conditions:
+                continue
+            options.append(maneuver)
+
+        if not options:
+            return None
+
+        chance = int(
+            getattr(enemy, "maneuver_chance", self.DEFAULT_MANEUVER_CHANCE)
+            or 0
+        )
+        if chance <= 0 or self.dice_d100.roll() > chance:
+            return None
+        return options[0]
+
+    def _use_enemy_maneuver(self, player, game, enemy, maneuver, index):
+        """Resolves an enemy Trip/Shove against the player."""
+        name = str(maneuver.get("name", "maneuver"))
+        telegraph = maneuver.get("telegraph")
+        if telegraph:
+            game.io.show_message(f"\n{telegraph}")
+        game.io.show_message(
+            f"\n{enemy.name} tries to {name.lower()} you!"
+        )
+
+        result = contested_check(
+            enemy,
+            str(maneuver.get("skill", "athletics")),
+            player,
+            str(maneuver.get("defense_skill", "acrobatics")),
+            game,
+        )
+        cooldowns = self.ability_cooldowns.setdefault(str(index), {})
+        cooldowns[f"maneuver:{maneuver.get('id', name)}"] = (
+            self.ENEMY_MANEUVER_COOLDOWN
+        )
+
+        if result["success"]:
+            condition_id = str(maneuver.get("condition", "") or "")
+            apply_condition(
+                player,
+                condition_id,
+                turns=maneuver.get("turns"),
+                game=game,
+            )
+            game.io.show_message(
+                f"{name} succeeds "
+                f"({result['attacker_total']} vs {result['defender_total']})."
+            )
+        else:
+            game.io.show_message(
+                f"{name} fails "
+                f"({result['attacker_total']} vs {result['defender_total']})."
+            )
+
     def _enemy_stands_up(self, enemy, game):
         """Spends a prone enemy's action standing up; returns True if it did."""
         condition_id = condition_stand_up(enemy)
@@ -1486,6 +1597,13 @@ class CombatState(BaseState):
             self.effects = {}
 
         if self._enemy_stands_up(enemy, game):
+            return
+
+        maneuver = self._choose_enemy_maneuver(enemy, player, index)
+        if maneuver is not None:
+            self._use_enemy_maneuver(
+                player, game, enemy, maneuver, index
+            )
             return
 
         if self.effects.pop("evade", False):

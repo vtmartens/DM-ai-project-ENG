@@ -1005,6 +1005,24 @@ entirely. The doors that existed were also misaligned with the map exits.
   discounts, quest bonuses, dialogue gates, API exposure, the Runeheart outcomes and data
   integrity. 566 tests pass.
 
+## Enemy maneuvers and player counterplay (2026-10-27)
+
+- `Enemy` now carries data-driven `maneuvers` and `maneuver_chance` fields, serialized through
+  save/load. Wolves Trip; bandits, smugglers, sentinels and the Smuggler Lord Shove; the Rune
+  Warden has both.
+- Enemy actions check for an appropriate off-cooldown maneuver before abilities or a basic
+  attack. The d100 chance roll and a two-round maneuver cooldown limit repeated control. A
+  maneuver is skipped when its condition is already on the player.
+- Refactored the contested skill helper into a generic attacker/defender form. Enemy
+  maneuvers roll Athletics against the player's Acrobatics/Athletics, with Guidance applying
+  on whichever side is controlled by the player; the player-initiated wrapper keeps its old
+  return shape.
+- A prone player now gets a dynamic **Stand up** combat option, quick action and
+  `/available_actions` entry. It costs the turn and clears Prone. Staggered now blocks player
+  class abilities, matching the enemy rule.
+- Added maneuver data integrity checks and tests for enemy Trip/Shove, failure, condition
+  skipping, cooldowns, Stand Up, ability blocking and enemy round trips. 575 tests pass.
+
 ## Deliberate translation choices worth knowing
 
 - **`hp_base` / `mana_base` were left as-is.** They are consistent between code and JSON

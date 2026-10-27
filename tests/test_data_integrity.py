@@ -487,6 +487,19 @@ def test_enemy_ability_references_are_defined():
             )
 
 
+def test_monster_maneuvers_are_defined():
+    monsters = _load(ROOT / "data" / "monsters" / "monsters.json")
+    maneuvers = _load(ROOT / "data" / "combat" / "maneuvers.json")
+
+    for monster_id, monster in monsters.items():
+        maneuver_ids = monster.get("maneuvers", [])
+        assert isinstance(maneuver_ids, list), monster_id
+        for maneuver_id in maneuver_ids:
+            assert maneuver_id in maneuvers, (monster_id, maneuver_id)
+        if "maneuver_chance" in monster:
+            assert 0 <= int(monster["maneuver_chance"]) <= 100, monster_id
+
+
 def test_encounter_definitions_are_well_formed():
     encounters = _load(ROOT / "data" / "monsters" / "encounters.json")
     monsters = _load(ROOT / "data" / "monsters" / "monsters.json")
