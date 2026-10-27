@@ -64,6 +64,9 @@ def load_session(session_id):
             map_manager.refresh_static_map_data()
         if map_manager is not None and hasattr(map_manager, "prune_defeated_npcs"):
             map_manager.prune_defeated_npcs()
+        game = getattr(session, "game", None)
+        if game is not None and hasattr(game, "_restore_quest_items"):
+            game._restore_quest_items()
         return session
     return None
 

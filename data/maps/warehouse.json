@@ -20,7 +20,8 @@
   "items": {},
   "npc": {},
   "doors": {
-    "(1, 8)": ["market", 20, 7]
+    "(1, 8)": ["market", 20, 7],
+    "(18, 2)": ["vault", 2, 8]
   },
   "player_start_position": [2, 8]
 }

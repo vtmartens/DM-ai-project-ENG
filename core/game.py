@@ -86,7 +86,7 @@ class Game:
             return None
 
     def _restore_quest_items(self):
-        """Grants quest items that saves written before a content fix lack."""
+        """Grants or upgrades quest items that older saves may predate."""
         player = getattr(self, "player", None)
         if player is None:
             return
@@ -102,24 +102,37 @@ class Game:
         if "shadows_of_the_market" not in quest_ids:
             return
 
-        names = {
-            getattr(item, "name", item)
-            for item in getattr(player, "inventory", [])
-        }
-        if "Warehouse Key" in names:
-            return
-
         from items.item import Item
 
-        player.add_item(
-            Item(
+        key = next(
+            (
+                item
+                for item in getattr(player, "inventory", [])
+                if getattr(item, "name", item) == "Warehouse Key"
+            ),
+            None,
+        )
+        if key is None or not hasattr(key, "effect"):
+            key = Item(
                 "Warehouse Key",
                 "key",
-                {"opens": ["Warehouse Door"]},
+                {"opens": ["Warehouse Door", "Sealed Strongbox"]},
                 25,
                 "An iron key taken from one of the hooded figures",
             )
-        )
+            player.add_item(key)
+
+        effect = getattr(key, "effect", None)
+        if not isinstance(effect, dict):
+            effect = {}
+            key.effect = effect
+        opens = effect.setdefault("opens", [])
+        if not isinstance(opens, list):
+            opens = [opens]
+            effect["opens"] = opens
+        for target in ("Warehouse Door", "Sealed Strongbox"):
+            if target not in opens:
+                opens.append(target)
 
     def push_state(self, new_state):
         """

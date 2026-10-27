@@ -551,5 +551,82 @@
     "position": "market",
     "destination_position": "warehouse",
     "token": "D"
+  },
+  {
+    "name": "Vault Door",
+    "type": "door",
+    "description": "A heavy iron door sealed with a warding rune.",
+    "state": "closed",
+    "requires_key": true,
+    "position": "warehouse",
+    "destination_position": "vault",
+    "token": "D"
+  },
+  {
+    "name": "Sealed Strongbox",
+    "type": "chest",
+    "description": "A banded strongbox with a fresh warehouse seal.",
+    "state": "closed",
+    "requires_key": true,
+    "token": "C",
+    "content": [
+      {
+        "name": "Vault Key",
+        "type": "key",
+        "effect": {
+          "opens": [
+            "Vault Door"
+          ]
+        },
+        "value": 40,
+        "description": "A cold iron key stamped with a vault sigil"
+      }
+    ]
+  },
+  {
+    "name": "Vault Exit",
+    "type": "door",
+    "description": "The heavy door back to the warehouse.",
+    "state": "closed",
+    "requires_key": false,
+    "position": "vault",
+    "destination_position": "warehouse",
+    "token": "X"
+  },
+  {
+    "name": "Relic Chest",
+    "type": "chest",
+    "description": "A stone chest bound in iron, its lock shaped like a sentinel's sigil.",
+    "state": "closed",
+    "requires_key": true,
+    "token": "C",
+    "content": [
+      {
+        "name": "Sentinel's Edge",
+        "type": "weapon",
+        "effect": {
+          "strength": 6
+        },
+        "value": 300,
+        "rarity": "rare",
+        "description": "A rune-etched blade that hums when the vault is disturbed"
+      },
+      {
+        "name": "Greater Healing Potion",
+        "type": "grave_heal",
+        "effect": {
+          "grave_heal": 15
+        },
+        "value": 40,
+        "description": "A potent potion that restores 15 hit points"
+      }
+    ]
+  },
+  {
+    "name": "Rune Pillar",
+    "type": "interactive_object",
+    "description": "A pillar of black stone covered in warding runes. One line reads: 'Only the sentinel's sigil opens the reliquary.'",
+    "state": "inactive",
+    "token": "R"
   }
 ]

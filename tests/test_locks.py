@@ -6,6 +6,7 @@ from core.quests import start_quest
 from entities.npc import NPC
 from entities.player import Player
 from items.item import Item
+from items.keys import key_opens
 from states.dialogue import DialogueState
 
 
@@ -157,6 +158,35 @@ def test_loading_a_quest_save_restores_the_warehouse_key(recording_io, tmp_path)
     loaded = Game(None, None, recording_io, temporary=True)
     assert loaded.load(str(save_path)) is True
 
-    assert "Warehouse Key" in {
-        getattr(item, "name", item) for item in loaded.player.inventory
-    }
+    key = next(
+        item
+        for item in loaded.player.inventory
+        if getattr(item, "name", None) == "Warehouse Key"
+    )
+    assert key_opens(key, "Warehouse Door")
+    assert key_opens(key, "Sealed Strongbox")
+
+
+def test_loading_a_quest_save_upgrades_an_old_warehouse_key(recording_io, tmp_path):
+    game = _game(recording_io)
+    start_quest(game.player, "shadows_of_the_market", game)
+    old_key = Item(
+        "Warehouse Key",
+        "key",
+        {"opens": ["Warehouse Door"]},
+        25,
+    )
+    game.player.add_item(old_key)
+    save_path = tmp_path / "old-key.json"
+
+    assert game.save(str(save_path)) is True
+
+    loaded = Game(None, None, recording_io, temporary=True)
+    assert loaded.load(str(save_path)) is True
+
+    key = next(
+        item
+        for item in loaded.player.inventory
+        if getattr(item, "name", None) == "Warehouse Key"
+    )
+    assert key_opens(key, "Sealed Strongbox")

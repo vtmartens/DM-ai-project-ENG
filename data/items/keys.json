@@ -37,8 +37,22 @@
   {
     "name": "Warehouse Key",
     "type": "key",
-    "effect": {"opens": ["Warehouse Door"]},
+    "effect": {"opens": ["Warehouse Door", "Sealed Strongbox"]},
     "value": 25,
     "description": "An iron key taken from one of the hooded figures"
+  },
+  {
+    "name": "Vault Key",
+    "type": "key",
+    "effect": {"opens": ["Vault Door"]},
+    "value": 40,
+    "description": "A cold iron key stamped with a vault sigil"
+  },
+  {
+    "name": "Sentinel Key",
+    "type": "key",
+    "effect": {"opens": ["Relic Chest"]},
+    "value": 60,
+    "description": "A heavy key shaped like a sentinel's sigil"
   }
 ]

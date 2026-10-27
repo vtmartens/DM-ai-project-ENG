@@ -20,6 +20,7 @@ class NPC(Entity):
         self.background = ""
         self.profession = ""
         self.group = None
+        self.friendly = True
         
         # NPC-specific initializations
         self._initialize_attributes()
@@ -63,6 +64,7 @@ class NPC(Entity):
         # Set background and profession
         self.background = self.npc_data.get("background", "")
         self.profession = self.npc_data.get("profession", "")
+        self.friendly = bool(self.npc_data.get("friendly", True))
         
         # Load the inventory
         self.inventory = []

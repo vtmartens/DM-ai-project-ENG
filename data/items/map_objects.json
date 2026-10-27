@@ -73,5 +73,28 @@
       "position": [18, 7]
     }
   ],
-  "warehouse": []
-} 
+  "warehouse": [
+    {
+      "name": "Vault Door",
+      "position": [18, 2]
+    },
+    {
+      "name": "Sealed Strongbox",
+      "position": [16, 9]
+    }
+  ],
+  "vault": [
+    {
+      "name": "Vault Exit",
+      "position": [1, 8]
+    },
+    {
+      "name": "Relic Chest",
+      "position": [16, 5]
+    },
+    {
+      "name": "Rune Pillar",
+      "position": [10, 5]
+    }
+  ]
+}

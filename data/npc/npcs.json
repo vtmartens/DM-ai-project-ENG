@@ -189,7 +189,8 @@
         "type": "key",
         "effect": {
           "opens": [
-            "Warehouse Door"
+            "Warehouse Door",
+            "Sealed Strongbox"
           ]
         },
         "value": 25,
@@ -448,6 +449,37 @@
       }
     ],
     "gold": 10,
+    "friendly": false
+  },
+  "Iron Sentinel": {
+    "name": "Iron Sentinel",
+    "description": "A towering suit of iron plates, its eye-slits burning with a cold blue light.",
+    "profession": "Guardian",
+    "level": 4,
+    "hp": 40,
+    "hp_max": 40,
+    "strength_base": 26,
+    "dexterity_base": 8,
+    "constitution_base": 18,
+    "intelligence_base": 6,
+    "wisdom_base": 10,
+    "charisma_base": 4,
+    "defense": 4,
+    "token": "Z",
+    "inventory": [
+      {
+        "name": "Sentinel Key",
+        "type": "key",
+        "effect": {
+          "opens": [
+            "Relic Chest"
+          ]
+        },
+        "value": 60,
+        "description": "A heavy key shaped like a sentinel's sigil"
+      }
+    ],
+    "gold": 40,
     "friendly": false
   }
 }

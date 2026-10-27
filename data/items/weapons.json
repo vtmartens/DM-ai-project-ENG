@@ -48,5 +48,13 @@
     "value": 400,
     "rarity": "legendary",
     "description": "A blackened longsword whose edge hums with old draconic spite"
+  },
+  {
+    "name": "Sentinel's Edge",
+    "type": "weapon",
+    "effect": {"strength": 6},
+    "value": 300,
+    "rarity": "rare",
+    "description": "A rune-etched blade that hums when the vault is disturbed"
   }
 ]

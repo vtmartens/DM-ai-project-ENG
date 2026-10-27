@@ -61,6 +61,26 @@ def test_locked_door_hint_names_a_held_key(recording_io):
     assert "Cellar Key" in hint
 
 
+def test_locked_chest_hint_names_a_held_key(recording_io):
+    player = Player("Hint Tester", "fighter")
+    game = Game(player, None, recording_io, temporary=True)
+    game.set_initial_map("warehouse")
+    player.set_position("warehouse", 16, 8)
+    player.add_item(
+        Item(
+            "Warehouse Key",
+            "key",
+            {"opens": ["Warehouse Door", "Sealed Strongbox"]},
+            25,
+        )
+    )
+
+    hint = build_hint(game)
+
+    assert "Sealed Strongbox is locked" in hint
+    assert "Warehouse Key" in hint
+
+
 def test_low_health_hint_suggests_a_potion(recording_io):
     player, game = _game(recording_io)
     player.hp = 1
@@ -88,6 +108,18 @@ def test_dialogue_hint_names_the_npc(recording_io):
     hint = build_hint(game)
 
     assert "Durnan" in hint
+
+
+def test_hint_warns_about_a_hostile_guardian(recording_io):
+    player = Player("Hint Tester", "fighter")
+    game = Game(player, None, recording_io, temporary=True)
+    game.set_initial_map("vault")
+    player.set_position("vault", 13, 6)
+
+    hint = build_hint(game)
+
+    assert "Iron Sentinel" in hint
+    assert "hostile" in hint.lower()
 
 
 def test_hint_falls_back_when_nothing_is_nearby(recording_io):

@@ -200,6 +200,9 @@ class MapManager:
             existing.height = current.height
             existing.doors = current.doors
             existing.player_start_position = current.player_start_position
+            # Place objects added by newer content (for example the Vault Door
+            # and strongbox) without touching existing ones or resurrecting NPCs.
+            self.load_interactive_objects_from_json(existing, name)
 
         return True
 
@@ -582,39 +585,112 @@ class MapManager:
                 )
         return routes
 
+    def _routes_from(self, map_name):
+        """Returns (destination, cell, door object or None) in a stable order."""
+        source_map = self.maps.get(map_name)
+        if source_map is None:
+            return []
+        routes = []
+        for cell, destination in sorted(source_map.doors.items()):
+            routes.append(
+                (destination[0], cell, source_map.items.get(cell))
+            )
+        return routes
+
     def prepare_map_entry(self, player, map_name):
         """Decides whether the player may enter a map.
 
-        Every physical route into the destination is considered. When all of
-        them are locked, a matching key in the player's inventory opens the
-        first one; otherwise entry is refused. Returns ``(allowed, message)``.
+        Travel is checked as reachability from the player's current map: open
+        routes are always passable, a locked route is passable only when the
+        player carries a matching key. This prevents an open door in a distant
+        room from unlocking a map from anywhere. Returns ``(allowed, message)``.
+        When travel succeeds through a locked route, that door is opened.
         """
         if map_name not in self.maps:
             return False, f"Map {map_name} does not exist."
 
-        # Re-entering the map you are already on cannot be locked out.
-        if getattr(player, "current_map", None) == map_name:
+        current = getattr(player, "current_map", None)
+        if current == map_name:
             return True, None
 
+        if not current or current not in self.maps:
+            return self._prepare_entry_without_origin(player, map_name)
+
+        from collections import deque
+
+        predecessors = {}
+        visited = {current}
+        queue = deque([current])
+        final_route = None
+
+        while queue and final_route is None:
+            node = queue.popleft()
+            for destination, cell, door in self._routes_from(node):
+                if destination not in self.maps or destination in visited:
+                    continue
+
+                key = None
+                if _is_locked_door(door):
+                    key = find_matching_key(player, getattr(door, "name", ""))
+                    if key is None:
+                        continue
+
+                predecessors[destination] = (node, cell, door, key)
+                if destination == map_name:
+                    final_route = predecessors[destination]
+                    break
+
+                visited.add(destination)
+                queue.append(destination)
+
+        if final_route is None:
+            blocked = []
+            for node in visited:
+                source_map = self.maps.get(node)
+                if source_map is None:
+                    continue
+                for cell, destination in sorted(source_map.doors.items()):
+                    if destination[0] != map_name:
+                        continue
+                    door = source_map.items.get(cell)
+                    if not _is_locked_door(door):
+                        continue
+                    if find_matching_key(player, getattr(door, "name", "")) is None:
+                        blocked.append(door)
+            if blocked:
+                door = min(
+                    blocked,
+                    key=lambda item: str(getattr(item, "name", "")).casefold(),
+                )
+                return False, (
+                    f"The way to {map_name.capitalize()} is locked "
+                    f"({_door_label(door)})."
+                )
+            return False, f"The way to {map_name.capitalize()} is locked."
+
+        _, _, door, key = final_route
+        if _is_locked_door(door) and key is not None:
+            door.state = "open"
+            return True, f"You unlock the {_door_label(door)} with {key.name}."
+        return True, None
+
+    def _prepare_entry_without_origin(self, player, map_name):
+        """Fallback for callers without a current map (tests, setup code)."""
         routes = self.routes_to(map_name)
         if not routes:
             return True, None
-
-        locked = [door for _, _, door in routes if _is_locked_door(door)]
-        if len(locked) < len(routes):
+        if any(not _is_locked_door(door) for _, _, door in routes):
             return True, None
-
-        for door in locked:
+        for _, _, door in routes:
             key = find_matching_key(player, getattr(door, "name", ""))
             if key is not None:
                 door.state = "open"
                 return True, (
                     f"You unlock the {_door_label(door)} with {key.name}."
                 )
-
         return False, (
             f"The way to {map_name.capitalize()} is locked "
-            f"({_door_label(locked[0])})."
+            f"({_door_label(routes[0][2])})."
         )
 
     def change_player_map(self, player, map_name, x=None, y=None):

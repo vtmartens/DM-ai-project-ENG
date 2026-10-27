@@ -53,5 +53,11 @@
       "position": [14, 7],
       "group": "warehouse_cult"
     }
+  ],
+  "vault": [
+    {
+      "name": "Iron Sentinel",
+      "position": [13, 5]
+    }
   ]
-} 
+}

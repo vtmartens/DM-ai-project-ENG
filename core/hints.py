@@ -7,7 +7,7 @@ door, low health, or a nearby character/object.
 
 from __future__ import annotations
 
-from items.interactive_object import Door, Trap
+from items.interactive_object import Chest, Door, Trap
 from items.keys import find_matching_key
 
 HEALING_TYPES = {"heal", "light_heal", "grave_heal"}
@@ -30,9 +30,9 @@ def _distance(a, b) -> int:
     return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
 
-def _is_locked_door(obj) -> bool:
+def _is_locked_object(obj) -> bool:
     return (
-        isinstance(obj, Door)
+        isinstance(obj, (Chest, Door))
         and bool(getattr(obj, "requires_key", False))
         and getattr(obj, "state", "closed") not in {"open", "unlocked"}
     )
@@ -61,7 +61,7 @@ def _active_quest_hint(player):
     return None
 
 
-def _locked_door_hint(game, player):
+def _locked_object_hint(game, player):
     current_map = _current_map(game, player)
     if current_map is None:
         return None
@@ -69,7 +69,7 @@ def _locked_door_hint(game, player):
     position = (getattr(player, "x", 0), getattr(player, "y", 0))
     candidates = []
     for cell, obj in current_map.items.items():
-        if not _is_locked_door(obj):
+        if not _is_locked_object(obj):
             continue
         distance = _distance(position, cell)
         if distance > 2:
@@ -79,9 +79,9 @@ def _locked_door_hint(game, player):
     if not candidates:
         return None
 
-    _, _, door = min(candidates, key=lambda entry: (entry[0], entry[1]))
-    label = _label(door)
-    key = find_matching_key(player, getattr(door, "name", ""))
+    _, _, locked = min(candidates, key=lambda entry: (entry[0], entry[1]))
+    label = _label(locked)
+    key = find_matching_key(player, getattr(locked, "name", ""))
     if key is not None:
         return f"The {label} is locked. Use {key.name} on it."
     return f"The {label} is locked. Find the matching key, or cast Knock if you know it."
@@ -161,7 +161,10 @@ def _npc_hint(game, player):
         return None
 
     _, _, npc = min(candidates, key=lambda entry: (entry[0], entry[1]))
-    return f"{getattr(npc, 'name', 'Someone')} is nearby. Talk to them."
+    name = getattr(npc, "name", "Someone")
+    if getattr(npc, "friendly", True):
+        return f"{name} is nearby. Talk to them."
+    return f"{name} is nearby and looks hostile. Prepare for a fight."
 
 
 def _object_hint(game, player):
@@ -211,7 +214,7 @@ def build_hint(game) -> str:
     if hint:
         return hint
 
-    hint = _locked_door_hint(game, player)
+    hint = _locked_object_hint(game, player)
     if hint:
         return hint
 

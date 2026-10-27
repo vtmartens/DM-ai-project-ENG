@@ -320,6 +320,7 @@ of these were introduced by the translation.
    (`Basic Arcane Manual`, `Dark Beer`) reference items that exist in no `data/items`
    file. The lock pass resolved the lock-related chain — Warehouse Door/Warehouse Key,
    Cellar Key/Cellar Door, Rusty Key/Treasure Chest — but the non-lock names above remain.
+   The Sealed Vault chain (Vault Key, Sentinel Key, Sentinel's Edge) is defined as well.
 2. ~~**The cellar's NPCs (`Specter`, `Cultist`) are not defined in `npcs.json`** at all.~~
    Fixed in the locks pass: both now have real definitions and stats.
 3. ~~**`MapSelectionState` is missing from the state-restore map** in `core/game.py`.~~
@@ -486,6 +487,29 @@ entirely. The doors that existed were also misaligned with the map exits.
   request shape and failures; API tests cover engine/AI sources, logging and errors; the
   browser smoke test clicks Hint and asserts the log entry. 318 tests pass.
 
+## Sealed Vault phase 1 (2026-10-26)
+
+- New `vault` map beneath the warehouse, reached through a **Vault Door** at warehouse
+  `(18, 2)` and returning via the **Vault Exit** to warehouse `(17, 2)`.
+- **Warehouse Key** now also opens the **Sealed Strongbox** at warehouse `(16, 9)`, which
+  holds the **Vault Key**. The old-save quest migration upgrades an existing Warehouse Key
+  so the strongbox works without a new game; session loading runs the same migration for
+  existing web sessions.
+- Inside: the hostile **Iron Sentinel** at `(13, 5)` carries the **Sentinel Key**; the
+  **Relic Chest** at `(16, 5)` needs that key and contains **Sentinel's Edge** (rare,
+  strength +6) and a Greater Healing Potion. A **Rune Pillar** provides the in-world clue.
+- **Reachability fix**: the old fast-travel check considered every route in the world, so
+  the vault's open exit made the warehouse reachable from the tavern without any key.
+  `MapManager.prepare_map_entry` now BFS-searches outward from the player's current map,
+  treats a locked route as passable only when its key is carried, and opens the final keyed
+  door when travel succeeds.
+- Hints now cover locked chests as well as doors, so the strongbox names the Warehouse Key.
+  NPCs also expose their `friendly` flag, so hints warn about a hostile guardian instead of
+  suggesting a chat.
+- Tests: `tests/test_vault.py` covers the map/guardian placement, blocked vault movement,
+  the strongbox→Vault Key→Vault Door chain, direct travel, the vault-exit bypass regression,
+  the guardian drop, relic loot and save/load. 330 tests pass.
+
 ## Deliberate translation choices worth knowing
 
 - **`hp_base` / `mana_base` were left as-is.** They are consistent between code and JSON
@@ -514,7 +538,7 @@ entirely. The doors that existed were also misaligned with the map exits.
 | Residual Italian (glossary-derived denylist + accented characters) | 0 hits |
 | **Original Italian vs translated, identical input** | **46/46 placements, identical sequence** |
 | Flask API in-process (test client, no socket) | 31 × 200, 0 raised |
-| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, hints, achievements, utility spells, locks, accessibility, web client routes, browser smoke/mobile) | 318 passed |
+| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, hints, achievements, utility spells, locks, vault, accessibility, web client routes, browser smoke/mobile) | 330 passed |
 | Live smoke test (Flask server, `/app`, start/state/abilities/inventory/actions/command/save/load) | passed |
 
 The last comparison is the strongest evidence: the pristine Italian code and the finished
