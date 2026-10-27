@@ -1,12 +1,19 @@
-"""Data-driven class abilities and their deterministic combat effects."""
+"""Data-driven class abilities and their deterministic effects."""
 
 from __future__ import annotations
 
 import logging
 
+from items.interactive_object import Chest, Door, Lever
+from items.keys import find_matching_key
 from util.data_manager import get_data_manager
 
-SUPPORTED_EFFECTS = {"damage", "heal", "guard", "shield", "evade", "bless"}
+COMBAT_EFFECTS = {"damage", "heal", "guard", "shield", "evade", "bless"}
+UTILITY_EFFECTS = {"knock", "mage_hand", "guidance"}
+SUPPORTED_EFFECTS = COMBAT_EFFECTS | UTILITY_EFFECTS
+
+# Utility spells operate on the map, so they are refused during combat.
+UTILITY_RADIUS = 2
 
 
 def _normalize(value) -> str:
@@ -51,6 +58,7 @@ def _ability_rows(player):
         if not isinstance(definition, dict):
             logging.warning("No definition found for class ability %s", name)
             continue
+        effect = dict(definition.get("effect", {}))
         details.append(
             {
                 "id": definition.get("id", _normalize(name).replace(" ", "_")),
@@ -59,8 +67,9 @@ def _ability_rows(player):
                 "description": definition.get("description", ""),
                 "mana_cost": int(definition.get("mana_cost", 0) or 0),
                 "combat_only": bool(definition.get("combat_only", False)),
+                "usable_in_combat": effect.get("type") not in UTILITY_EFFECTS,
                 "ignore_defense": bool(definition.get("ignore_defense", False)),
-                "effect": dict(definition.get("effect", {})),
+                "effect": effect,
                 "required_level": required_level,
                 "unlocked": level >= required_level,
             }
@@ -118,6 +127,43 @@ def _combat_effects(combat):
     return effects
 
 
+def _nearby_objects(game, radius=UTILITY_RADIUS, predicate=None):
+    """Returns map objects within Manhattan distance, nearest first."""
+    player = game.player
+    map_name = getattr(player, "current_map", None)
+    manager = getattr(game, "map_manager", None)
+    current_map = manager.get_map(map_name) if manager and map_name else None
+    if current_map is None:
+        return []
+
+    candidates = []
+    for (x, y), obj in current_map.items.items():
+        distance = abs(x - player.x) + abs(y - player.y)
+        if distance > radius:
+            continue
+        if predicate is not None and not predicate(obj):
+            continue
+        candidates.append(
+            (distance, str(getattr(obj, "name", "")).casefold(), obj)
+        )
+    candidates.sort(key=lambda entry: (entry[0], entry[1]))
+    return [obj for _, _, obj in candidates]
+
+
+def _is_locked_object(obj):
+    """A keyed door or chest that Knock can open."""
+    return (
+        isinstance(obj, (Chest, Door))
+        and getattr(obj, "requires_key", False)
+        and getattr(obj, "state", "") in {"closed", "locked"}
+    )
+
+
+def _is_manipulable_object(obj):
+    """Door, chest or lever that a spectral hand can operate."""
+    return isinstance(obj, (Chest, Door, Lever))
+
+
 def use_ability(game, name, definition=None):
     """Applies an ability. Returns True when it was used and mana was spent."""
     player = game.player
@@ -126,6 +172,13 @@ def use_ability(game, name, definition=None):
         _, definition = resolve_ability(player, name)
     if not isinstance(definition, dict):
         game.io.show_message(f"You don't know an ability called {name}.")
+        return False
+
+    effect = definition.get("effect", {})
+    kind = effect.get("type")
+
+    if combat is not None and kind in UTILITY_EFFECTS:
+        game.io.show_message(f"{name} can only be used outside combat.")
         return False
 
     if definition.get("combat_only") and combat is None:
@@ -138,8 +191,6 @@ def use_ability(game, name, definition=None):
         game.io.show_message(f"You need {cost} mana to use {name}.")
         return False
 
-    effect = definition.get("effect", {})
-    kind = effect.get("type")
     message = None
 
     if kind == "damage":
@@ -214,12 +265,74 @@ def use_ability(game, name, definition=None):
             f"and warding off {defense_bonus} damage."
         )
 
+    elif kind == "knock":
+        target = next(
+            iter(_nearby_objects(game, predicate=_is_locked_object)), None
+        )
+        if target is None:
+            game.io.show_message("There is no locked door or chest within reach.")
+            return False
+        game.io.show_message(
+            f"You speak a word of opening. The lock on {target.name} yields."
+        )
+        if not target.force_open(player, game):
+            game.io.show_message(f"The lock on {target.name} resists your magic.")
+            return False
+        message = None
+
+    elif kind == "mage_hand":
+        target = next(
+            iter(_nearby_objects(game, predicate=_is_manipulable_object)), None
+        )
+        if target is None:
+            game.io.show_message(
+                "There is nothing within reach for a spectral hand to move."
+            )
+            return False
+        locked = (
+            isinstance(target, (Chest, Door))
+            and getattr(target, "requires_key", False)
+            and getattr(target, "state", "") in {"closed", "locked"}
+        )
+        if locked and find_matching_key(player, target.name) is None:
+            game.io.show_message(
+                f"The lock on {target.name} resists your spectral hand."
+            )
+            return False
+        game.io.show_message(
+            f"A spectral hand reaches out and operates {target.name}."
+        )
+        target.interact(player, game)
+        message = None
+
+    elif kind == "guidance":
+        bonus = int(effect.get("bonus", 2) or 2)
+        conditions = getattr(player, "conditions", None)
+        if not isinstance(conditions, dict):
+            conditions = {}
+            player.conditions = conditions
+        current = conditions.get("guidance")
+        current_bonus = (
+            int(current.get("bonus", 0) or 0) if isinstance(current, dict) else 0
+        )
+        if current_bonus >= bonus:
+            game.io.show_message(
+                "You already carry guidance for your next ability check."
+            )
+            return False
+        conditions["guidance"] = {"bonus": bonus}
+        message = f"You use {name}. Your next ability check gains +{bonus}."
+
     else:
         game.io.show_message(f"{name} has no usable effect.")
         return False
 
     player.mana = mana - cost
     if cost:
-        message += f" ({cost} mana spent, {player.mana} left)"
-    game.io.show_message(message)
+        if message:
+            message += f" ({cost} mana spent, {player.mana} left)"
+        else:
+            game.io.show_message(f"{cost} mana spent, {player.mana} left.")
+    if message:
+        game.io.show_message(message)
     return True

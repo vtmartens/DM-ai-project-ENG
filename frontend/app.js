@@ -603,6 +603,10 @@ function renderAbilities(data) {
     const locked = ability.unlocked === false;
     const requiredLevel = Number(ability.required_level || 1);
 
+    if (ability.usable_in_combat === false) {
+      button.classList.add("utility");
+    }
+
     if (locked) {
       button.classList.add("locked");
       button.textContent = `${ability.name} · Lv ${requiredLevel}`;
@@ -614,11 +618,14 @@ function renderAbilities(data) {
       button.textContent = cost ? `${ability.name} · ${cost}` : ability.name;
       const lacksMana = cost > mana;
       const wrongContext = Boolean(ability.combat_only) && !inCombat;
-      button.disabled = lacksMana || wrongContext;
+      const utilityInCombat = ability.usable_in_combat === false && inCombat;
+      button.disabled = lacksMana || wrongContext || utilityInCombat;
       if (lacksMana) {
         button.title = `${ability.name}: needs ${cost} mana (you have ${mana})`;
       } else if (wrongContext) {
         button.title = `${ability.name}: can only be used in combat`;
+      } else if (utilityInCombat) {
+        button.title = `${ability.name}: can only be used outside combat`;
       } else {
         button.title = ability.description || ability.name;
       }

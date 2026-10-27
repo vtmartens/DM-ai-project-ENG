@@ -219,5 +219,36 @@
       "type": "shield",
       "amount": 10
     }
+  },
+  "Knock": {
+    "id": "knock",
+    "class": "wizard",
+    "description": "Open a locked door or chest within two steps without needing its key.",
+    "mana_cost": 5,
+    "combat_only": false,
+    "effect": {
+      "type": "knock"
+    }
+  },
+  "Mage Hand": {
+    "id": "mage_hand",
+    "class": "rogue",
+    "description": "A spectral hand operates a door, chest or lever within two steps.",
+    "mana_cost": 2,
+    "combat_only": false,
+    "effect": {
+      "type": "mage_hand"
+    }
+  },
+  "Guidance": {
+    "id": "guidance",
+    "class": "cleric",
+    "description": "Divine insight adds 2 to your next ability check.",
+    "mana_cost": 2,
+    "combat_only": false,
+    "effect": {
+      "type": "guidance",
+      "bonus": 2
+    }
   }
 }

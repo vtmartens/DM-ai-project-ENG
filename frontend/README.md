@@ -39,6 +39,8 @@ You can also set `localStorage["dm_api_base"]`.
   preview. The stats panel also shows defense and initiative. Class abilities are clickable
   buttons with mana costs; unavailable abilities
   (not enough mana, or combat-only outside combat) are disabled with an explanation.
+  Utility spells (Knock, Mage Hand, Guidance) are tinted blue and are disabled during
+  combat, while combat abilities are disabled outside it.
   Progression abilities appear as dashed `Lv 3/5/7` entries until the player unlocks them.
 - Ability use goes through `POST /use_ability`; using one is a combat action, so the enemy
   retaliates and victory/rewards resolve normally.

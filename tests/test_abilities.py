@@ -4,6 +4,9 @@ from core.abilities import player_abilities, use_ability
 from core.game import Game
 from entities.enemy import Enemy
 from entities.player import Player
+from items.interactive_object import Chest, Lever
+from items.item import Item
+from states.ability_check import AbilityCheckState
 from states.combat import CombatState
 
 
@@ -20,16 +23,27 @@ def _combat_game(recording_io, char_class, enemy_hp=30, enemy_strength=30):
     return player, enemy, game, combat
 
 
+def _map_game(recording_io, char_class):
+    player = Player("Utility Tester", char_class)
+    game = Game(player, None, recording_io, temporary=True)
+    game.set_initial_map("tavern")
+    player.set_position("tavern", 5, 5)
+    return player, game
+
+
 def test_player_abilities_include_costs_and_descriptions():
     details = player_abilities(Player("Aria", "wizard"))
 
     assert [ability["name"] for ability in details] == [
         "Magic Missile",
         "Mage Shield",
+        "Knock",
     ]
     assert details[0]["mana_cost"] == 5
     assert details[0]["combat_only"] is True
     assert details[0]["description"]
+    assert details[2]["combat_only"] is False
+    assert details[2]["usable_in_combat"] is False
 
 
 def test_progression_abilities_stay_locked_until_their_level():
@@ -164,3 +178,135 @@ def test_evade_negates_the_next_attack(recording_io):
     assert player.hp == before_hp
     assert "evade" not in combat.effects
     assert "evade" in recording_io.text.lower()
+
+
+@pytest.mark.parametrize(
+    ("char_class", "ability_name"),
+    [("wizard", "Knock"), ("rogue", "Mage Hand"), ("cleric", "Guidance")],
+)
+def test_utility_spell_is_available_at_level_one(char_class, ability_name):
+    names = [ability["name"] for ability in player_abilities(Player("Tester", char_class))]
+
+    assert ability_name in names
+
+
+def test_knock_opens_a_locked_chest_without_a_key(recording_io):
+    player, game = _map_game(recording_io, "wizard")
+    chest = Chest(
+        "Sealed Chest",
+        state="closed",
+        content=[Item("Ruby", "common", {}, 10)],
+        requires_key=True,
+        position="tavern",
+    )
+    game.map_manager.get_map("tavern").add_item(chest, 5, 6)
+    before_mana = player.mana
+
+    assert use_ability(game, "Knock") is True
+
+    assert chest.state == "open"
+    assert chest.requires_key is True
+    assert "Ruby" in [item.name for item in player.inventory]
+    assert player.mana == before_mana - 5
+
+
+def test_knock_refuses_without_a_locked_target(recording_io):
+    player, game = _map_game(recording_io, "wizard")
+    before_mana = player.mana
+
+    assert use_ability(game, "Knock") is False
+
+    assert player.mana == before_mana
+    assert "no locked door or chest" in recording_io.text.lower()
+
+
+def test_knock_does_not_reach_beyond_two_steps(recording_io):
+    player, game = _map_game(recording_io, "wizard")
+    chest = Chest(
+        "Distant Chest",
+        state="closed",
+        requires_key=True,
+        position="tavern",
+    )
+    game.map_manager.get_map("tavern").add_item(chest, 5, 8)
+
+    assert use_ability(game, "Knock") is False
+    assert chest.state == "closed"
+
+
+def test_mage_hand_operates_a_lever_at_range(recording_io):
+    player, game = _map_game(recording_io, "rogue")
+    lever = Lever("Old Lever", position="tavern")
+    game.map_manager.get_map("tavern").add_item(lever, 5, 7)
+    before_mana = player.mana
+
+    assert use_ability(game, "Mage Hand") is True
+
+    assert lever.state == "activated"
+    assert player.mana == before_mana - 2
+
+
+def test_mage_hand_does_not_bypass_a_lock(recording_io):
+    player, game = _map_game(recording_io, "rogue")
+    chest = Chest(
+        "Locked Chest",
+        state="closed",
+        requires_key=True,
+        position="tavern",
+    )
+    game.map_manager.get_map("tavern").add_item(chest, 5, 6)
+    before_mana = player.mana
+
+    assert use_ability(game, "Mage Hand") is False
+
+    assert chest.state == "closed"
+    assert player.mana == before_mana
+    assert "resists your spectral hand" in recording_io.text
+
+
+def test_guidance_boosts_and_is_consumed_by_the_next_check(recording_io, monkeypatch):
+    player = Player("Cleric", "cleric")
+    game = Game(player, None, recording_io, temporary=True)
+    before_mana = player.mana
+
+    assert use_ability(game, "Guidance") is True
+    assert player.conditions["guidance"] == {"bonus": 2}
+    assert player.mana == before_mana - 2
+
+    from util.dice import Dice
+
+    monkeypatch.setattr(Dice, "roll", lambda self: 1)
+
+    state = AbilityCheckState()
+    state.chosen_ability = "strength"
+    state.contextual_data = {"difficulty": 10}
+    game.push_state(state)
+
+    state._run_check_base(game)
+
+    assert "Guidance adds 2 to the check" in recording_io.text
+    assert "guidance" not in player.conditions
+
+
+def test_guidance_cannot_be_stacked(recording_io):
+    player = Player("Cleric", "cleric")
+    game = Game(player, None, recording_io, temporary=True)
+
+    assert use_ability(game, "Guidance") is True
+    before_mana = player.mana
+
+    assert use_ability(game, "Guidance") is False
+
+    assert player.mana == before_mana
+    assert player.conditions["guidance"] == {"bonus": 2}
+
+
+def test_utility_abilities_are_refused_in_combat(recording_io):
+    player, _, game, _ = _combat_game(recording_io, "wizard")
+    details = {ability["name"]: ability for ability in player_abilities(player)}
+
+    assert details["Knock"]["usable_in_combat"] is False
+    assert details["Magic Missile"]["usable_in_combat"] is True
+
+    assert use_ability(game, "Knock") is False
+    assert "outside combat" in recording_io.text.lower()

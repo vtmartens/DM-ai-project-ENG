@@ -558,7 +558,11 @@ class CombatState(BaseState):
 
         options = self.temporary_data.get("ability_options")
         if options is None:
-            options = player_abilities(player)
+            options = [
+                ability
+                for ability in player_abilities(player)
+                if ability.get("usable_in_combat", True)
+            ]
             if not options:
                 game.io.show_message("\nYou have no abilities to use.")
                 self.phase = "selection"

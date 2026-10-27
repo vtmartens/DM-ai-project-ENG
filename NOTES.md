@@ -378,6 +378,32 @@ emitted an `achievements` key. The feature is now backed by real tracking:
   as goals. New unlocks also raise a toast. The browser smoke test asserts the panel
   renders and the count badge is populated.
 
+## Utility spells (2026-10-26)
+
+The ability engine previously only understood combat effects, so fighters, rogues and
+wizards had no out-of-combat class abilities.
+
+- `core/abilities.py` now also supports `knock`, `mage_hand` and `guidance`, and exposes
+  `usable_in_combat` in `GET /abilities` (false for utility spells). Utility spells are
+  refused inside combat and do not spend mana when there is no valid target.
+- **Knock** (wizard, 5 mana): opens the nearest locked door or chest within two steps
+  without consuming a key. `Chest.force_open` / `Door.force_open` temporarily bypass
+  `requires_key` and reuse the normal `interact` path, so chest loot is still awarded and
+  the lock remains locked for later interactions.
+- **Mage Hand** (rogue, 2 mana): operates the nearest door, chest or lever within two
+  steps. It cannot bypass a lock without a matching key.
+- **Guidance** (cleric, 2 mana): stores `{"guidance": {"bonus": 2}}` in the player's
+  persisted conditions. The next ability check (base, NPC or object mode) consumes it and
+  adds the bonus to the roll; casting it again does not stack.
+- `states/ability_check.py` now rolls through `_roll_with_guidance`, which consumes the
+  bonus and prints it. This also fixed a pre-existing bug: all three check modes called
+  `player.ability_modifier(name)` without the required `game` argument, so choosing a
+  specific skill (Perception, Persuasion, ...) raised `TypeError`.
+- Tests: `tests/test_abilities.py` covers each spell, range/target refusal, the lock
+  bypass, Guidance consumption and the combat restriction; `tests/test_api.py` covers
+  `usable_in_combat`, `POST /use_ability` with Guidance and Knock opening a chest through
+  the API. 272 tests pass.
+
 ## Deliberate translation choices worth knowing
 
 - **`hp_base` / `mana_base` were left as-is.** They are consistent between code and JSON
@@ -406,7 +432,7 @@ emitted an `achievements` key. The feature is now backed by real tracking:
 | Residual Italian (glossary-derived denylist + accented characters) | 0 hits |
 | **Original Italian vs translated, identical input** | **46/46 placements, identical sequence** |
 | Flask API in-process (test client, no socket) | 31 × 200, 0 raised |
-| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, achievements, web client routes, browser smoke) | 258 passed |
+| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, achievements, utility spells, web client routes, browser smoke) | 272 passed |
 | Live smoke test (Flask server, `/app`, start/state/abilities/inventory/actions/command/save/load) | passed |
 
 The last comparison is the strongest evidence: the pristine Italian code and the finished

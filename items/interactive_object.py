@@ -358,12 +358,24 @@ class Chest(InteractiveObject):
             if game:
                 game.io.show_message(f"{self.name} is already open.")
 
+    def force_open(self, player, game=None):
+        """Opens a keyed lock without a key (used by the Knock spell)."""
+        if self.state not in {"closed", "locked"}:
+            return False
+        previous = self.requires_key
+        self.requires_key = False
+        try:
+            self.interact(player, game)
+        finally:
+            self.requires_key = previous
+        return self.state == "open"
+
     def to_dict(self):
         """Extends the base class's to_dict method to add specific attributes."""
         data = super().to_dict()
         data["requires_key"] = self.requires_key
         return data
-    
+
     @classmethod
     def from_dict(cls, data):
         """Creates a Chest instance from a dictionary."""
@@ -406,6 +418,18 @@ class Door(InteractiveObject):
         else:
             if game:
                 game.io.show_message(f"{self.name} is {self.state}.")
+
+    def force_open(self, player, game=None):
+        """Opens a keyed lock without a key (used by the Knock spell)."""
+        if self.state not in {"closed", "locked"}:
+            return False
+        previous = self.requires_key
+        self.requires_key = False
+        try:
+            self.interact(player, game)
+        finally:
+            self.requires_key = previous
+        return self.state == "open"
 
     def to_dict(self):
         """Extends the base class's to_dict method to add specific attributes."""

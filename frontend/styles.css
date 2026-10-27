@@ -306,6 +306,7 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
   font-size: 12px;
 }
 .tag.ability { color: var(--accent-strong); border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); }
+.tag.ability.utility { color: var(--info); border-color: color-mix(in srgb, var(--info) 45%, var(--border)); }
 .tag.ability.locked { border-style: dashed; color: var(--text-muted); }
 .tag-list button.tag { font: inherit; cursor: pointer; text-align: left; }
 .tag-list button.tag:hover:not(:disabled) { color: var(--text); border-color: var(--accent); }

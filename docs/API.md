@@ -289,7 +289,7 @@ Returns the full class catalogue from `data/classes/classes.json`:
 
 ```json
 {
-  "abilities": ["Magic Missile", "Mage Shield"],
+  "abilities": ["Magic Missile", "Mage Shield", "Knock"],
   "ability_details": [
     {
       "id": "magic_missile",
@@ -298,8 +298,22 @@ Returns the full class catalogue from `data/classes/classes.json`:
       "description": "Unerring arcane force deals 8 damage to your opponent, ignoring armor.",
       "mana_cost": 5,
       "combat_only": true,
+      "usable_in_combat": true,
       "ignore_defense": true,
       "effect": {"type": "damage", "flat": 8},
+      "required_level": 1,
+      "unlocked": true
+    },
+    {
+      "id": "knock",
+      "name": "Knock",
+      "class": "wizard",
+      "description": "Open a locked door or chest within two steps without needing its key.",
+      "mana_cost": 5,
+      "combat_only": false,
+      "usable_in_combat": false,
+      "ignore_defense": false,
+      "effect": {"type": "knock"},
       "required_level": 1,
       "unlocked": true
     },
@@ -310,6 +324,7 @@ Returns the full class catalogue from `data/classes/classes.json`:
       "description": "A level-3 burst of flame deals 12 damage.",
       "mana_cost": 8,
       "combat_only": true,
+      "usable_in_combat": true,
       "ignore_defense": false,
       "effect": {"type": "damage", "flat": 12},
       "required_level": 3,
@@ -327,8 +342,9 @@ Returns the full class catalogue from `data/classes/classes.json`:
 `abilities` remains a name list for simple clients and contains only unlocked abilities.
 `ability_details` includes every class ability, including locked progression abilities;
 use `unlocked` and `required_level` to render them as disabled “Lv 3/5/7” entries.
-`combat_only` abilities are refused outside combat, and `in_combat` reports the current
-context.
+`combat_only` abilities are refused outside combat; `usable_in_combat: false` marks utility
+spells (Knock, Mage Hand, Guidance), which are refused inside combat. `in_combat` reports
+the current context.
 
 #### `POST /use_ability`
 
@@ -348,8 +364,9 @@ Use `ability_id` or `ability_name` (`"Magic Missile"`). The response has the sam
 ```
 
 An unknown or not-yet-unlocked ability is `404`. A known, unlocked ability that cannot
-currently be used (no mana, or a combat-only ability outside combat) returns `200` with
-`"used": false` and an explanatory message in `output`. In combat the ability consumes the
+currently be used (no mana, a combat-only ability outside combat, a utility spell inside
+combat, or no valid target for Knock/Mage Hand) returns `200` with `"used": false` and an
+explanatory message in `output`; no mana is spent. In combat the ability consumes the
 player's action, then the enemy retaliates or victory resolves normally.
 
 #### `GET /inventory?session_id=...`

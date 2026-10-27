@@ -46,6 +46,7 @@ Each game phase (map exploration, combat, dialogues, inventory management) is ha
 - Dependency-free web client served at `/app` (character creation, log, quests, achievements, inventory, saves)
 - Natural-language target commands in the tavern, market and map screen: “talk to Durnan”, “attack the goblin”, “use Healing Potion”, “go to the market”, “examine the chair”, “south”
 - Class abilities with mana costs in combat: Powerful Blow, Parry, Magic Missile, Mage Shield, Sneak Attack, Evade, Cure Wounds and Blessing. Use them from the combat menu, with `/use_ability`, or by typing “cast Magic Missile” / “use ability Cure Wounds”
+- Non-combat utility spells: Knock (open a locked door or chest within two steps without a key), Mage Hand (operate a door, chest or lever at range) and Guidance (+2 to the next ability check). Use them from the abilities panel or with `/use_ability`; they are refused in combat and do not spend mana when there is no valid target
 - Class-based level progression: HP/mana growth follows the class data, and level-3/5/7 abilities unlock automatically (Fierce Attack, Fireball, Backstab, Restoration, and more)
 - Group combat: the tavern's “Fight an enemy” menu offers a pair of goblins; every living enemy acts each round, allies can fight alongside you, and you can choose the current target from the combat menu or combat card
 - Story slice: Violet's “Shadows in the Market” quest leads to a new warehouse area and a three-enemy cult fight against Vargas and his hooded cultists. Violet joins as a recruitable ally, and the quest log has its own sidebar panel. Mirt's existing Vargas job is also a tracked quest (“A Debt to Collect”). Defeating Vargas makes both quests ready to turn in; return to Violet and Mirt for the rewards and follow-up hooks
@@ -82,7 +83,7 @@ Each game phase (map exploration, combat, dialogues, inventory management) is ha
 🟡 Web client (dependency-free SPA in `frontend/`; React/Vite optional later)  
 🟡 Implement Dungeon Master AI (Claude narration slice; decisions remain deterministic)  
 ⬜ D&D rules improvement and adherence to official system  
-🟡 Class abilities, mana and level-based unlocks; broader non-combat spell utility remains future work\
+🟡 Class abilities, mana and level-based unlocks; utility spells (Knock, Mage Hand, Guidance) added, broader non-combat spell utility remains future work\
 🟡 Multiple enemies, target selection and allies in combat; encounter design and balancing remain future work\
 ⬜ Online multiplayer implementation  
 ⬜ AI-generated game scenarios and realistic NPC faces  

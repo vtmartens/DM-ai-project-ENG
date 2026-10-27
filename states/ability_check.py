@@ -21,7 +21,32 @@ class AbilityCheckState(BaseState):
         self.last_input = None  # To store the user's last input
         self.chosen_ability = None  # The ability chosen by the user
         self.contextual_data = {}  # To store data across multiple phases
-        
+
+    def _consume_guidance(self, game):
+        """Returns and clears the Guidance bonus for the next check."""
+        conditions = getattr(game.player, "conditions", None)
+        if not isinstance(conditions, dict):
+            return 0
+
+        guidance = conditions.pop("guidance", None)
+        if isinstance(guidance, dict):
+            try:
+                return int(guidance.get("bonus", 0) or 0)
+            except (TypeError, ValueError):
+                return 0
+        try:
+            return int(guidance or 0)
+        except (TypeError, ValueError):
+            return 0
+
+    def _roll_with_guidance(self, game):
+        """Rolls d20 and applies (consuming) any active Guidance bonus."""
+        roll = Dice(20).roll()
+        bonus = self._consume_guidance(game)
+        if bonus:
+            game.io.show_message(f"Guidance adds {bonus} to the check.")
+        return roll, bonus
+
     def run(self, game):
         game.io.show_message("\n=== ABILITY CHECK ===")
         
@@ -132,25 +157,25 @@ class AbilityCheckState(BaseState):
         
         # Perform the check
         difficulty = self.contextual_data["difficulty"]
-        dice = Dice(20)
-        roll = dice.roll()
-        
+
         # Get the modifier based on the ability type
         if self.chosen_ability in ASSOCIATED_SKILLS:
             # For specific skills, use the ability_modifier method
-            modifier = game.player.ability_modifier(self.chosen_ability)
+            modifier = game.player.ability_modifier(self.chosen_ability, game)
         else:
             # For base attributes, use the attribute directly
             modifier = getattr(game.player, self.chosen_ability)
-            
-        result = roll + modifier
-        
+
+        roll, guidance = self._roll_with_guidance(game)
+        result = roll + modifier + guidance
+
         # If available, also show the ability's base value
         if hasattr(game.player, f"{self.chosen_ability}_base"):
             base_value = getattr(game.player, f"{self.chosen_ability}_base")
             game.io.show_message(f"\n{game.player.name} has {self.chosen_ability.capitalize()} {base_value} (modifier: {modifier})")
-        
-        game.io.show_message(f"{game.player.name} rolls a {roll} + {modifier} ({self.chosen_ability}) = {result}")
+
+        bonus_text = f" + {guidance} (guidance)" if guidance else ""
+        game.io.show_message(f"{game.player.name} rolls a {roll} + {modifier}{bonus_text} ({self.chosen_ability}) = {result}")
         
         if result >= difficulty:
             game.io.show_message(f"You passed the {self.chosen_ability} check!")
@@ -235,16 +260,16 @@ class AbilityCheckState(BaseState):
         # Get the modifier based on the ability type
         if self.chosen_ability in ASSOCIATED_SKILLS:
             # For specific skills, use the ability_modifier method
-            modifier = game.player.ability_modifier(self.chosen_ability)
+            modifier = game.player.ability_modifier(self.chosen_ability, game)
         else:
             # For base attributes, use the attribute directly
             modifier = getattr(game.player, self.chosen_ability)
-        
+
         if hasattr(game.player, f"{self.chosen_ability}_base") and hasattr(npc, f"{self.chosen_ability}_base"):
             g_value = getattr(game.player, f"{self.chosen_ability}_base")
             n_value = getattr(npc, f"{self.chosen_ability}_base")
             game.io.show_message(f"{game.player.name}: {self.chosen_ability.capitalize()} {g_value} (mod: {modifier})")
-        
+
         # Determine the difficulty based on the ability
         if self.chosen_ability in ["strength", "dexterity", "constitution"]:
             # Physical check - compare with the NPC's same attribute
@@ -255,12 +280,12 @@ class AbilityCheckState(BaseState):
         else:
             # Specific skills - standard difficulty
             difficulty = 12
-        
-        dice = Dice(20)
-        roll = dice.roll()
-        result = roll + modifier
-        
-        game.io.show_message(f"\n{game.player.name} rolls a {roll} + {modifier} ({self.chosen_ability}) = {result}")
+
+        roll, guidance = self._roll_with_guidance(game)
+        result = roll + modifier + guidance
+
+        bonus_text = f" + {guidance} (guidance)" if guidance else ""
+        game.io.show_message(f"\n{game.player.name} rolls a {roll} + {modifier}{bonus_text} ({self.chosen_ability}) = {result}")
         game.io.show_message(f"Difficulty against {npc.name}: {difficulty}")
         
         if result >= difficulty:
@@ -363,16 +388,16 @@ class AbilityCheckState(BaseState):
         # Get the modifier based on the ability type
         if self.chosen_ability in ASSOCIATED_SKILLS:
             # For specific skills, use the ability_modifier method
-            modifier = game.player.ability_modifier(self.chosen_ability)
+            modifier = game.player.ability_modifier(self.chosen_ability, game)
         else:
             # For base attributes, use the attribute directly
             modifier = getattr(game.player, self.chosen_ability)
-        
+
         # Display the base values if available
         if hasattr(game.player, f"{self.chosen_ability}_base"):
             base_value = getattr(game.player, f"{self.chosen_ability}_base")
             game.io.show_message(f"\n{game.player.name} has {self.chosen_ability.capitalize()} {base_value} (modifier: {modifier})")
-        
+
         # Determine the difficulty based on the object type and the ability
         if isinstance(item, InteractiveObject):
             if self.chosen_ability == "strength" and hasattr(item, "required_strength"):
@@ -383,12 +408,12 @@ class AbilityCheckState(BaseState):
                 difficulty = 12  # Standard difficulty
         else:
             difficulty = 10  # Generic object
-        
-        dice = Dice(20)
-        roll = dice.roll()
-        result = roll + modifier
-        
-        game.io.show_message(f"\n{game.player.name} rolls a {roll} + {modifier} ({self.chosen_ability}) = {result}")
+
+        roll, guidance = self._roll_with_guidance(game)
+        result = roll + modifier + guidance
+
+        bonus_text = f" + {guidance} (guidance)" if guidance else ""
+        game.io.show_message(f"\n{game.player.name} rolls a {roll} + {modifier}{bonus_text} ({self.chosen_ability}) = {result}")
         game.io.show_message(f"Difficulty for {item.name}: {difficulty}")
         
         self.context["type"] = "item"

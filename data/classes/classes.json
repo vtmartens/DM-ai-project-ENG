@@ -32,7 +32,7 @@
       "wisdom": 12,
       "charisma": 10
     },
-    "special_abilities": ["Magic Missile", "Mage Shield"],
+    "special_abilities": ["Magic Missile", "Mage Shield", "Knock"],
     "starting_equipment": ["staff", "Wizard's Robe", "Spellbook"],
     "hp_base": 6,
     "mana_base": 20,
@@ -56,7 +56,7 @@
       "wisdom": 10,
       "charisma": 12
     },
-    "special_abilities": ["Sneak Attack", "Evade"],
+    "special_abilities": ["Sneak Attack", "Evade", "Mage Hand"],
     "starting_equipment": ["dagger", "Leather Armor", "Lockpicks"],
     "hp_base": 8,
     "mana_base": 4,
@@ -80,7 +80,7 @@
       "wisdom": 16,
       "charisma": 12
     },
-    "special_abilities": ["Cure Wounds", "Blessing"],
+    "special_abilities": ["Cure Wounds", "Blessing", "Guidance"],
     "starting_equipment": ["mace", "shield", "Holy Symbol"],
     "hp_base": 10,
     "mana_base": 10,

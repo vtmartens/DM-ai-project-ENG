@@ -408,6 +408,62 @@ def test_abilities_unlock_after_reaching_the_required_level(client):
     assert "Fireball" in data["abilities"]
 
 
+def test_abilities_expose_utility_spells(client):
+    session_id = _start(client, char_class="wizard")
+
+    data = client.get("/abilities", query_string={"session_id": session_id}).get_json()
+    details = {ability["name"]: ability for ability in data["ability_details"]}
+
+    assert "Knock" in data["abilities"]
+    assert details["Knock"]["combat_only"] is False
+    assert details["Knock"]["usable_in_combat"] is False
+
+
+def test_use_ability_guidance_outside_combat(client):
+    import server
+
+    session_id = _start(client, char_class="cleric")
+    session = server.active_sessions[session_id]
+    before_mana = session.game.player.mana
+
+    response = client.post(
+        "/use_ability",
+        json={"session_id": session_id, "ability_name": "Guidance"},
+    )
+    data = response.get_json()
+
+    assert response.status_code == 200
+    assert data["used"] is True
+    assert data["ability"]["name"] == "Guidance"
+    assert session.game.player.conditions["guidance"] == {"bonus": 2}
+    assert session.game.player.mana == before_mana - 2
+
+
+def test_use_ability_knock_opens_a_locked_chest(client):
+    import server
+    from items.interactive_object import Chest
+
+    session_id = _start(client, char_class="wizard")
+    session = server.active_sessions[session_id]
+    player = session.game.player
+    player.set_position("tavern", 5, 5)
+    chest = Chest(
+        "Sealed Chest",
+        state="closed",
+        requires_key=True,
+        position="tavern",
+    )
+    session.game.map_manager.get_map("tavern").add_item(chest, 5, 6)
+
+    data = client.post(
+        "/use_ability",
+        json={"session_id": session_id, "ability_name": "Knock"},
+    ).get_json()
+
+    assert data["used"] is True
+    assert chest.state == "open"
+
+
 def test_use_ability_casts_magic_missile_in_combat(client):
     import server
 

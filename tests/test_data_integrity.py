@@ -114,7 +114,17 @@ def test_class_ability_definitions_cover_starting_and_progression_abilities():
 
 def test_ability_definitions_are_well_formed():
     abilities = _load(ROOT / "data" / "classes" / "abilities.json")
-    supported_effects = {"damage", "heal", "guard", "shield", "evade", "bless"}
+    supported_effects = {
+        "damage",
+        "heal",
+        "guard",
+        "shield",
+        "evade",
+        "bless",
+        "knock",
+        "mage_hand",
+        "guidance",
+    }
     ids = set()
 
     for name, ability in abilities.items():
