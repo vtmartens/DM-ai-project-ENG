@@ -295,6 +295,8 @@ class GameState:
 
         current = self.game.current_state()
         if isinstance(current, CombatState) and getattr(current, "enemies", None):
+            from core.enemy_abilities import load_abilities
+
             target = getattr(current, "opponent", None)
             living = [
                 enemy
@@ -310,19 +312,58 @@ class GameState:
             ]
             if len(living) > 1:
                 actions.append("choose target")
+
+            enemies = []
+            for index, enemy in enumerate(current.enemies):
+                abilities = getattr(enemy, "abilities", None)
+                if not abilities:
+                    abilities = load_abilities(
+                        getattr(enemy, "ability_ids", [])
+                    )
+                ability_names = {
+                    ability.get("id"): ability.get("name", ability.get("id"))
+                    for ability in abilities or []
+                    if isinstance(ability, dict)
+                }
+                cooldowns = current.ability_cooldowns.get(str(index), {}) or {}
+                alive = getattr(enemy, "hp", 0) > 0
+                enemies.append(
+                    {
+                        "name": getattr(enemy, "name", "Unknown"),
+                        "hp": getattr(enemy, "hp", 0),
+                        "max_hp": getattr(enemy, "hp_max", 0),
+                        "guard": (
+                            int(current.enemy_guard.get(str(index), 0) or 0)
+                            if alive
+                            else 0
+                        ),
+                        "cooldowns": (
+                            [
+                                {
+                                    "id": ability_id,
+                                    "name": ability_names.get(
+                                        ability_id, ability_id
+                                    ),
+                                    "remaining": int(remaining or 0),
+                                }
+                                for ability_id, remaining in cooldowns.items()
+                                if int(remaining or 0) > 0
+                            ]
+                            if alive
+                            else []
+                        ),
+                    }
+                )
+
             return {
                 "in_combat": True,
                 "round": getattr(current, "turn", 1),
                 "turn_of": "player",
                 "target": getattr(target, "name", None),
-                "enemies": [
-                    {
-                        "name": getattr(enemy, "name", "Unknown"),
-                        "hp": getattr(enemy, "hp", 0),
-                        "max_hp": getattr(enemy, "hp_max", 0),
-                    }
-                    for enemy in current.enemies
-                ],
+                "conditions": dict(
+                    getattr(self.game.player, "conditions", {}) or {}
+                ),
+                "enemies": enemies,
                 "allies": [
                     {
                         "name": getattr(ally, "name", "Unknown"),
@@ -533,6 +574,9 @@ class GameState:
             ),
             "timestamp_achievements": dict(
                 getattr(self.game.player, "achievement_timestamps", {}) or {}
+            ),
+            "conditions": dict(
+                getattr(self.game.player, "conditions", {}) or {}
             ),
             "preferences": dict(self.preferences),
             "combat": self.get_combat_state(),

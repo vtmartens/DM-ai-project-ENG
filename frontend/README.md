@@ -51,7 +51,10 @@ You can also set `localStorage["dm_api_base"]`.
 - Combat card with every enemy's name/HP and the current round (from `state.combat`).
   With multiple enemies, each row has a Target button; the current target is marked.
   Recruited allies appear below the enemies. Enemy abilities and their telegraphs appear in
-  the adventure log, and the card reflects HP changes such as healing or guard effects.
+  the adventure log, and the card reflects HP changes. Status tags show each enemy's physical
+  guard and ability cooldowns.
+- Conditions panel driven by `state.conditions`: poisoned duration/damage, Guidance and
+  advantage/disadvantage are rendered as colour-coded tags and update after each action.
 - Quests panel driven by `GET /missions`, showing each active quest and its objective.
   Completed objectives change to “Ready to turn in — speak to …” until rewards are collected.
 - Achievements panel driven by `GET /achievements`, with an unlocked/total count, score,

@@ -163,6 +163,53 @@ def test_combat_reports_no_combat_outside_a_fight(client):
     assert data == {"in_combat": False}
 
 
+def test_state_exposes_player_conditions(client):
+    import server
+
+    session_id = _start(client)
+    session = server.active_sessions[session_id]
+    session.game.player.conditions["poison"] = {"damage": 2, "turns": 3}
+    session.game.player.conditions["advantage"] = True
+
+    state = client.get(
+        "/state", query_string={"session_id": session_id}
+    ).get_json()
+
+    assert state["conditions"]["poison"] == {"damage": 2, "turns": 3}
+    assert state["conditions"]["advantage"] is True
+
+
+def test_combat_snapshot_exposes_guard_and_cooldowns(client):
+    import server
+
+    session_id = _start(client)
+    client.post("/command", json={"session_id": session_id, "command": "4"})
+    client.post("/command", json={"session_id": session_id, "command": "7"})
+    session = server.active_sessions[session_id]
+    combat = session.game.current_state()
+    combat.ability_cooldowns["0"] = {"poison_arrow": 2}
+    combat.enemy_guard["0"] = 4
+    session.game.player.conditions["poison"] = {"damage": 2, "turns": 2}
+
+    combat_data = client.get(
+        "/combat", query_string={"session_id": session_id}
+    ).get_json()
+    state = client.get(
+        "/state", query_string={"session_id": session_id}
+    ).get_json()
+
+    goblin = combat_data["enemies"][0]
+    assert goblin["guard"] == 4
+    cooldown = next(
+        entry for entry in goblin["cooldowns"] if entry["id"] == "poison_arrow"
+    )
+    assert cooldown["name"] == "Poison Arrow"
+    assert cooldown["remaining"] == 2
+    assert combat_data["conditions"]["poison"]["turns"] == 2
+    assert state["combat"]["enemies"][0]["guard"] == 4
+    assert state["combat"]["conditions"]["poison"]["turns"] == 2
+
+
 def test_missions_expose_the_quest_log_shape(client):
     session_id = _start(client)
 

@@ -46,6 +46,7 @@ const el = {
   statLocation: document.getElementById("stat-location"),
   statPosition: document.getElementById("stat-position"),
   statsGrid: document.getElementById("stats-grid"),
+  conditionsList: document.getElementById("conditions-list"),
   questList: document.getElementById("quest-list"),
   achievementsList: document.getElementById("achievements-list"),
   achievementsCount: document.getElementById("achievements-count"),
@@ -386,6 +387,7 @@ function renderState(state) {
       : "—";
 
   renderStats(state.stats || {});
+  renderConditions(state.conditions || {});
 
   if (state.preferences?.theme && !localStorage.getItem(THEME_KEY)) {
     applyTheme(state.preferences.theme, true);
@@ -469,6 +471,22 @@ function renderCombat(combat) {
     bar.appendChild(fill);
 
     el.combatCard.append(row, bar);
+
+    const statuses = document.createElement("div");
+    statuses.className = "enemy-status";
+    if (Number(enemy.guard || 0) > 0) {
+      addStatusTag(statuses, `Guard ${enemy.guard}`, "guard");
+    }
+    for (const cooldown of enemy.cooldowns || []) {
+      if (Number(cooldown.remaining || 0) > 0) {
+        addStatusTag(
+          statuses,
+          `${cooldown.name}: ${cooldown.remaining}`,
+          "cooldown"
+        );
+      }
+    }
+    if (statuses.children.length) el.combatCard.appendChild(statuses);
   }
 
   for (const ally of combat.allies || []) {
@@ -482,6 +500,70 @@ function renderCombat(combat) {
     row.append(name, hp);
     el.combatCard.appendChild(row);
   }
+}
+
+function addStatusTag(container, text, kind) {
+  const tag = document.createElement("span");
+  tag.className = `status-tag ${kind}`;
+  tag.textContent = text;
+  container.appendChild(tag);
+}
+
+function renderConditions(conditions) {
+  el.conditionsList.innerHTML = "";
+  const entries =
+    conditions && typeof conditions === "object"
+      ? Object.entries(conditions)
+      : [];
+
+  if (!entries.length) {
+    const note = document.createElement("span");
+    note.className = "empty-note";
+    note.textContent = "None";
+    el.conditionsList.appendChild(note);
+    return;
+  }
+
+  for (const [name, value] of entries) {
+    const tag = document.createElement("span");
+    const slug = String(name).toLowerCase().replace(/[^a-z0-9_-]+/g, "-");
+    tag.className = `tag condition condition-${slug}`;
+    tag.textContent = conditionLabel(name, value);
+    tag.title = conditionTitle(name, value);
+    el.conditionsList.appendChild(tag);
+  }
+}
+
+function conditionLabel(name, value) {
+  const key = String(name).toLowerCase();
+  if (key === "poison" && value && typeof value === "object") {
+    const damage = Number(value.damage ?? 0);
+    const turns = Number(value.turns ?? value.duration ?? 0);
+    return `Poisoned · ${damage}/turn · ${turns} turn${turns === 1 ? "" : "s"}`;
+  }
+  if (key === "guidance" && value && typeof value === "object") {
+    return `Guidance +${Number(value.bonus ?? 2)}`;
+  }
+  if (key === "advantage") return "Advantage";
+  if (key === "disadvantage") return "Disadvantage";
+  if (value && typeof value === "object") {
+    const details = Object.entries(value)
+      .map(([stat, amount]) => `${stat} ${amount}`)
+      .join(", ");
+    return details ? `${name}: ${details}` : String(name);
+  }
+  return value === true ? String(name) : `${name} ${value}`;
+}
+
+function conditionTitle(name, value) {
+  if (value && typeof value === "object") {
+    return (
+      Object.entries(value)
+        .map(([stat, amount]) => `${stat}: ${amount}`)
+        .join(", ") || String(name)
+    );
+  }
+  return `${name}: ${value}`;
 }
 
 function renderDialogue(dialogue) {

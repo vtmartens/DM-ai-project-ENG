@@ -207,6 +207,61 @@ def test_modal_keyboard_and_skip_links(live_server):
         driver.quit()
 
 
+def test_combat_status_and_conditions_ui(live_server):
+    driver = _make_driver()
+    wait = WebDriverWait(driver, 40)
+
+    try:
+        _start_game(driver, wait, live_server, name="Status Smoke")
+
+        conditions = driver.find_element(By.ID, "conditions-list")
+        assert "None" in conditions.text
+
+        # Goblin initiative uses Poison Arrow, so its cooldown should appear.
+        for command in ("4", "7"):
+            driver.find_element(By.ID, "command-input").send_keys(command)
+            driver.find_element(By.ID, "send-button").click()
+            if command == "7":
+                wait.until(
+                    lambda d: d.find_element(By.ID, "combat-card").is_displayed()
+                )
+            else:
+                wait.until(
+                    lambda d: "How do you want to choose"
+                    in d.find_element(By.ID, "log").text
+                )
+
+        driver.find_element(By.ID, "command-input").send_keys("1")
+        driver.find_element(By.ID, "send-button").click()
+        wait.until(
+            lambda d: "Poison Arrow"
+            in d.find_element(By.ID, "combat-card").text
+        )
+
+        # The conditions panel formats active effects.
+        driver.execute_script(
+            "renderConditions({poison: {damage: 2, turns: 3}, "
+            "advantage: true})"
+        )
+        conditions_text = driver.find_element(By.ID, "conditions-list").text
+        assert "Poisoned" in conditions_text
+        assert "2/turn" in conditions_text
+        assert "Advantage" in conditions_text
+
+        # Guard and cooldown tags render in the combat card.
+        driver.execute_script(
+            "renderCombat({in_combat: true, round: 1, turn_of: 'player', "
+            "target: 'Goblin', enemies: [{name: 'Goblin', hp: 5, "
+            "max_hp: 10, guard: 4, cooldowns: [{id: 'poison_arrow', "
+            "name: 'Poison Arrow', remaining: 2}]}], allies: []})"
+        )
+        combat_text = driver.find_element(By.ID, "combat-card").text
+        assert "Guard 4" in combat_text
+        assert "Poison Arrow: 2" in combat_text
+    finally:
+        driver.quit()
+
+
 def test_mobile_layout_and_targets(live_server):
     driver = _make_driver()
     driver.set_window_size(390, 844)

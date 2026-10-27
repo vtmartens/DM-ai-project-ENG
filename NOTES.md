@@ -581,6 +581,19 @@ entirely. The doors that existed were also misaligned with the map exits.
   disadvantage, save DCs, poisoning on failure, half damage, guard interaction and ability
   checks. 366 tests pass. Attack rolls/AC and a general condition UI remain future work.
 
+## Combat status UI (2026-10-27)
+
+- `GET /state` now exposes `conditions` (poison, Guidance, advantage/disadvantage, etc.).
+- `GET /combat` and command `state.combat` snapshots now include the player's `conditions`
+  and, for each living enemy, its physical `guard` and active ability `cooldowns`
+  (`id`, display `name`, `remaining` rounds). Dead enemies report empty status.
+- The web client gained a Conditions card (colour-coded tags for poison duration/damage,
+  Guidance, advantage and disadvantage) and status tags under each enemy's HP bar for guard
+  and cooldowns. Both update after every action and use the existing live regions.
+- Tests: API coverage for conditions, guard and cooldown serialization; a browser test that
+  starts a goblin fight, waits for the Poison Arrow cooldown tag, formats conditions, and
+  checks Guard/cooldown tags. 369 tests pass. Client assets are at `?v=22`.
+
 ## Deliberate translation choices worth knowing
 
 - **`hp_base` / `mana_base` were left as-is.** They are consistent between code and JSON
@@ -609,7 +622,7 @@ entirely. The doors that existed were also misaligned with the map exits.
 | Residual Italian (glossary-derived denylist + accented characters) | 0 hits |
 | **Original Italian vs translated, identical input** | **46/46 placements, identical sequence** |
 | Flask API in-process (test client, no socket) | 31 × 200, 0 raised |
-| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, hints, achievements, utility spells, locks, vault, quests, enemy abilities, encounters, saving throws, accessibility, web client routes, browser smoke/mobile) | 366 passed |
+| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, hints, achievements, utility spells, locks, vault, quests, enemy abilities, encounters, saving throws, combat status, accessibility, web client routes, browser smoke/mobile) | 369 passed |
 | Live smoke test (Flask server, `/app`, start/state/abilities/inventory/actions/command/save/load) | passed |
 
 The last comparison is the strongest evidence: the pristine Italian code and the finished

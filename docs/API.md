@@ -100,6 +100,7 @@ a server restart. A stale `session_id` returns `404`.
   "completed_quests": [],
   "achievements": [],
   "timestamp_achievements": {},
+  "conditions": {},
   "preferences": {},
   "combat": {"in_combat": false},
   "dialogue": {"active": false}
@@ -562,9 +563,11 @@ Runs `look` and returns `output`, `state`, plus nearby `items`, `exits`, and `np
   "round": 1,
   "turn_of": "player",
   "target": "Goblin A",
+  "conditions": {"poison": {"damage": 2, "turns": 3}},
   "enemies": [
-    {"name": "Goblin A", "hp": 10, "max_hp": 10},
-    {"name": "Goblin B", "hp": 10, "max_hp": 10}
+    {"name": "Goblin A", "hp": 10, "max_hp": 10, "guard": 0,
+     "cooldowns": [{"id": "poison_arrow", "name": "Poison Arrow", "remaining": 2}]},
+    {"name": "Goblin B", "hp": 10, "max_hp": 10, "guard": 0, "cooldowns": []}
   ],
   "allies": [],
   "available_actions": [
@@ -579,7 +582,9 @@ Runs `look` and returns `output`, `state`, plus nearby `items`, `exits`, and `np
 ```
 
 `target` is the enemy attacks and abilities currently affect. `choose target` appears when more
-than one enemy is alive; clients can also send `target <name>` as a command.
+than one enemy is alive; clients can also send `target <name>` as a command. `conditions` is
+the player's active condition map (same shape as `state.conditions`); `guard` is the enemy's
+remaining physical guard, and `cooldowns` lists ability names and rounds until reuse.
 
 Outside combat: `{"in_combat": false}`.
 
