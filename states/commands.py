@@ -21,6 +21,7 @@ TARGETED_PATTERNS = (
     ("go", r"^(?:go|travel|walk|head|move|approach)(?:\s+to)?\s+(?:the\s+)?(.+)$"),
     ("examine", r"^(?:examine|inspect|look\s+at|check)\s+(?:the\s+|a\s+|an\s+)?(.+)$"),
     ("interact", r"^(?:interact\s+with|open|pull|push)\s+(?:the\s+|a\s+|an\s+)?(.+)$"),
+    ("disarm", r"^(?:disarm|disable|defuse|deactivate)\s+(?:the\s+|a\s+|an\s+)?(.+)$"),
 )
 
 
@@ -215,6 +216,7 @@ def resolve_map_object(game, target):
     candidates = [
         (getattr(obj, "name", str(obj)), (pos, obj))
         for pos, obj in current_map.items.items()
+        if not current_map.object_is_hidden(obj)
     ]
     return match_name(candidates, target)
 
@@ -426,6 +428,23 @@ def handle_targeted_command(game, action, target, extra_npcs=()) -> bool:
 
         game.io.show_message(f"There is no place called {target}.")
         return False
+
+    if action == "disarm":
+        resolved = resolve_map_object(game, target)
+        if resolved is None:
+            game.io.show_message(f"You don't see {target} here.")
+            return False
+        (x, y), obj = resolved
+        label = getattr(obj, "display_name", getattr(obj, "name", target))
+        if abs(game.player.x - x) + abs(game.player.y - y) > 1:
+            game.io.show_message(f"You need to move closer to {label}.")
+            return True
+        disarm = getattr(obj, "disarm", None)
+        if not callable(disarm):
+            game.io.show_message(f"You cannot disarm {label}.")
+            return True
+        disarm(game.player, game)
+        return True
 
     if action in {"examine", "interact"}:
         resolved = resolve_map_object(game, target)

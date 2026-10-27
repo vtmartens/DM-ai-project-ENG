@@ -787,6 +787,13 @@ def get_available_actions():
     # Define different actions depending on the context
     actions_context = {
         "base": ["examine", "pick_up", "talk", "use", "look"],
+        "map": [
+            "search",
+            "move north",
+            "move south",
+            "move east",
+            "move west",
+        ],
         "combat": [
             "attack",
             "defend",
@@ -828,6 +835,8 @@ def get_available_actions():
             combat_state.get("available_actions")
             or actions_context["combat"]
         )
+    elif state_name == "MapState":
+        actions = actions_context["map"]
     elif state_name == "DialogueState":
         actions = actions_context["dialogue"]
     elif state_name == "MarketState":

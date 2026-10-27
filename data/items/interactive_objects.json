@@ -83,6 +83,12 @@
     "state": "active",
     "damage": 8,
     "saving_throw_difficulty": 12,
+    "saving_throw_ability": "dexterity",
+    "hidden": true,
+    "detection_dc": 13,
+    "disarm_dc": 13,
+    "disarm_skill": "investigation",
+    "trigger_on_failure": true,
     "token": "T"
   },
   {
@@ -92,6 +98,12 @@
     "state": "active",
     "damage": 5,
     "saving_throw_difficulty": 10,
+    "saving_throw_ability": "dexterity",
+    "hidden": true,
+    "detection_dc": 12,
+    "disarm_dc": 12,
+    "disarm_skill": "investigation",
+    "trigger_on_failure": false,
     "token": "T"
   },
   {
@@ -335,6 +347,8 @@
     "state": "closed",
     "token": "C",
     "requires_key": false,
+    "hidden": true,
+    "detection_dc": 10,
     "content": [
       {
         "name": "Cellar Key",
@@ -489,9 +503,16 @@
     "token": "T",
     "damage": 8,
     "saving_throw_difficulty": 12,
+    "saving_throw_ability": "dexterity",
+    "hidden": true,
+    "detection_dc": 12,
+    "disarm_dc": 12,
+    "disarm_skill": "investigation",
+    "trigger_on_failure": true,
     "state_descriptions": {
-      "active": "A section of the floor that looks suspicious.",
-      "deactivated": "A section of the floor with a deactivated spike trap."
+      "active": "A section of the floor with a pressure plate.",
+      "deactivated": "A section of the floor with a deactivated spike trap.",
+      "triggered": "A spent spike trap juts from the floor."
     },
     "possible_states": {
       "active": [

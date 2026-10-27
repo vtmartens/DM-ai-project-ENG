@@ -80,6 +80,36 @@ def test_map_objects_reference_defined_objects():
     assert not missing, sorted(missing)
 
 
+def test_hidden_objects_and_traps_are_well_formed():
+    objects = _load(ITEMS_DIR / "interactive_objects.json")
+    conditions = _load(ROOT / "data" / "conditions" / "conditions.json")
+    abilities = {
+        "strength",
+        "dexterity",
+        "constitution",
+        "intelligence",
+        "wisdom",
+        "charisma",
+    }
+
+    for obj in objects:
+        if "hidden" in obj:
+            assert isinstance(obj["hidden"], bool), obj["name"]
+        if obj.get("hidden"):
+            assert 5 <= int(obj.get("detection_dc", 0)) <= 30, obj["name"]
+
+        if obj.get("type") != "trap":
+            continue
+        assert 5 <= int(obj.get("detection_dc", 0)) <= 30, obj["name"]
+        assert 5 <= int(obj.get("disarm_dc", 0)) <= 30, obj["name"]
+        assert obj.get("saving_throw_ability") in abilities, obj["name"]
+        assert 5 <= int(obj.get("saving_throw_difficulty", 0)) <= 30, obj["name"]
+        assert isinstance(obj.get("trigger_on_failure", False), bool), obj["name"]
+        condition = obj.get("condition")
+        if condition is not None:
+            assert condition.get("id") in conditions, obj["name"]
+
+
 def test_map_start_positions_are_walkable():
     for path in MAPS_DIR.glob("*.json"):
         data = _load(path)

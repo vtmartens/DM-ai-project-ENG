@@ -75,7 +75,12 @@
   ],
   "road": [],
   "waystation": [],
-  "underroad": [],
+  "underroad": [
+    {
+      "name": "Spike Trap",
+      "position": [8, 6]
+    }
+  ],
   "warehouse": [
     {
       "name": "Vault Door",
@@ -90,6 +95,10 @@
     {
       "name": "Vault Exit",
       "position": [1, 8]
+    },
+    {
+      "name": "Pit Trap",
+      "position": [8, 8]
     },
     {
       "name": "Relic Chest",

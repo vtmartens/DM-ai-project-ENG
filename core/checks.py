@@ -54,6 +54,16 @@ def _roll_skill(entity, skill, game=None, consume_guidance=False):
     }
 
 
+def skill_check_total(entity, skill, game=None, consume_guidance=False):
+    """Rolls one skill check and returns its roll, bonus and total."""
+    return _roll_skill(
+        entity,
+        skill,
+        game=game,
+        consume_guidance=consume_guidance,
+    )
+
+
 def skill_check(player, skill, difficulty, game=None):
     """Rolls d20 + skill modifier against a difficulty, with Guidance."""
     result = _roll_skill(

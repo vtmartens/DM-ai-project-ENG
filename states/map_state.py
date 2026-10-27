@@ -59,6 +59,7 @@ class MapState(BaseState):
         game.io.show_message("3. Show nearby elements")
         game.io.show_message("4. Show/hide legend")
         game.io.show_message("5. Go back")
+        game.io.show_message("6. Search the area")
 
         selection = str(game.io.request_input("\nChoice: ") or "").strip()
         low = selection.casefold()
@@ -77,6 +78,18 @@ class MapState(BaseState):
 
             if direction is not None:
                 self._move_player_position(game, direction)
+                self.phase = "main_menu"
+                press_enter(game)
+                return
+
+            if low in {
+                "search",
+                "search area",
+                "search the area",
+                "search for traps",
+                "look for traps",
+            }:
+                self._search_area(game)
                 self.phase = "main_menu"
                 press_enter(game)
                 return
@@ -114,6 +127,11 @@ class MapState(BaseState):
         if selection == "5":
             if game.current_state():
                 game.pop_state()
+            return
+        if selection == "6":
+            self._search_area(game)
+            self.phase = "main_menu"
+            press_enter(game)
             return
 
         game.io.error_message("Invalid choice.")
@@ -287,6 +305,55 @@ class MapState(BaseState):
         else:
             game.io.show_message("You notice nothing out of the ordinary.")
     
+    def _search_area(self, game):
+        """Searches for hidden traps, caches and other concealed objects."""
+        from core.checks import skill_check_total
+
+        player = game.player
+        current_map = game.map_manager.get_map(player.current_map)
+        if current_map is None:
+            game.io.show_message("There is nothing here to search.")
+            return
+
+        result = skill_check_total(
+            player, "perception", game=game, consume_guidance=True
+        )
+        guidance_text = (
+            f", +{result['guidance']} Guidance" if result["guidance"] else ""
+        )
+        game.io.show_message(
+            f"Perception check: {result['roll']} + {result['bonus']}"
+            f"{guidance_text} = {result['total']}."
+        )
+
+        nearby = current_map.get_nearby_items(
+            player.x, player.y, 2, include_hidden=True
+        )
+        found = []
+        for position, obj in sorted(nearby.items()):
+            is_hidden = getattr(obj, "is_hidden", None)
+            if not callable(is_hidden) or not is_hidden():
+                continue
+            difficulty = int(getattr(obj, "detection_dc", 10) or 10)
+            if result["total"] >= difficulty and obj.reveal(game):
+                found.append(obj)
+
+        if not found:
+            game.io.show_message(
+                "You search the area but find nothing hidden."
+            )
+            return
+
+        names = ", ".join(
+            getattr(obj, "display_name", getattr(obj, "name", "something"))
+            for obj in found
+        )
+        game.io.show_message(f"You found: {names}.")
+        if any(getattr(obj, "type", "") == "trap" for obj in found):
+            game.io.show_message(
+                "You can try to disarm a trap from an adjacent square."
+            )
+
     def _nearby_show_elements(self, game):
         """Show nearby objects and NPCs"""
         nearby_items = game.player.get_nearby_items(game.map_manager)

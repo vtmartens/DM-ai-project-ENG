@@ -933,6 +933,24 @@ entirely. The doors that existed were also misaligned with the map exits.
   incoming advantage, enemy/NPC-condition round trips, the command loop, API exposure and
   data integrity. 518 tests pass.
 
+## Traps and environmental searches (2026-10-27)
+
+- Added discovery state to every interactive object (`hidden`, `detected`, `detection_dc`).
+  Undiscovered objects are omitted from the ASCII map, token legend, nearby lists and
+  targeted command resolution until a search reveals them.
+- Map menu option 6, the `search` command and the map quick actions roll Perception once
+  against each hidden object within two cells. Successes reveal the object; the Cellar's
+  hidden chest and floor trap, the Vault pit trap and the Underroad spike trap now use this
+  flow.
+- Modernised `Trap`: hidden traps can be detected, disarmed with an Investigation check, or
+  triggered. Triggering calls for a data-driven saving throw, deals damage on failure and
+  applies an optional condition. Failed disarms can spring the trap when configured.
+- Added `disarm <trap>` targeted commands and interaction-based disarm attempts, with
+  adjacent-cell checks. Trap and discovery state survive map/save round trips.
+- Added a MapState quick-action context (`search` plus movement) and documented the search,
+  disarm and hidden-object contract. Tests cover visibility, successful/failed searches,
+  disarm success/failure, saves, one-use triggers and persistence. 530 tests pass.
+
 ## Deliberate translation choices worth knowing
 
 - **`hp_base` / `mana_base` were left as-is.** They are consistent between code and JSON

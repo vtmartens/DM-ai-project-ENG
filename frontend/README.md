@@ -55,7 +55,10 @@ You can also set `localStorage["dm_api_base"]`.
   menu-driven boss landmark with a strongbox, a cleared-area campfire rest and a Mirt quest
   hook. After clearing it, descend into the Underroad chapter, fight the Smuggler Lord and
   claim the unique cache reward. The vault's Rune Pillar is also interactive: use
-  `interact with Rune Pillar` nearby to attempt its Arcana challenge.
+  `interact with Rune Pillar` nearby to attempt its Arcana challenge. On the map screen,
+  **Search** quick actions make a Perception check for hidden traps and caches; hidden
+  objects stay out of the map and legend until found, and detected traps can be disarmed
+  with `disarm <trap>` or by interacting with them.
 - **Bounties** button in the tavern opens a focus-trapped Bounty Board modal (`GET /bounties`)
   with each contract's objective, status, progress and reward. **Accept** and **Claim**
   buttons call `/bounties/accept` and `/bounties/claim`; accepted contracts also appear in

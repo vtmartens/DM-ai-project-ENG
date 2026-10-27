@@ -202,7 +202,9 @@ engine resolves targets deterministically: `talk to Durnan`, `attack the goblin`
 in one command, respecting walls and occupied cells. `go to exit` (or `leave`) walks to the
 nearest map exit, steps through it and enters the destination state; `go to exit to cellar`
 picks a named exit when a map has more than one. On the map screen, `south`, `move east`,
-etc. also move directly. Unknown targets show a message and fall back to the corresponding
+etc. also move directly. On the map screen, `search` (or map menu option 6) searches the
+nearby area for hidden traps and caches, and `disarm <trap>` attempts to disable a detected
+trap from an adjacent cell. Unknown targets show a message and fall back to the corresponding
 menu. In the tavern, `rest`, `sleep`, `recover` and `nap` take a long rest (10 gold), restore
 HP and mana to their maximum and clear all conditions; the command is refused with a message
 if you are already at full health and mana with no conditions, or if you cannot pay. Map
@@ -639,6 +641,23 @@ cell. Cells that have a door object show the door's own token instead. Every oth
 single-character token. `legend` maps each token to the name(s) and type(s) it represents
 (a `>` entry is named e.g. “Exit to market”); a token can group several objects. `members`
 keeps the type per name, so clients can label characters — the web client appends `(NPC)`.
+Undiscovered objects are deliberately omitted from both `ascii` and `legend`; a successful
+map search reveals them, and only then do they appear in `/map`, `/map_view`, nearby lists
+and targeted commands.
+
+#### Searching and traps
+
+Map menu option 6 or `search` rolls Perception and compares the result with each hidden
+object's `detection_dc` inside a two-cell radius. A success reveals the object and logs its
+name; hidden traps, caches and other objects remain absent from `/map_view`, `/map` and
+targeted commands until then.
+
+Detected traps can be disarmed from an adjacent cell with `disarm <trap>` or by interacting
+with the trap. The disarm roll is an Investigation check against `disarm_dc`. On failure the
+trap may spring (`trigger_on_failure`), calling for its `saving_throw_ability` save against
+`saving_throw_difficulty` and dealing `damage` on failure. A trap is one-use: once triggered
+or disarmed its state is persisted with the map. Trap definitions live in
+`data/items/interactive_objects.json`; Cellar, Vault and Underroad place the shipped examples.
 
 #### `POST /move`
 
@@ -706,13 +725,14 @@ Returns a list of NPC names placed on the current map.
 ```
 
 The action list depends on the current state: combat, dialogue, market, inventory, the
-tavern, the Broken Waystation, the Underroad, the bounty board and the Rune Pillar each
-advertise their own commands. In the tavern, `rest` is the long-rest action (10 gold; restores
-HP and mana and clears conditions) and `bounties` opens the bounty board. In the market it
-includes `shop`, `buy` and `sell`, which drive the shop modal and the numbered terminal shop.
-The waystation advertises `confront`, `strongbox`, `rest`, `underroad` and `leave`; the
-Underroad advertises `confront`, `cache` and `leave`; the bounty board advertises `accept`,
-`claim` and `leave`; the Rune Pillar advertises `study` and `leave`.
+tavern, the map, the Broken Waystation, the Underroad, the bounty board and the Rune Pillar
+each advertise their own commands. In the tavern, `rest` is the long-rest action (10 gold;
+restores HP and mana and clears conditions) and `bounties` opens the bounty board. In the
+market it includes `shop`, `buy` and `sell`, which drive the shop modal and the numbered
+terminal shop. The map advertises `search` and its four movement directions. The waystation
+advertises `confront`, `strongbox`, `rest`, `underroad` and `leave`; the Underroad advertises
+`confront`, `cache` and `leave`; the bounty board advertises `accept`, `claim` and `leave`;
+the Rune Pillar advertises `study` and `leave`.
 Bounty contracts are ordinary quests with `bounty: true` and `repeatable: true`, so their
 progress and ready state appear in `GET /missions` and the web quest panel. Claimed bounties
 return to the available list, while only the latest completion record is kept.

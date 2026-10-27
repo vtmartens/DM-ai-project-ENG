@@ -86,6 +86,16 @@ class Map:
         return False
     
     @staticmethod
+    def object_is_hidden(obj):
+        """Whether a map object should be omitted until it is discovered."""
+        hidden = getattr(obj, "is_hidden", None)
+        if callable(hidden):
+            return bool(hidden())
+        return bool(getattr(obj, "hidden", False)) and not bool(
+            getattr(obj, "detected", False)
+        )
+
+    @staticmethod
     def display_token(obj):
         """Returns a single-character map token for an object or NPC.
 
@@ -122,6 +132,8 @@ class Map:
             entry["members"][name] = obj_type
 
         for obj in self.items.values():
+            if self.object_is_hidden(obj):
+                continue
             add(obj, "object")
         for npc in self.npc.values():
             add(npc, "npc")
@@ -175,7 +187,10 @@ class Map:
                     row += "P"  # Player, we always use P for visual consistency
                 elif (x, y) in self.npc:
                     row += self.display_token(self.npc[(x, y)])
-                elif (x, y) in self.items:
+                elif (
+                    (x, y) in self.items
+                    and not self.object_is_hidden(self.items[(x, y)])
+                ):
                     row += self.display_token(self.items[(x, y)])
                 elif (x, y) in self.doors:
                     row += ">"  # Exit to another map
@@ -187,13 +202,14 @@ class Map:
         
         return "\n".join(map_ascii)
     
-    def get_nearby_items(self, x, y, radius=1):
+    def get_nearby_items(self, x, y, radius=1, include_hidden=False):
         """
         Returns the objects within a certain radius of the position
 
         Args:
             x, y: Center coordinates
             radius: Maximum distance in cells
+            include_hidden: Include undiscovered objects (used by searches)
 
         Returns:
             dict: Dictionary of positions and objects
@@ -202,8 +218,11 @@ class Map:
         for dx in range(-radius, radius + 1):
             for dy in range(-radius, radius + 1):
                 pos = (x + dx, y + dy)
-                if pos in self.items:
-                    nearby_items[pos] = self.items[pos]
+                obj = self.items.get(pos)
+                if obj is None:
+                    continue
+                if include_hidden or not self.object_is_hidden(obj):
+                    nearby_items[pos] = obj
         return nearby_items
     
     def get_nearby_npcs(self, x, y, radius=1):

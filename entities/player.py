@@ -401,7 +401,7 @@ class Player(Entity):
         for dx, dy in [(0, 1), (1, 0), (0, -1), (-1, 0)]:
             x, y = self.x + dx, self.y + dy
             item = map.get_item_at(x, y)
-            if item:
+            if item and not map.object_is_hidden(item):
                 if game and game.io:
                     game.io.show_message(f"You interact with {item.name}")
                 item.interact(self, game)
@@ -447,25 +447,28 @@ class Player(Entity):
             game_ctx.io.show_message("There are no characters nearby to talk to.")
         return False
     
-    def get_nearby_items(self, map_manager, radius=1):
+    def get_nearby_items(self, map_manager, radius=1, include_hidden=False):
         """
         Returns the objects near the player
 
         Args:
             map_manager: Game map manager
             radius (int): Search radius
+            include_hidden (bool): Include undiscovered objects
 
         Returns:
             dict: Dictionary of nearby objects
         """
         if not map_manager or not self.current_map:
             return {}
-        
+
         map = map_manager.get_map(self.current_map)
         if not map:
             return {}
-        
-        return map.get_nearby_items(self.x, self.y, radius)
+
+        return map.get_nearby_items(
+            self.x, self.y, radius, include_hidden=include_hidden
+        )
     
     def get_nearby_npcs(self, map_manager, radius=1):
         """

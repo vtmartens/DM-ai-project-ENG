@@ -1,4 +1,3 @@
-from util.dice import Dice
 from util.data_manager import get_data_manager
 from items.keys import find_matching_key
 
@@ -22,6 +21,12 @@ class InteractiveObject:
         self.linked_items = {}  # Dictionary of objects that can be influenced by this one
         self.position = position  # Position of the object in the world
         self.token = token  # Token for the map representation
+
+        # Discovery state. Hidden objects are omitted from the map, legend and
+        # nearby lists until a search reveals them.
+        self.hidden = False
+        self.detected = False
+        self.detection_dc = 10
 
         # New attributes
         self.state_descriptions = {state: description}  # Descriptions for each state
@@ -86,6 +91,32 @@ class InteractiveObject:
             if self.position:
                 game.io.show_message(f"Located in: {self.position}")
     
+    @property
+    def display_name(self):
+        """A player-facing name, expanding data-style underscores."""
+        name = str(self.name or "object")
+        if "_" in name:
+            return name.replace("_", " ").title()
+        return name
+
+    def is_hidden(self):
+        """Whether the object is still concealed from the player."""
+        return bool(getattr(self, "hidden", False)) and not bool(
+            getattr(self, "detected", False)
+        )
+
+    def reveal(self, game=None, message=None):
+        """Marks a concealed object as discovered and optionally logs it."""
+        if not self.is_hidden():
+            return False
+        self.hidden = False
+        self.detected = True
+        if game:
+            game.io.show_message(
+                message or f"You discover {self.display_name}."
+            )
+        return True
+
     def link_item(self, connection_name, item):
         """
         Links another interactive object to this one (e.g. a lever to a door).
@@ -198,6 +229,9 @@ class InteractiveObject:
             "state": self.state,
             "position": self.position,
             "token": self.token,
+            "hidden": bool(getattr(self, "hidden", False)),
+            "detected": bool(getattr(self, "detected", False)),
+            "detection_dc": int(getattr(self, "detection_dc", 10) or 10),
             "state_descriptions": self.state_descriptions,
             "possible_states": self.possible_states,
             "required_abilities": self.required_abilities,
@@ -254,6 +288,9 @@ class InteractiveObject:
         new_object.required_abilities = data.get("required_abilities", {})
         new_object.ability_difficulty = data.get("ability_difficulty", {})
         new_object.interaction_messages = data.get("interaction_messages", {})
+        new_object.hidden = bool(data.get("hidden", False))
+        new_object.detected = bool(data.get("detected", False))
+        new_object.detection_dc = int(data.get("detection_dc", 10) or 10)
         
         return new_object
 
@@ -509,55 +546,161 @@ class Lever(InteractiveObject):
 
 
 class Trap(InteractiveObject):
-    def __init__(self, name, description="", state="active", damage=10, position=None, saving_throw_difficulty=10, token="T"):
+    def __init__(
+        self,
+        name,
+        description="",
+        state="active",
+        damage=10,
+        position=None,
+        saving_throw_difficulty=10,
+        token="T",
+        saving_throw_ability="dexterity",
+        hidden=False,
+        detection_dc=12,
+        disarm_dc=12,
+        disarm_skill="investigation",
+        trigger_on_failure=False,
+        condition=None,
+    ):
         super().__init__(name, description, state, None, position, token)
         self.damage = damage
         self.saving_throw_difficulty = saving_throw_difficulty
+        self.saving_throw_ability = saving_throw_ability
+        self.hidden = bool(hidden)
+        self.detection_dc = int(detection_dc or 12)
+        self.disarm_dc = int(disarm_dc or 12)
+        self.disarm_skill = str(disarm_skill or "investigation")
+        self.trigger_on_failure = bool(trigger_on_failure)
+        self.condition = dict(condition) if isinstance(condition, dict) else None
         self.type = "trap"
+
+    def reveal(self, game=None, message=None):
+        """Reveals a hidden trap without triggering it."""
+        return super().reveal(
+            game,
+            message or f"You spot {self.display_name} before it can trigger.",
+        )
     
     def interact(self, player, game=None):
+        if self.is_hidden():
+            if game:
+                game.io.show_message("You do not notice anything unusual.")
+            return
         if self.state == "active":
+            self.detected = True
             if game:
-                game.io.show_message(f"You triggered {self.name}!")
-            dice = Dice(20)
-            roll = dice.roll()
-            modifier = player.dexterity  # Assume the saving throw is based on dexterity
-            result = roll + modifier
+                game.io.show_message(
+                    f"You study {self.display_name} and try to disarm it."
+                )
+            self.disarm(player, game)
+        elif self.state == "triggered":
             if game:
-                game.io.show_message(f"Saving throw: {roll} + {modifier} = {result}")
-            if result < self.saving_throw_difficulty:
-                if game:
-                    game.io.show_message(f"You take {self.damage} damage!")
-                player.take_damage(self.damage)
-            else:
-                if game:
-                    game.io.show_message("You avoided the trap!")
+                game.io.show_message(f"{self.display_name} has already sprung.")
         else:
             if game:
-                game.io.show_message(f"{self.name} is deactivated.")
+                game.io.show_message(f"{self.display_name} is deactivated.")
+
+    def disarm(self, player, game=None):
+        """Attempts an Investigation check to disable the trap."""
+        if self.state != "active":
+            if game:
+                game.io.show_message(f"{self.display_name} is not active.")
+            return False
+
+        self.detected = True
+        from core.checks import skill_check
+
+        passed = skill_check(player, self.disarm_skill, self.disarm_dc, game)
+        if passed:
+            self.state = "deactivated"
+            if game:
+                game.io.show_message(
+                    f"You carefully disarm {self.display_name}."
+                )
+            return True
+
+        if game:
+            game.io.show_message(f"You fail to disarm {self.display_name}.")
+        if self.trigger_on_failure:
+            self.trigger(player, game)
+        return False
+
+    def trigger(self, player, game=None):
+        """Springs the trap, allowing a save to avoid its damage."""
+        if self.state != "active":
+            return False
+
+        self.state = "triggered"
+        self.detected = True
+        if game:
+            game.io.show_message(
+                f"The trap springs! You triggered {self.display_name}!"
+            )
+
+        saved = player.saving_throw(
+            self.saving_throw_ability,
+            self.saving_throw_difficulty,
+            game,
+        )
+        if saved:
+            if game:
+                game.io.show_message("You avoid the trap!")
+            return False
+
+        player.take_damage(self.damage, game)
+        if self.condition:
+            from core.conditions import apply_condition
+
+            apply_condition(
+                player,
+                self.condition.get("id"),
+                turns=self.condition.get("turns"),
+                game=game,
+            )
+        return True
     
     def deactivate(self, game=None):
         if self.state == "active":
             if game:
-                game.io.show_message(f"You deactivate {self.name}.")
+                game.io.show_message(f"You deactivate {self.display_name}.")
             self.state = "deactivated"
         else:
             if game:
-                game.io.show_message(f"{self.name} is already deactivated.")
+                game.io.show_message(
+                    f"{self.display_name} is already deactivated."
+                )
 
     def to_dict(self):
         """Extends the base class's to_dict method to add specific attributes."""
         data = super().to_dict()
         data["damage"] = self.damage
         data["saving_throw_difficulty"] = self.saving_throw_difficulty
+        data["saving_throw_ability"] = self.saving_throw_ability
+        data["disarm_dc"] = self.disarm_dc
+        data["disarm_skill"] = self.disarm_skill
+        data["trigger_on_failure"] = self.trigger_on_failure
+        data["condition"] = (
+            dict(self.condition) if isinstance(self.condition, dict) else None
+        )
         return data
-    
+
     @classmethod
     def from_dict(cls, data):
         """Creates a Trap instance from a dictionary."""
         trap = super(Trap, cls).from_dict(data)
         trap.damage = data.get("damage", 10)
         trap.saving_throw_difficulty = data.get("saving_throw_difficulty", 10)
+        trap.saving_throw_ability = data.get(
+            "saving_throw_ability", "dexterity"
+        )
+        trap.disarm_dc = int(data.get("disarm_dc", 12) or 12)
+        trap.disarm_skill = data.get("disarm_skill", "investigation")
+        trap.trigger_on_failure = bool(
+            data.get("trigger_on_failure", False)
+        )
+        condition = data.get("condition")
+        trap.condition = dict(condition) if isinstance(condition, dict) else None
         return trap
 
 
