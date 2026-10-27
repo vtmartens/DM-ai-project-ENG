@@ -584,7 +584,9 @@ Runs `look` and returns `output`, `state`, plus nearby `items`, `exits`, and `np
 `target` is the enemy attacks and abilities currently affect. `choose target` appears when more
 than one enemy is alive; clients can also send `target <name>` as a command. `conditions` is
 the player's active condition map (same shape as `state.conditions`); `guard` is the enemy's
-remaining physical guard, and `cooldowns` lists ability names and rounds until reuse.
+remaining physical guard, and `cooldowns` lists ability names and rounds until reuse. Timed
+conditions (burning, frightened, weakened) include a `turns` counter and tick at the end of
+each combat round.
 
 Outside combat: `{"in_combat": false}`.
 

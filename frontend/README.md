@@ -53,8 +53,9 @@ You can also set `localStorage["dm_api_base"]`.
   Recruited allies appear below the enemies. Enemy abilities and their telegraphs appear in
   the adventure log, and the card reflects HP changes. Status tags show each enemy's physical
   guard and ability cooldowns.
-- Conditions panel driven by `state.conditions`: poisoned duration/damage, Guidance and
-  advantage/disadvantage are rendered as colour-coded tags and update after each action.
+- Conditions panel driven by `state.conditions`: poisoned duration/damage, Guidance,
+  advantage/disadvantage, and timed burning/frightened/weakened effects are rendered as
+  colour-coded tags and update after each action.
 - Quests panel driven by `GET /missions`, showing each active quest and its objective.
   Completed objectives change to “Ready to turn in — speak to …” until rewards are collected.
 - Achievements panel driven by `GET /achievements`, with an unlocked/total count, score,

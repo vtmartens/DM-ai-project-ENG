@@ -214,6 +214,9 @@ def test_combat_status_and_conditions_ui(live_server):
     try:
         _start_game(driver, wait, live_server, name="Status Smoke")
 
+        wait.until(
+            lambda d: d.find_element(By.ID, "conditions-list").text.strip()
+        )
         conditions = driver.find_element(By.ID, "conditions-list")
         assert "None" in conditions.text
 
@@ -238,24 +241,34 @@ def test_combat_status_and_conditions_ui(live_server):
             in d.find_element(By.ID, "combat-card").text
         )
 
-        # The conditions panel formats active effects.
-        driver.execute_script(
+        # The conditions panel formats active effects. Read the DOM inside the
+        # same script call so an async side-panel refresh cannot race the check.
+        conditions_text = driver.execute_script(
             "renderConditions({poison: {damage: 2, turns: 3}, "
-            "advantage: true})"
+            "advantage: true});"
+            "return document.getElementById('conditions-list').textContent;"
         )
-        conditions_text = driver.find_element(By.ID, "conditions-list").text
         assert "Poisoned" in conditions_text
         assert "2/turn" in conditions_text
         assert "Advantage" in conditions_text
 
+        conditions_text = driver.execute_script(
+            "renderConditions({burning: {turns: 3}, "
+            "frightened: {turns: 2}, weakened: {turns: 2}});"
+            "return document.getElementById('conditions-list').textContent;"
+        )
+        assert "Burning" in conditions_text
+        assert "Frightened" in conditions_text
+        assert "Weakened" in conditions_text
+
         # Guard and cooldown tags render in the combat card.
-        driver.execute_script(
+        combat_text = driver.execute_script(
             "renderCombat({in_combat: true, round: 1, turn_of: 'player', "
             "target: 'Goblin', enemies: [{name: 'Goblin', hp: 5, "
             "max_hp: 10, guard: 4, cooldowns: [{id: 'poison_arrow', "
-            "name: 'Poison Arrow', remaining: 2}]}], allies: []})"
+            "name: 'Poison Arrow', remaining: 2}]}], allies: []});"
+            "return document.getElementById('combat-card').textContent;"
         )
-        combat_text = driver.find_element(By.ID, "combat-card").text
         assert "Guard 4" in combat_text
         assert "Poison Arrow: 2" in combat_text
     finally:

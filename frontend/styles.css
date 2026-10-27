@@ -351,6 +351,18 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
   color: var(--success);
   border-color: color-mix(in srgb, var(--success) 45%, var(--border));
 }
+.tag.condition-burning {
+  color: var(--accent-strong);
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+}
+.tag.condition-frightened {
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 45%, var(--border));
+}
+.tag.condition-weakened {
+  color: var(--text-muted);
+  border-color: var(--border-strong);
+}
 .condition-list .empty-note { padding: 0; background: none; border: 0; }
 
 .quest-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }

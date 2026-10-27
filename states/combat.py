@@ -341,6 +341,11 @@ class CombatState(BaseState):
         """End turn phase"""
         self._tick_poison(game)
         self._tick_player_poison(player, game)
+
+        from core.conditions import tick_conditions
+
+        tick_conditions(player, game)
+
         # Increment the turn
         self.turn += 1
         # Return to the selection phase for the next turn
@@ -963,6 +968,15 @@ class CombatState(BaseState):
             damage *= 2
             critical = True
 
+        from core.conditions import condition_damage_modifier
+
+        modifier = condition_damage_modifier(player)
+        if modifier:
+            damage = max(1, damage + modifier)
+            game.io.show_message(
+                f"Your weakened state reduces the damage by {abs(modifier)}."
+            )
+
         # An enemy ability can raise a guard that absorbs the next hit.
         if not isinstance(getattr(self, "enemy_guard", None), dict):
             self.enemy_guard = {}
@@ -1189,6 +1203,22 @@ class CombatState(BaseState):
                 and isinstance(poison, dict)
             ):
                 self._poison_player(player, game, poison)
+
+            condition = ability.get("condition")
+            if (
+                not saved
+                and effective_damage > 0
+                and isinstance(condition, dict)
+                and condition.get("id")
+            ):
+                from core.conditions import apply_condition
+
+                apply_condition(
+                    player,
+                    condition["id"],
+                    turns=condition.get("turns"),
+                    game=game,
+                )
 
             self_heal = int(effect.get("self_heal", 0) or 0)
             if self_heal:

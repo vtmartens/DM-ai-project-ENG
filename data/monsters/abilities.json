@@ -58,6 +58,7 @@
       "dc": 12,
       "success": "half"
     },
+    "condition": {"id": "frightened", "turns": 3},
     "effect": {
       "type": "attack",
       "damage": 6
@@ -85,6 +86,7 @@
       "dc": 13,
       "success": "half"
     },
+    "condition": {"id": "weakened", "turns": 3},
     "effect": {
       "type": "attack",
       "damage": 12,
@@ -120,6 +122,23 @@
         "damage": 2,
         "turns": 2
       }
+    }
+  },
+  "flame_breath": {
+    "id": "flame_breath",
+    "name": "Flame Breath",
+    "description": "A cone of red fire that leaves the target burning.",
+    "cooldown": 4,
+    "telegraph": "The young dragon draws a deep, glowing breath.",
+    "save": {
+      "ability": "dexterity",
+      "dc": 13,
+      "success": "half"
+    },
+    "condition": {"id": "burning", "turns": 3},
+    "effect": {
+      "type": "attack",
+      "damage": 12
     }
   }
 }

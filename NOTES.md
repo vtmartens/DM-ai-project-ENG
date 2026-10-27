@@ -609,6 +609,26 @@ entirely. The doors that existed were also misaligned with the map exits.
 - Tests: accumulation and prompt context, menu/state filtering, the cap, disabling memory,
   pickle round trip, and hint-memory propagation. 375 tests pass.
 
+## Timed conditions (2026-10-27)
+
+- `data/conditions/conditions.json` defines **burning** (3 damage per combat round, DEX 12
+  save to end), **frightened** (disadvantage on checks/saves, WIS 12 save to end) and
+  **weakened** (-2 weapon damage, CON 12 save to end).
+- `core/conditions.py` applies/refreshes conditions, ticks damage/healing, makes save-to-end
+  checks, expires them, and exposes their roll flags and damage modifiers. Poison remains
+  handled by `CombatState` and is skipped by the generic tick, so it is never applied twice.
+- `CombatState._phase_end_turn` ticks conditions each round. `_manage_attack` applies
+  weakened's damage penalty, and `Entity.roll_flags` merges frightened's disadvantage.
+  Conditions are applied by enemy abilities on a failed save (or on a hit for abilities
+  without a save): Dark Bolt → frightened, Shield Bash → weakened, young dragon Flame
+  Breath → burning.
+- Conditions live in the existing `player.conditions` map, so they persist through saves and
+  the Conditions panel renders them (`Burning · 3 turns`, `Frightened · 2 turns`,
+  `Weakened · 2 turns`).
+- Tests: apply/refresh, tick damage and expiry, save-to-end, disadvantage, weapon-damage
+  reduction, ability application, end-of-turn ticking, persistence and data integrity.
+  389 tests pass. Non-combat duration ticking/rest recovery remains future work.
+
 ## Deliberate translation choices worth knowing
 
 - **`hp_base` / `mana_base` were left as-is.** They are consistent between code and JSON
@@ -637,7 +657,7 @@ entirely. The doors that existed were also misaligned with the map exits.
 | Residual Italian (glossary-derived denylist + accented characters) | 0 hits |
 | **Original Italian vs translated, identical input** | **46/46 placements, identical sequence** |
 | Flask API in-process (test client, no socket) | 31 × 200, 0 raised |
-| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, AI memory, hints, achievements, utility spells, locks, vault, quests, enemy abilities, encounters, saving throws, combat status, accessibility, web client routes, browser smoke/mobile) | 375 passed |
+| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, AI memory, hints, achievements, utility spells, locks, vault, quests, enemy abilities, encounters, saving throws, conditions, combat status, accessibility, web client routes, browser smoke/mobile) | 389 passed |
 | Live smoke test (Flask server, `/app`, start/state/abilities/inventory/actions/command/save/load) | passed |
 
 The last comparison is the strongest evidence: the pristine Italian code and the finished

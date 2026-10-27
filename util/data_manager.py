@@ -36,6 +36,7 @@ class DataManager:
             "npc": DATA_DIR / "npc",
             "quests": DATA_DIR / "quests",
             "monsters": DATA_DIR / "monsters",
+            "conditions": DATA_DIR / "conditions",
             "assets_info": DATA_DIR / "assets_info"
         }
         

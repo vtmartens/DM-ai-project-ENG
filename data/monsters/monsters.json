@@ -116,7 +116,8 @@
     "gold": 200,
     "experience": 500,
     "token": "D",
-    "difficulty": "hard"
+    "difficulty": "hard",
+    "abilities": ["flame_breath"]
   },
   "giant_spider": {
     "name": "Giant Spider",

@@ -544,6 +544,15 @@ function conditionLabel(name, value) {
   if (key === "guidance" && value && typeof value === "object") {
     return `Guidance +${Number(value.bonus ?? 2)}`;
   }
+  if (
+    ["burning", "frightened", "weakened"].includes(key) &&
+    value &&
+    typeof value === "object"
+  ) {
+    const turns = Number(value.turns ?? 0);
+    const label = key.charAt(0).toUpperCase() + key.slice(1);
+    return `${label} · ${turns} turn${turns === 1 ? "" : "s"}`;
+  }
   if (key === "advantage") return "Advantage";
   if (key === "disadvantage") return "Disadvantage";
   if (value && typeof value === "object") {

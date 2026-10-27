@@ -158,6 +158,7 @@ def test_ability_definitions_are_well_formed():
 
 def test_enemy_ability_definitions_are_well_formed():
     abilities = _load(ROOT / "data" / "monsters" / "abilities.json")
+    conditions = _load(ROOT / "data" / "conditions" / "conditions.json")
     assert abilities
 
     for ability_id, ability in abilities.items():
@@ -184,6 +185,14 @@ def test_enemy_ability_definitions_are_well_formed():
                 "negate",
             }, ability_id
             assert effect.get("type") == "attack", ability_id
+
+        condition = ability.get("condition")
+        if condition is not None:
+            assert isinstance(condition, dict), ability_id
+            assert condition.get("id") in conditions, ability_id
+            assert int(condition.get("turns", 1)) >= 1, ability_id
+            assert effect.get("type") == "attack", ability_id
+
         if effect["type"] == "attack":
             assert int(effect.get("damage", 0)) > 0, ability_id
             poison = effect.get("poison")
@@ -194,8 +203,53 @@ def test_enemy_ability_definitions_are_well_formed():
             assert int(effect.get("amount", 0)) > 0, ability_id
 
 
+def test_condition_definitions_are_well_formed():
+    conditions = _load(ROOT / "data" / "conditions" / "conditions.json")
+    assert conditions
+
+    for condition_id, condition in conditions.items():
+        assert condition.get("name"), condition_id
+        assert condition.get("description"), condition_id
+        assert int(condition.get("duration", 0)) >= 1, condition_id
+        assert condition.get("message"), condition_id
+
+        tick = condition.get("tick")
+        if tick is not None:
+            assert isinstance(tick, dict), condition_id
+            assert int(tick.get("damage", 0)) >= 0, condition_id
+            assert int(tick.get("heal", 0)) >= 0, condition_id
+            assert tick.get("damage") or tick.get("heal"), condition_id
+
+        save = condition.get("save")
+        if save is not None:
+            assert isinstance(save, dict), condition_id
+            assert save.get("ability") in {
+                "strength",
+                "dexterity",
+                "constitution",
+                "intelligence",
+                "wisdom",
+                "charisma",
+            }, condition_id
+            assert 5 <= int(save.get("dc", 0)) <= 30, condition_id
+
+        rolls = condition.get("rolls")
+        if rolls is not None:
+            assert isinstance(rolls, dict), condition_id
+            for mode in ("advantage", "disadvantage"):
+                targets = rolls.get(mode, [])
+                if targets:
+                    assert isinstance(targets, list), condition_id
+                    assert set(targets) <= {"check", "save", "attack", "all"}, condition_id
+
+        modifier = condition.get("damage_modifier")
+        if modifier is not None:
+            assert isinstance(modifier, int), condition_id
+
+
 def test_enemy_ability_references_are_defined():
     abilities = set(_load(ROOT / "data" / "monsters" / "abilities.json"))
+    conditions = set(_load(ROOT / "data" / "conditions" / "conditions.json"))
     monsters = _load(ROOT / "data" / "monsters" / "monsters.json")
     npcs = _load(ROOT / "data" / "npc" / "npcs.json")
 
@@ -208,6 +262,15 @@ def test_enemy_ability_references_are_defined():
             referenced.update(npc.get("abilities", []) or [])
 
     assert referenced <= abilities, sorted(referenced - abilities)
+
+    for ability_id, ability in _load(
+        ROOT / "data" / "monsters" / "abilities.json"
+    ).items():
+        condition = ability.get("condition")
+        if isinstance(condition, dict) and condition.get("id"):
+            assert condition["id"] in conditions, (
+                f"{ability_id}: unknown condition {condition['id']!r}"
+            )
 
 
 def test_encounter_definitions_are_well_formed():

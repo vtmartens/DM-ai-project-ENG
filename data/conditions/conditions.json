@@ -1,0 +1,26 @@
+{
+  "burning": {
+    "name": "Burning",
+    "description": "Flames cling to you and sear every movement.",
+    "duration": 3,
+    "tick": {"damage": 3},
+    "save": {"ability": "dexterity", "dc": 12},
+    "message": "You are burning!"
+  },
+  "frightened": {
+    "name": "Frightened",
+    "description": "Fear gnaws at your resolve.",
+    "duration": 3,
+    "save": {"ability": "wisdom", "dc": 12},
+    "rolls": {"disadvantage": ["check", "save"]},
+    "message": "You are frightened!"
+  },
+  "weakened": {
+    "name": "Weakened",
+    "description": "Your blows lack force.",
+    "duration": 3,
+    "save": {"ability": "constitution", "dc": 12},
+    "damage_modifier": -2,
+    "message": "You feel weakened!"
+  }
+}

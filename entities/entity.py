@@ -246,7 +246,16 @@ class Entity:
             conditions.get("disadvantage")
             or conditions.get(f"{kind}_disadvantage")
         )
-        return advantage, disadvantage
+
+        from core.conditions import condition_roll_flags
+
+        condition_advantage, condition_disadvantage = condition_roll_flags(
+            self, kind
+        )
+        return (
+            advantage or condition_advantage,
+            disadvantage or condition_disadvantage,
+        )
 
     def ability_check(self, ability, difficulty, game=None, advantage=None, disadvantage=None):
         # Use the stored game context if none is provided
