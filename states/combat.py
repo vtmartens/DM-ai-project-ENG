@@ -6,7 +6,7 @@ from entities.npc import NPC
 from util.dice import Dice
 
 class CombatState(BaseState):
-    def __init__(self, enemy=None, hostile_npc=None, enemies=None, allies=None):
+    def __init__(self, enemy=None, hostile_npc=None, enemies=None, allies=None, encounter=None):
         """
         Initialize the combat state.
 
@@ -15,6 +15,7 @@ class CombatState(BaseState):
             hostile_npc (NPC, optional): An NPC that has become hostile
             enemies (list, optional): Several hostile enemies
             allies (list, optional): Friendly combatants
+            encounter (dict, optional): Curated encounter metadata and reward
         """
         if enemies is not None:
             self.enemies = list(enemies)
@@ -50,6 +51,12 @@ class CombatState(BaseState):
         # Enemy ability state, keyed by the enemy's index in self.enemies
         self.ability_cooldowns = {}
         self.enemy_guard = {}
+        # Curated encounter metadata (never includes the enemy objects themselves)
+        metadata = dict(encounter) if isinstance(encounter, dict) else None
+        if metadata is not None:
+            metadata.pop("enemies", None)
+        self.encounter = metadata or None
+        self.encounter_rewarded = False
         # Damage the player has taken in this fight (for the "no damage" achievement)
         self.damage_taken = 0
         # Achievement bookkeeping, so a fight is only counted once
@@ -743,6 +750,36 @@ class CombatState(BaseState):
         ):
             self._target_index = self.enemies.index(alive[0])
 
+    def _grant_encounter_reward(self, game):
+        """Grants a curated encounter's completion bonus once."""
+        if self.encounter_rewarded or not isinstance(self.encounter, dict):
+            return False
+        if game is None or getattr(game, "player", None) is None:
+            return False
+
+        self.encounter_rewarded = True
+        reward = self.encounter.get("reward", {})
+        if not isinstance(reward, dict):
+            reward = {}
+        gold = int(reward.get("gold", 0) or 0)
+        experience = int(reward.get("experience", 0) or 0)
+
+        if gold:
+            game.player.add_gold(gold, game)
+        if experience:
+            game.player.gain_experience(experience, game)
+
+        title = self.encounter.get("title", "Encounter")
+        game.io.show_message(f"\nEncounter complete: {title}")
+        bonus = []
+        if gold:
+            bonus.append(f"{gold} gold")
+        if experience:
+            bonus.append(f"{experience} XP")
+        if bonus:
+            game.io.show_message(f"Encounter bonus: {', '.join(bonus)}.")
+        return True
+
     def _check_end_combat(self, game):
         """Check whether the combat is over."""
         player = game.player
@@ -768,6 +805,7 @@ class CombatState(BaseState):
         if not self._alive_enemies():
             if len(self.enemies) > 1:
                 game.io.show_message("\nYou have defeated all your enemies!")
+            self._grant_encounter_reward(game)
             if not getattr(self, "_outcome_recorded", False):
                 from core.achievements import record_event
 
@@ -1242,6 +1280,10 @@ class CombatState(BaseState):
             self.ability_cooldowns = {}
         if not isinstance(getattr(self, "enemy_guard", None), dict):
             self.enemy_guard = {}
+        if not hasattr(self, "encounter"):
+            self.encounter = None
+        if not hasattr(self, "encounter_rewarded"):
+            self.encounter_rewarded = False
 
     @classmethod
     def from_dict(cls, data):
@@ -1316,6 +1358,9 @@ class CombatState(BaseState):
             str(index): int(value or 0)
             for index, value in (data.get("enemy_guard", {}) or {}).items()
         }
+        encounter = data.get("encounter")
+        state.encounter = dict(encounter) if isinstance(encounter, dict) else None
+        state.encounter_rewarded = bool(data.get("encounter_rewarded", False))
 
         return state
         
@@ -1345,6 +1390,10 @@ class CombatState(BaseState):
                 str(index): int(value or 0)
                 for index, value in getattr(self, "enemy_guard", {}).items()
             },
+            "encounter": dict(self.encounter) if isinstance(self.encounter, dict) else None,
+            "encounter_rewarded": bool(
+                getattr(self, "encounter_rewarded", False)
+            ),
         }
         
         from entities.npc import NPC

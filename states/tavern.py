@@ -693,6 +693,7 @@ class TavernState(BaseGameState):
             game.io.show_message("5. Choose a specific type")
             game.io.show_message("6. Return to the main menu")
             game.io.show_message("7. Fight a pair of goblins")
+            game.io.show_message("8. Fight a curated encounter")
 
             self.contextual_data["phase_selection"] = "mode"
             game.io.request_input("Choice: ")
@@ -804,10 +805,107 @@ class TavernState(BaseGameState):
                 self.contextual_data.clear()
                 return
 
+            elif selection == "8":
+                from core.encounters import encounter_catalogue
+
+                catalogue = encounter_catalogue()
+                if not catalogue:
+                    game.io.show_message("\nNo curated encounters are available.")
+                    self.phase = "main_menu"
+                    self.contextual_data.clear()
+                    return
+
+                game.io.show_message("\nChoose an encounter:")
+                for index, (encounter_id, data) in enumerate(
+                    catalogue.items(), 1
+                ):
+                    title = (
+                        data.get("title", encounter_id)
+                        if isinstance(data, dict)
+                        else encounter_id
+                    )
+                    difficulty = (
+                        data.get("difficulty", "medium")
+                        if isinstance(data, dict)
+                        else "medium"
+                    )
+                    game.io.show_message(f"{index}. {title} ({difficulty})")
+                game.io.show_message(f"{len(catalogue) + 1}. Go back")
+
+                self.contextual_data["phase_selection"] = "encounters"
+                self.contextual_data["encounter_ids"] = list(catalogue)
+                game.io.request_input("Choice: ")
+                return
+
             else:
                 game.io.show_message("Invalid choice.")
                 self.contextual_data.clear()
                 self.phase = "choose_enemy"
+                return
+
+        elif self.contextual_data["phase_selection"] == "encounters":
+            try:
+                selection = int(game.io.last_input)
+                encounter_ids = self.contextual_data.get("encounter_ids", [])
+
+                if 1 <= selection <= len(encounter_ids):
+                    from core.encounters import build_encounter
+
+                    encounter = build_encounter(encounter_ids[selection - 1])
+                    if not encounter:
+                        game.io.show_message(
+                            "\nThat encounter could not be prepared."
+                        )
+                        self.phase = "main_menu"
+                        self.contextual_data.clear()
+                        return
+
+                    game.io.show_message(
+                        f"\n{encounter['title']}: {encounter['description']}"
+                    )
+                    names = ", ".join(
+                        enemy.name for enemy in encounter["enemies"]
+                    )
+                    game.io.show_message(f"Enemies: {names}")
+                    game.io.show_message(
+                        f"Difficulty: {encounter.get('difficulty', 'medium')}"
+                    )
+                    reward = encounter.get("reward", {})
+                    parts = []
+                    if isinstance(reward, dict):
+                        if reward.get("gold"):
+                            parts.append(f"{reward['gold']} gold")
+                        if reward.get("experience"):
+                            parts.append(f"{reward['experience']} XP")
+                    if parts:
+                        game.io.show_message(
+                            "Completion bonus: " + ", ".join(parts) + "."
+                        )
+
+                    press_enter(game)
+                    game.push_state(
+                        CombatState(
+                            enemies=encounter["enemies"],
+                            allies=build_ally_party(game.player),
+                            encounter=encounter,
+                        )
+                    )
+                    self.phase = "main_menu"
+                    self.contextual_data.clear()
+                    return
+
+                elif selection == len(encounter_ids) + 1:
+                    self.contextual_data.clear()
+                    self.phase = "choose_enemy"
+                    return
+
+                game.io.show_message("Invalid choice.")
+                game.io.request_input("Choice: ")
+                return
+
+            except ValueError:
+                game.io.show_message("You must enter a number.")
+                game.io.request_input("Choice: ")
                 return
 
         elif self.contextual_data["phase_selection"] == "specific_type":

@@ -547,6 +547,24 @@ entirely. The doors that existed were also misaligned with the map exits.
   state round trip; data-integrity tests validate definitions and references. 348 tests
   pass. Encounter tuning remains playtest work.
 
+## Curated encounters (2026-10-26)
+
+- `data/monsters/encounters.json` defines named groups (Goblin Scouts, Orc Patrol, Bone
+  Pack, Wolf Pack) with a title, description, difficulty, enemy specs and a completion
+  reward. An enemy spec can reference a monster type or an NPC, so story encounters can use
+  the same builder later.
+- `core/encounters.py` validates/builds the live enemies. The tavern's fight menu gained
+  option 8, “Fight a curated encounter”, which lists the catalogue and starts the selected
+  group; the existing options (including the goblin pair) are unchanged.
+- `CombatState` carries encounter metadata (without the enemy objects) and grants the
+  reward exactly once when every enemy falls. The bonus is paid on top of enemy loot/XP;
+  defeat and fleeing grant nothing. Encounter metadata and the rewarded flag survive the
+  combat-state round trip.
+- Balance guardrails in `tests/test_encounters.py` check group size, total HP, ability
+  coverage and positive rewards; they are a safety net, not a substitute for playtesting.
+- Tests: construction/metadata, victory reward, no reward on defeat, serialization, the
+  tavern menu end to end and data integrity. 357 tests pass.
+
 ## Deliberate translation choices worth knowing
 
 - **`hp_base` / `mana_base` were left as-is.** They are consistent between code and JSON
@@ -575,7 +593,7 @@ entirely. The doors that existed were also misaligned with the map exits.
 | Residual Italian (glossary-derived denylist + accented characters) | 0 hits |
 | **Original Italian vs translated, identical input** | **46/46 placements, identical sequence** |
 | Flask API in-process (test client, no socket) | 31 × 200, 0 raised |
-| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, hints, achievements, utility spells, locks, vault, quests, enemy abilities, accessibility, web client routes, browser smoke/mobile) | 348 passed |
+| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, hints, achievements, utility spells, locks, vault, quests, enemy abilities, encounters, accessibility, web client routes, browser smoke/mobile) | 357 passed |
 | Live smoke test (Flask server, `/app`, start/state/abilities/inventory/actions/command/save/load) | passed |
 
 The last comparison is the strongest evidence: the pristine Italian code and the finished

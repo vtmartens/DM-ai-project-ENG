@@ -193,6 +193,42 @@ def test_enemy_ability_references_are_defined():
     assert referenced <= abilities, sorted(referenced - abilities)
 
 
+def test_encounter_definitions_are_well_formed():
+    encounters = _load(ROOT / "data" / "monsters" / "encounters.json")
+    monsters = _load(ROOT / "data" / "monsters" / "monsters.json")
+    npcs = _load(ROOT / "data" / "npc" / "npcs.json")
+    assert encounters
+
+    for encounter_id, encounter in encounters.items():
+        assert encounter.get("title"), encounter_id
+        assert encounter.get("description"), encounter_id
+        assert encounter.get("difficulty") in {"easy", "medium", "hard"}, encounter_id
+
+        specs = encounter.get("enemies") or []
+        assert 1 <= len(specs) <= 4, encounter_id
+        for spec in specs:
+            assert isinstance(spec, dict), encounter_id
+            if spec.get("monster_type"):
+                assert spec["monster_type"] in monsters, (
+                    f"{encounter_id}: unknown monster {spec['monster_type']!r}"
+                )
+            elif spec.get("npc"):
+                assert spec["npc"] in npcs, (
+                    f"{encounter_id}: unknown NPC {spec['npc']!r}"
+                )
+            else:
+                raise AssertionError(
+                    f"{encounter_id}: enemy spec needs monster_type or npc"
+                )
+
+        reward = encounter.get("reward") or {}
+        gold = reward.get("gold", 0)
+        experience = reward.get("experience", 0)
+        assert isinstance(gold, int) and gold >= 0, encounter_id
+        assert isinstance(experience, int) and experience >= 0, encounter_id
+        assert gold or experience, encounter_id
+
+
 def test_quest_targets_are_known_npcs():
     quests = _load(ROOT / "data" / "quests" / "quests.json")
     npcs = _load(ROOT / "data" / "npc" / "npcs.json")

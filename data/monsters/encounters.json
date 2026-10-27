@@ -1,0 +1,42 @@
+{
+  "goblin_scouts": {
+    "title": "Goblin Scouts",
+    "description": "Two goblin scouts block the road, bows already drawn.",
+    "difficulty": "easy",
+    "reward": {"gold": 10, "experience": 20},
+    "enemies": [
+      {"monster_type": "goblin", "name": "Goblin Scout A"},
+      {"monster_type": "goblin", "name": "Goblin Scout B"}
+    ]
+  },
+  "orc_patrol": {
+    "title": "Orc Patrol",
+    "description": "An orc brute leads a goblin archer through the market edge.",
+    "difficulty": "medium",
+    "reward": {"gold": 25, "experience": 50},
+    "enemies": [
+      {"monster_type": "orc", "name": "Orc Brute"},
+      {"monster_type": "goblin", "name": "Goblin Archer"}
+    ]
+  },
+  "bone_pack": {
+    "title": "Bone Pack",
+    "description": "Two skeletons rise from the cellar dust, bones clicking.",
+    "difficulty": "medium",
+    "reward": {"gold": 20, "experience": 40},
+    "enemies": [
+      {"monster_type": "skeleton", "name": "Skeleton A"},
+      {"monster_type": "skeleton", "name": "Skeleton B"}
+    ]
+  },
+  "wolf_pack": {
+    "title": "Wolf Pack",
+    "description": "A pair of lean wolves circle, looking for an opening.",
+    "difficulty": "medium",
+    "reward": {"gold": 15, "experience": 45},
+    "enemies": [
+      {"monster_type": "wolf", "name": "Wolf A"},
+      {"monster_type": "wolf", "name": "Wolf B"}
+    ]
+  }
+}
