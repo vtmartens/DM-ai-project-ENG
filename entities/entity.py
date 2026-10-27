@@ -125,13 +125,14 @@ class Entity:
         
     def add_item(self, item):
         """Adds an item to the inventory"""
+        added = item
         # If the item is a string, check whether it matches a known item
         if isinstance(item, str):
             from util.data_manager import get_data_manager
             from items.item import Item
-            
+
             data_manager = get_data_manager()
-            
+
             # Search the potions
             potions = data_manager.load_data("items", "potions.json")
             for potion in potions:
@@ -139,12 +140,19 @@ class Entity:
                     # Create a corresponding item
                     new_item = Item.from_dict(potion)
                     self.inventory.append(new_item)
-                    return
-                    
-            # If no matches are found, add it as a string
-            self.inventory.append(item)
+                    added = new_item
+                    break
+            else:
+                # If no matches are found, add it as a string
+                self.inventory.append(item)
         else:
             self.inventory.append(item)
+
+        # Only the player has achievement tracking; NPC inventories are ignored.
+        from core.achievements import record_event
+
+        name = getattr(added, "name", added if isinstance(added, str) else None)
+        record_event(self, "item_collected", item=name)
         
     def remove_item(self, item_name):
         """Removes an item from the inventory"""
@@ -166,9 +174,13 @@ class Entity:
         """Adds gold to the entity"""
         # Use the stored game context if none is provided
         game_ctx = game if game else getattr(self, 'game', None)
-        
+
         self.gold += quantity
-        
+        # Gold can satisfy the "accumulate N coins" achievement.
+        from core.achievements import record_event
+
+        record_event(self, "gold_changed", game=game_ctx)
+
         if game_ctx:
             game_ctx.io.show_message(f"{self.name} received {quantity} gold coins! (Total: {self.gold})")
         

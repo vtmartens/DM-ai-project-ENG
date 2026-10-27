@@ -20,6 +20,11 @@ class Game:
         self.active = True
         self.io = io_handler
 
+        # Give the player a game context so event hooks (achievements) can emit
+        # messages even when they are called from managers that lack one.
+        if self.player is not None and hasattr(self.player, "set_game_context"):
+            self.player.set_game_context(self)
+
         # Initialize the map manager
         self.map_manager = MapManager()
 
@@ -48,6 +53,9 @@ class Game:
             self.map_manager.set_current_map(map_key)
             x, y = map.player_start_position
             self.player.set_position(map_key, x, y)
+            from core.achievements import record_event
+
+            record_event(self.player, "area_visited", game=self, map=map_key)
             return True
         return False
 
@@ -514,6 +522,8 @@ class Game:
             try:
                 # Use the standard version directly without loaded_objects for the player
                 self.player = Player.from_dict(data["player"])
+                if hasattr(self.player, "set_game_context"):
+                    self.player.set_game_context(self)
             except KeyError:
                 logger.error("Missing or incomplete player data in the save file")
                 self.io.show_message("Missing or incomplete player data in the save file")

@@ -488,12 +488,18 @@ class MapManager:
             # Change map
             result = self.change_player_map(player, map_dest, x_dest, y_dest)
             if result["success"]:
+                from core.achievements import record_event
+
+                record_event(player, "movement")
                 return {"success": True, "message": f"You entered {map_dest}", "change_map": True}
             else:
                 # Keep the player next to the door rather than stranded on it.
                 player.x, player.y = previous
                 return {"success": False, "message": result["message"], "change_map": False}
 
+        from core.achievements import record_event
+
+        record_event(player, "movement")
         return {"success": True, "message": "You moved", "change_map": False}
 
     @staticmethod
@@ -578,6 +584,10 @@ class MapManager:
 
         # Set the new map as the current map
         self.set_current_map(map_name)
+
+        from core.achievements import record_event
+
+        record_event(player, "area_visited", map=map_name)
 
         return {"success": True, "message": f"You entered {map_name}"}
     

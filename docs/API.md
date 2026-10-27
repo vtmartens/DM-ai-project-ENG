@@ -96,6 +96,8 @@ a server restart. A stale `session_id` returns `404`.
   },
   "active_quests": [],
   "completed_quests": [],
+  "achievements": [],
+  "timestamp_achievements": {},
   "preferences": {},
   "combat": {"in_combat": false},
   "dialogue": {"active": false}
@@ -580,15 +582,18 @@ Returns all tutorials or one category from `data/tutorials/tutorials.json`.
 ```json
 {
   "achievements": [
-    {"id": "first_step", "name": "First Step", "unlocked": false, "...": "..."}
+    {"id": "first_step", "name": "First Step", "unlocked": true, "unlock_date": "2026-10-26 20:15:00", "...": "..."}
   ],
-  "total": 5,
-  "unlocked": 0
+  "total": 8,
+  "unlocked": 1
 }
 ```
 
-Achievement conditions are not evaluated by the engine yet, so `unlocked` is `false`
-unless a future state supplies unlock data.
+Conditions are evaluated by the engine (`core/achievements.py`) from gameplay events:
+movement, combat victories, unique items collected, areas visited, equipped equipment,
+gold, damage-free victory streaks and quests completed without fighting. Unlock ids and
+timestamps are also exposed as `achievements` / `timestamp_achievements` in `GET /state`
+and survive save/load.
 
 #### `GET /assets_info` / `GET /assets_info?type=items`
 

@@ -51,6 +51,7 @@ Each game phase (map exploration, combat, dialogues, inventory management) is ha
 - Story slice: Violet's “Shadows in the Market” quest leads to a new warehouse area and a three-enemy cult fight against Vargas and his hooded cultists. Violet joins as a recruitable ally, and the quest log has its own sidebar panel. Mirt's existing Vargas job is also a tracked quest (“A Debt to Collect”). Defeating Vargas makes both quests ready to turn in; return to Violet and Mirt for the rewards and follow-up hooks
 - Specific keys and locks: use a matching key (or a skeleton key) to open chests and doors; poison works over several turns; antidotes clear poison; initiative accessories affect who acts first in combat
 - Save/load integrity preserves equipped weapon, armor and accessory bonuses, level-up defense, initiative, conditions and recruited allies across round trips
+- Achievements: movement, combat wins (including clean streaks), item collection, map exploration, gold, legendary equipment and quests completed without fighting unlock the eight achievements in `data/achievements/achievements.json`; progress and unlock times survive save/load
 - Direct approach with pathfinding: “go to Durnan” or “walk to barrel” moves next to the target in one command; “go to exit” or “leave” walks to the nearest map exit and steps through it (works from the tavern and the market)
 - Fully testable backend (no Pygame dependencies in this repo)
 - Centralized data loading system via data_manager.py using JSON format

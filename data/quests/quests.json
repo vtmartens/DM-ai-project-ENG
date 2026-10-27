@@ -20,5 +20,16 @@
       "gold": 50,
       "experience": 75
     }
+  },
+  "violet_warning": {
+    "title": "A Word of Warning",
+    "description": "Violet wants Mirt warned about the hooded figures before he does business with the wrong people.",
+    "objective": "Carry Violet's warning to Mirt in the tavern.",
+    "completion": "dialogue",
+    "turn_in": "Mirt",
+    "reward": {
+      "gold": 15,
+      "experience": 25
+    }
   }
 }

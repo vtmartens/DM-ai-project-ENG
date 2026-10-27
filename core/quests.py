@@ -62,12 +62,34 @@ def start_quest(player, quest_id, game=None):
         "status": "active",
     }
     player.active_quests.append(quest)
-    player.progress_quests[quest_id] = {"status": "active"}
+    player.progress_quests[quest_id] = {
+        "status": "active",
+        "combat_encounters": 0,
+    }
     if game:
         game.io.show_message(f"\nQuest started: {quest['title']}")
         if quest["objective"]:
             game.io.show_message(f"Objective: {quest['objective']}")
     return True
+
+
+def record_combat(player):
+    """Notes that a fight happened while the player's active quests were open.
+
+    ``diplomacy`` asks for a quest completed without fighting, so the count is
+    per quest and only advances while that quest is active.
+    """
+    progress = getattr(player, "progress_quests", None)
+    if not isinstance(progress, dict):
+        return
+    for quest in getattr(player, "active_quests", []):
+        if not isinstance(quest, dict):
+            continue
+        quest_id = quest.get("id")
+        if not quest_id:
+            continue
+        entry = progress.setdefault(quest_id, {})
+        entry["combat_encounters"] = int(entry.get("combat_encounters", 0) or 0) + 1
 
 
 def mark_quest_ready(player, quest_id, game=None):
@@ -115,7 +137,9 @@ def complete_quest(player, quest_id, game=None):
     completed = dict(active[0])
     completed["status"] = "completed"
     player.completed_quests.append(completed)
-    player.progress_quests.setdefault(quest_id, {})["status"] = "completed"
+    progress = player.progress_quests.setdefault(quest_id, {})
+    progress["status"] = "completed"
+    combat_encounters = int(progress.get("combat_encounters", 0) or 0)
 
     reward = definition.get("reward", {}) if isinstance(definition, dict) else {}
     gold = int(reward.get("gold", 0) or 0)
@@ -131,6 +155,15 @@ def complete_quest(player, quest_id, game=None):
             game.io.show_message(f"Reward: {gold} gold coins.")
         if experience:
             game.io.show_message(f"Reward: {experience} experience points.")
+
+    from core.achievements import record_event
+
+    record_event(
+        player,
+        "quest_completed",
+        game=game,
+        combat_encounters=combat_encounters,
+    )
     return True
 
 

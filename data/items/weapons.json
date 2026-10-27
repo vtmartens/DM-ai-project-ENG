@@ -40,5 +40,13 @@
     "effect": {"strength": 2, "intelligence": 3},
     "value": 100,
     "description": "A staff that amplifies magical powers"
+  },
+  {
+    "name": "Dragonbane",
+    "type": "weapon",
+    "effect": {"strength": 8, "charisma": 1},
+    "value": 400,
+    "rarity": "legendary",
+    "description": "A blackened longsword whose edge hums with old draconic spite"
   }
-] 
+]

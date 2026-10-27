@@ -2,12 +2,14 @@ from items.keys import key_opens
 
 
 class Item:
-    def __init__(self, name, type, effect=None, value=0, description=""):
+    def __init__(self, name, type, effect=None, value=0, description="", rarity="common"):
         self.name = name
         self.type = type
         self.effect = effect or {}
         self.value = value
         self.description = description
+        # Optional metadata used by achievement conditions and future loot tables.
+        self.rarity = rarity
         
     def __str__(self):
         return f"{self.name} ({self.description})"
@@ -148,6 +150,11 @@ class Item:
         if hasattr(player, "recalculate_initiative"):
             player.recalculate_initiative()
 
+        # Equipment can satisfy the "equip a legendary weapon" achievement.
+        from core.achievements import record_event
+
+        record_event(player, "equip", game=game, item=self)
+
     def remove(self, player, game=None):
         # Silent version if no game is provided
         if self.type == "weapon":
@@ -187,7 +194,8 @@ class Item:
             "type": self.type,
             "effect": self.effect,
             "value": self.value,
-            "description": self.description
+            "description": self.description,
+            "rarity": self.rarity,
         }
     
     @classmethod
@@ -206,7 +214,8 @@ class Item:
             type=data["type"],
             effect=data.get("effect", {}),
             value=data.get("value", 0),
-            description=data.get("description", "")
+            description=data.get("description", ""),
+            rarity=data.get("rarity", "common"),
         )
         
     # Compatibility method with the previous name

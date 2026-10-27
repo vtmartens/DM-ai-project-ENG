@@ -75,9 +75,10 @@ class NPC(Entity):
             item = Item(
                 item_data["name"],
                 item_data["type"],
-                item_data.get("stats", {}),
+                item_data.get("effect", item_data.get("stats", {})),
                 item_data.get("value", 0),
-                item_data.get("description", "")
+                item_data.get("description", ""),
+                rarity=item_data.get("rarity", "common"),
             )
             self.inventory.append(item)
             
@@ -126,11 +127,16 @@ class NPC(Entity):
             if "options" in conv_data:
                 options = []
                 for opt in conv_data["options"]:
-                    # Handle array, tuple and object formats, in any call order
+                    # Handle array, tuple and object formats, in any call order.
+                    # The optional third element carries a visibility condition;
+                    # dropping it made every quest-gated option always visible.
                     if isinstance(opt, (list, tuple)) and len(opt) >= 2:
-                        options.append((opt[0], opt[1]))
+                        options.append(tuple(opt[:3]))
                     elif isinstance(opt, dict):
-                        options.append((opt.get("text", ""), opt.get("destination")))
+                        option = (opt.get("text", ""), opt.get("destination"))
+                        if opt.get("condition") is not None:
+                            option += (opt["condition"],)
+                        options.append(option)
                 conv_data["options"] = options
 
             return conv_data

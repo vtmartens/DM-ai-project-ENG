@@ -152,7 +152,8 @@ def test_quest_targets_are_known_npcs():
 
     for quest_id, quest in quests.items():
         target = quest.get("target")
-        assert target in npcs, f"{quest_id}: unknown target {target!r}"
+        if quest.get("completion") != "dialogue":
+            assert target in npcs, f"{quest_id}: unknown target {target!r}"
         assert quest.get("turn_in") in npcs, (
             f"{quest_id}: unknown turn-in NPC {quest.get('turn_in')!r}"
         )

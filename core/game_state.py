@@ -528,6 +528,12 @@ class GameState:
             "stats": stats,
             "active_quests": list(self.game.player.active_quests),
             "completed_quests": list(self.game.player.completed_quests),
+            "achievements": list(
+                getattr(self.game.player, "achievements", []) or []
+            ),
+            "timestamp_achievements": dict(
+                getattr(self.game.player, "achievement_timestamps", {}) or {}
+            ),
             "preferences": dict(self.preferences),
             "combat": self.get_combat_state(),
             "dialogue": self.get_dialogue_state(),

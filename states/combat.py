@@ -46,6 +46,11 @@ class CombatState(BaseState):
         self._initiative_checked = False
         # Which enemy currently carries poison, if any
         self.poison_target_index = None
+        # Damage the player has taken in this fight (for the "no damage" achievement)
+        self.damage_taken = 0
+        # Achievement bookkeeping, so a fight is only counted once
+        self._quest_combat_recorded = False
+        self._outcome_recorded = False
 
     def _alive_enemies(self):
         """Returns the enemies still standing."""
@@ -75,7 +80,15 @@ class CombatState(BaseState):
         
     def run(self, game):
         player = game.player
-        
+
+        # A fight counts against "complete a quest without fighting" even if the
+        # player flees, so record it once when combat actually starts.
+        if not getattr(self, "_quest_combat_recorded", False):
+            from core.quests import record_combat
+
+            record_combat(player)
+            self._quest_combat_recorded = True
+
         # Show the combat stats in every phase
         self._show_state_combat(player, game)
         
@@ -487,7 +500,7 @@ class CombatState(BaseState):
                 selection = int(game.io.last_input)
                 if 1 <= selection <= len(items):
                     item = items[selection - 1]
-                    item.equip(player)
+                    item.equip(player, game)
                     game.io.show_message(f"\nYou equipped {item.name}!")
                 elif selection == len(items) + 1:
                     # Cancel
@@ -679,6 +692,10 @@ class CombatState(BaseState):
             player.gold += gained_gold
             game.io.show_message(f"You gained {gained_gold} gold coins!")
 
+            from core.achievements import record_event
+
+            record_event(player, "gold_changed", game=game)
+
             if (
                 hasattr(enemy, "inventory")
                 and enemy.inventory
@@ -726,6 +743,11 @@ class CombatState(BaseState):
                 f"\n{enemy_name} defeated you! You are gravely wounded..."
             )
             player.hp = 1
+            if not getattr(self, "_outcome_recorded", False):
+                from core.achievements import record_event
+
+                record_event(player, "combat_defeat", game=game)
+                self._outcome_recorded = True
             if game.current_state():
                 game.pop_state()
             return True
@@ -735,6 +757,16 @@ class CombatState(BaseState):
         if not self._alive_enemies():
             if len(self.enemies) > 1:
                 game.io.show_message("\nYou have defeated all your enemies!")
+            if not getattr(self, "_outcome_recorded", False):
+                from core.achievements import record_event
+
+                record_event(
+                    player,
+                    "combat_victory",
+                    game=game,
+                    clean=getattr(self, "damage_taken", 0) == 0,
+                )
+                self._outcome_recorded = True
             if game.current_state():
                 game.pop_state()
             return True
@@ -834,6 +866,7 @@ class CombatState(BaseState):
             return
 
         player.hp = max(0, player.hp - damage)
+        self.damage_taken = getattr(self, "damage_taken", 0) + damage
         game.io.show_message(f"Poison deals {damage} damage to you.")
         turns -= 1
         if turns <= 0:
@@ -951,6 +984,7 @@ class CombatState(BaseState):
 
         if effective_damage > 0:
             player.hp = max(0, player.hp - effective_damage)
+            self.damage_taken = getattr(self, "damage_taken", 0) + effective_damage
             game.io.show_message(f"You take {effective_damage} damage!")
         else:
             game.io.show_message("You take no damage.")
@@ -1135,6 +1169,7 @@ class CombatState(BaseState):
         state.temporary_data = data.get("temporary_data", {})
         state.effects = data.get("effects", {})
         state._initiative_checked = data.get("initiative_checked", True)
+        state.damage_taken = int(data.get("damage_taken", 0) or 0)
 
         return state
         
@@ -1153,6 +1188,7 @@ class CombatState(BaseState):
             "initiative_checked": bool(
                 getattr(self, "_initiative_checked", False)
             ),
+            "damage_taken": int(getattr(self, "damage_taken", 0) or 0),
         }
         
         from entities.npc import NPC

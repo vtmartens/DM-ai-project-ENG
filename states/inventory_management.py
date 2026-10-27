@@ -149,7 +149,7 @@ class InventoryManagementState(BaseState):
             selection = int(self.last_input)
             if 1 <= selection <= len(self.equippable):
                 item = self.equippable[selection - 1]
-                item.equip(game.player)
+                item.equip(game.player, game)
                 game.io.show_message(f"You equipped: {item.name}")
             elif selection == len(self.equippable) + 1:
                 self.phase = "main_menu"

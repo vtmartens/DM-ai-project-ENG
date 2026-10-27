@@ -50,7 +50,19 @@ class Player(Entity):
         self.initiative = self.initiative_base
         self.conditions = {}
         self.allies = []
+
+        # Achievement tracking (persisted with the player)
+        from core.achievements import DEFAULT_ACHIEVEMENT_STATS
+
+        self.achievements = []
+        self.achievement_timestamps = {}
+        self.achievement_stats = {
+            key: (list(value) if isinstance(value, list) else value)
+            for key, value in DEFAULT_ACHIEVEMENT_STATS.items()
+        }
+
         self._create_inventory_base()
+        self._seed_achievement_items()
         self.recalculate_initiative()
 
     def _equipment_stat_bonus(self, ability):
@@ -78,6 +90,15 @@ class Player(Entity):
         )
         self.initiative_base = self.modifier_dexterity
         self.initiative = self.initiative_base + accessory_initiative
+
+    def _seed_achievement_items(self):
+        """Counts the starting inventory as collected for the collector achievement."""
+        collected = self.achievement_stats.setdefault("unique_items_collected", [])
+        equipped = [self.weapon, self.armor, *getattr(self, "accessories", [])]
+        for item in [*self.inventory, *equipped]:
+            name = getattr(item, "name", None)
+            if name and name not in collected:
+                collected.append(name)
 
     def _load_data_classes(self):
         """Loads the class data from the JSON file"""
@@ -468,6 +489,16 @@ class Player(Entity):
             ),
             "conditions": dict(getattr(self, "conditions", {})),
             "allies": list(getattr(self, "allies", [])),
+            "achievements": list(getattr(self, "achievements", [])),
+            "achievement_timestamps": dict(
+                getattr(self, "achievement_timestamps", {})
+            ),
+            "achievement_stats": {
+                key: (list(value) if isinstance(value, list) else value)
+                for key, value in getattr(
+                    self, "achievement_stats", {}
+                ).items()
+            },
         })
         
         return data
@@ -531,6 +562,27 @@ class Player(Entity):
         player.mana_max = data.get("mana_max", getattr(player, "mana_max", 0))
         player.conditions = dict(data.get("conditions", {}))
         player.allies = list(data.get("allies", []))
+
+        # Achievement progress (absent in saves written before the feature).
+        from core.achievements import coerce_stats
+
+        saved_achievements = data.get("achievements", [])
+        if not isinstance(saved_achievements, list):
+            saved_achievements = []
+        player.achievements = [
+            achievement_id
+            for achievement_id in saved_achievements
+            if isinstance(achievement_id, str)
+        ]
+        saved_timestamps = data.get("achievement_timestamps", {})
+        if not isinstance(saved_timestamps, dict):
+            saved_timestamps = {}
+        player.achievement_timestamps = {
+            achievement_id: timestamp
+            for achievement_id, timestamp in saved_timestamps.items()
+            if isinstance(achievement_id, str)
+        }
+        player.achievement_stats = coerce_stats(data.get("achievement_stats"))
 
         # Handle quests
         player.progress_quests = data.get("progress_quests", {})

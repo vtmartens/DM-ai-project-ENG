@@ -326,9 +326,11 @@ of these were introduced by the translation.
    `/notifications`, `/available_actions`.~~ Implemented in the foundation pass above.
 5. ~~**Dead `"CommercioState"` branch** in `server.py`'s context lookup.~~ Replaced with
    `MarketState` in the foundation pass.
-6. **Some item effect keys still match no attribute**: `initiative`, `luck`,
-   `remove_poison`, and poison `duration` (poison damage and bomb escape now work). Item
-   application goes through `hasattr`, so those specific effects remain inert.
+6. **One item effect key still matches no attribute**: `luck`. `initiative`,
+   `remove_poison` and poison `duration` were implemented in later passes (accessories
+   recalculate initiative, antidotes clear poison, and poison carries a duration), so the
+   earlier note listing them as inert is stale. Item application still goes through
+   `hasattr`, so an unknown future key remains inert rather than crashing.
 7. ~~**`ASSETS_DIR` in `server.py` is relative to the current working directory.~~ Anchored
    to `BASE_DIR` in the API contract pass.
 8. ~~**`data/assets_info/` does not exist**; `get_asset_info()` always returns `{}`.~~
@@ -340,7 +342,37 @@ of these were introduced by the translation.
 11. **`world/map_controller.py` is legacy** — a parallel, unwired copy of map logic.
 12. ~~**`GET /`'s catalogue lists `GET /asset`** while the real route is
     `/asset/<path:file_name>`.~~ Fixed in the foundation pass.
-13. **`achievements.json` `condition.type` values are never evaluated** by any code.
+13. ~~**`achievements.json` `condition.type` values are never evaluated** by any code.~~
+    Implemented — see the achievements section below.
+
+## Achievements (2026-10-26)
+
+`/achievements` previously always reported `unlocked: 0` because `GameState` never
+emitted an `achievements` key. The feature is now backed by real tracking:
+
+- `core/achievements.py` records gameplay events on the player and evaluates every
+  condition type used by the catalogue (`movement`, `combat_victory`,
+  `unique_items_collected`, `areas_visited`, `equip_item`, `coins`,
+  `combat_without_damage`, `quest_without_combat`). Unknown types stay locked rather than
+  raising, so future catalogue entries cannot break play.
+- Events are emitted from the existing systems: map movement and transitions, combat
+  victory/defeat and damage taken, item pickups and equips, gold gains, and quest
+  completion. `Item` gained an optional `rarity` (default `common`) so `weapon_master` can
+  be evaluated; `Dragonbane` is a new legendary weapon carried (and dropped) by Vargas.
+- `Player` persists `achievements`, `achievement_timestamps` and `achievement_stats` in
+  `to_dict`/`from_dict`, so both terminal saves and web session pickles keep progress.
+  Older saves load with empty progress. Unlocks print once and are deduplicated.
+- `diplomacy` needed a quest that can finish without fighting, so a small side quest,
+  **A Word of Warning** (`violet_warning`), was added: accept it from Violet in the market
+  and deliver her warning to Mirt in the tavern. A fight while the quest is active is
+  counted per quest (`progress_quests[id]["combat_encounters"]`) and prevents the unlock.
+- `test_data_integrity` now allows dialogue-completed quests to omit `target`.
+- Fixed while wiring this up: `NPC.get_conversation` dropped the optional third element of
+  each option (the visibility condition), so every quest-gated dialogue option was always
+  shown. It now preserves conditions and `DialogueState.visible_options` filters correctly.
+- Tests: `tests/test_achievements.py` covers each condition, deduplication, save/load,
+  the `/achievements` API, and the Violet → Mirt dialogue route. 258 tests pass (including
+  the headless-browser smoke test).
 
 ## Deliberate translation choices worth knowing
 
@@ -370,7 +402,7 @@ of these were introduced by the translation.
 | Residual Italian (glossary-derived denylist + accented characters) | 0 hits |
 | **Original Italian vs translated, identical input** | **46/46 placements, identical sequence** |
 | Flask API in-process (test client, no socket) | 31 × 200, 0 raised |
-| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, web client routes, browser smoke) | 177 passed |
+| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, achievements, web client routes, browser smoke) | 258 passed |
 | Live smoke test (Flask server, `/app`, start/state/abilities/inventory/actions/command/save/load) | passed |
 
 The last comparison is the strongest evidence: the pristine Italian code and the finished

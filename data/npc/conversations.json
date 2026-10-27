@@ -189,7 +189,8 @@
         ["Just passing through, thanks.", null],
         ["About Vargas and the debt...", "vargas_debt_reminder", {"quest": "vargas_debt", "status": "active"}],
         ["I have settled Vargas's debt.", "vargas_debt_turn_in", {"quest": "vargas_debt", "status": "ready"}],
-        ["About Vargas...", "vargas_debt_done", {"quest": "vargas_debt", "status": "completed"}]
+        ["About Vargas...", "vargas_debt_done", {"quest": "vargas_debt", "status": "completed"}],
+        ["Violet sent me with a warning about the hooded figures.", "violet_warning_turn_in", {"quest": "violet_warning", "status": "active"}]
       ]
     },
     "business_info": {
@@ -198,6 +199,13 @@
         ["Do you have anything interesting at the moment?", "show_items"],
         ["What kind of favors?", "favors_info"],
         ["Not interested at the moment, thanks.", null]
+      ]
+    },
+    "violet_warning_turn_in": {
+      "text": "Mirt's smile fades. 'Violet sent you? Then it is worse than I thought.' He hears you out, then nods. 'Tell her I will watch the warehouse - and here, for your trouble.'",
+      "effect": {"type": "complete_quest", "quest": "violet_warning"},
+      "options": [
+        ["I will tell her.", null]
       ]
     },
     "show_items": {
@@ -327,7 +335,9 @@
         ["Just browsing, thanks.", null],
         ["I am on my way to the warehouse.", "shadows_reminder", {"quest": "shadows_of_the_market", "status": "active"}],
         ["I broke up Vargas's cell.", "shadows_turn_in", {"quest": "shadows_of_the_market", "status": "ready"}],
-        ["What happens now?", "shadows_done", {"quest": "shadows_of_the_market", "status": "completed"}]
+        ["What happens now?", "shadows_done", {"quest": "shadows_of_the_market", "status": "completed"}],
+        ["Is there anything else I can do?", "warning_offer"],
+        ["About that warning for Mirt...", "warning_reminder", {"quest": "violet_warning", "status": "active"}]
       ]
     },
     "strange_info": {
@@ -354,6 +364,26 @@
       ],
       "options": [
         ["Let us go to the warehouse.", null]
+      ]
+    },
+    "warning_offer": {
+      "text": "If you are passing through the tavern, tell Mirt to watch the warehouse. He trusts the wrong people, and he will not hear it from me.",
+      "options": [
+        ["I will carry the warning to Mirt.", "warning_accept"],
+        ["Not now.", null]
+      ]
+    },
+    "warning_accept": {
+      "text": "Thank you. Mirt keeps a table near the back of the Yawning Portal. Tell him the hooded figures are real.",
+      "effect": {"type": "start_quest", "quest": "violet_warning"},
+      "options": [
+        ["I will find him.", null]
+      ]
+    },
+    "warning_reminder": {
+      "text": "Mirt is usually in the tavern. Tell him the hooded figures are real - and that he should stop protecting old friends.",
+      "options": [
+        ["I am on my way.", null]
       ]
     },
     "shadows_reminder": {

@@ -391,6 +391,9 @@ class MarketState(BaseGameState):
         if confirm.lower() == "y":
             item = game.player.inventory.pop(idx)
             game.player.gold += sale_price
+            from core.achievements import record_event
+
+            record_event(game.player, "gold_changed", game=game)
             game.io.show_message(f"You sold {item} for {sale_price} gold coins!")
         else:
             game.io.show_message("Sale cancelled.")
