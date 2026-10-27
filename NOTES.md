@@ -712,7 +712,31 @@ entirely. The doors that existed were also misaligned with the map exits.
   log entry. Asset version bumped to `v=26`.
 - Tests: deterministic state/quest/condition/defeat/recent summaries, AI rephrasing and
   failure fallback, empty recent history, endpoint behavior/logging, and provider request
-  shapes. 421 tests pass.
+  shapes.
+
+## Equipment economy (2026-10-27)
+
+- `data/items/shop_stock.json` lists the market's weapons, armor, accessories and potions.
+  `core/shop.py` loads the stock, describes effects, buys at the listed value, and sells
+  non-equipped inventory items for half value. Equipped items must be removed first.
+- Market menu option 1 is now **Browse the shop**; the numbered list uses the same buy path
+  as `buy <item>` and the web shop modal. The old buy-potion phase remains as a compatibility
+  wrapper for a Healing Potion.
+- Added `GET /shop`, `POST /shop/buy` and `POST /shop/sell`, all restricted to
+  `MarketState`. Responses include engine output, updated state, success flags, messages and
+  the refreshed stock/sell lists.
+- The web client shows a **Shop** button in the market and a focus-trapped modal with Buy
+  and Sell lists. Purchase/sale output goes to the adventure log; inventory and stats
+  refresh immediately.
+- Fixed equipment stat application: `Item.equip`/`remove` now apply and reverse every
+  numeric effect, not only weapon Strength and armor Defense. Weapon/armor Dexterity,
+  Intelligence and other bonuses therefore update AC, saves, initiative and attack
+  calculations, and `Player._equipment_stat_bonus` preserves them across level-ups and
+  save/load. The starting Healing Potion's value now matches the item catalogue (25 gold).
+- Tests: stock integrity and pricing, buying/refusal, selling/equipped refusal, full
+  equipment effects and AC/attack updates, save round trip, API buy/sell and market-only
+  restrictions, direct buy commands, terminal sell flow, and the browser Shop modal.
+  433 tests pass.
 
 ## Deliberate translation choices worth knowing
 
@@ -742,7 +766,7 @@ entirely. The doors that existed were also misaligned with the map exits.
 | Residual Italian (glossary-derived denylist + accented characters) | 0 hits |
 | **Original Italian vs translated, identical input** | **46/46 placements, identical sequence** |
 | Flask API in-process (test client, no socket) | 31 × 200, 0 raised |
-| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, AI memory, hints, achievements, utility spells, locks, vault, quests, enemy abilities, encounters, saving throws, conditions, combat status, attack rolls/AC, Defend/Aim, defeat recovery, session recap, rest, accessibility, web client routes, browser smoke/mobile) | 421 passed |
+| `pytest` suite (imports, state stack, save/load, items, data integrity, API, AI narration, AI memory, hints, achievements, utility spells, locks, vault, quests, enemy abilities, encounters, saving throws, conditions, combat status, attack rolls/AC, Defend/Aim, defeat recovery, session recap, equipment economy, rest, accessibility, web client routes, browser smoke/mobile) | 433 passed |
 | Live smoke test (Flask server, `/app`, start/state/abilities/inventory/actions/command/save/load) | passed |
 
 The last comparison is the strongest evidence: the pristine Italian code and the finished

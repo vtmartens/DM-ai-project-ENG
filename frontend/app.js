@@ -71,6 +71,12 @@ const el = {
   combatCard: document.getElementById("combat-card"),
   dialogueCard: document.getElementById("dialogue-card"),
   showMap: document.getElementById("show-map"),
+  showShop: document.getElementById("show-shop"),
+  shopModal: document.getElementById("shop-modal"),
+  closeShopModal: document.getElementById("close-shop-modal"),
+  shopGold: document.getElementById("shop-gold"),
+  shopStock: document.getElementById("shop-stock"),
+  shopSellList: document.getElementById("shop-sell-list"),
   askHint: document.getElementById("ask-hint"),
   showRecap: document.getElementById("show-recap"),
   mapModal: document.getElementById("map-modal"),
@@ -399,6 +405,10 @@ function renderState(state) {
   if (state.dialogue?.active) {
     window.requestAnimationFrame(scrollLogToLatestNarration);
   }
+
+  const inMarket = state.state === "MarketState";
+  el.showShop.classList.toggle("hidden", !inMarket);
+  if (!inMarket && activeModal === el.shopModal) closeShopModal();
 }
 
 function applyState(state) {
@@ -1103,6 +1113,7 @@ function setBusy(busy, status = "") {
   el.newGame.disabled = busy;
   if (el.askHint) el.askHint.disabled = busy;
   if (el.showRecap) el.showRecap.disabled = busy;
+  if (el.showShop) el.showShop.disabled = busy;
   el.commandStatus.textContent = status;
 }
 
@@ -1452,6 +1463,132 @@ async function showRecap() {
   }
 }
 
+async function showShop() {
+  if (!store.sessionId || store.busy) return;
+  try {
+    const data = await api(
+      `/shop?session_id=${encodeURIComponent(store.sessionId)}`
+    );
+    renderShop(data);
+    openModal(el.shopModal);
+  } catch (error) {
+    showToast(error.message, "error");
+  }
+}
+
+function closeShopModal() {
+  closeModal(el.shopModal);
+}
+
+function createShopEntry(item, action, gold) {
+  const entry = document.createElement("div");
+  entry.className = "shop-entry";
+
+  const info = document.createElement("div");
+  info.className = "shop-item";
+  const name = document.createElement("span");
+  name.className = "shop-name";
+  name.textContent = item.name;
+  const meta = document.createElement("span");
+  meta.className = "shop-meta";
+  meta.textContent = [
+    String(item.type || "item").replace(/_/g, " "),
+    item.rarity || "common",
+    item.effect_text || "",
+  ]
+    .filter(Boolean)
+    .join(" · ");
+  info.append(name, meta);
+  if (item.description) {
+    const description = document.createElement("p");
+    description.className = "shop-description";
+    description.textContent = item.description;
+    info.appendChild(description);
+  }
+
+  const actionBox = document.createElement("div");
+  actionBox.className = "shop-action";
+  const price = document.createElement("span");
+  price.className = "shop-price";
+  price.textContent = `${Number(item.price || 0)} gold`;
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = action === "buy" ? "primary small" : "ghost small";
+  button.textContent = action === "buy" ? "Buy" : "Sell";
+  const canAfford =
+    action !== "buy" || Number(gold || 0) >= Number(item.price || 0);
+  button.disabled = !canAfford;
+  if (!canAfford) button.title = "Not enough gold";
+  button.addEventListener("click", () => shopAction(action, item.name));
+  actionBox.append(price, button);
+
+  entry.append(info, actionBox);
+  return entry;
+}
+
+function renderShop(data) {
+  const gold = Number(data?.gold || 0);
+  el.shopGold.textContent = `Gold: ${gold}`;
+
+  el.shopStock.innerHTML = "";
+  const stock = data?.stock || [];
+  if (!stock.length) {
+    const note = document.createElement("p");
+    note.className = "empty-note";
+    note.textContent = "No goods are available.";
+    el.shopStock.appendChild(note);
+  } else {
+    for (const item of stock) {
+      el.shopStock.appendChild(createShopEntry(item, "buy", gold));
+    }
+  }
+
+  el.shopSellList.innerHTML = "";
+  const sellable = data?.sellable || [];
+  if (!sellable.length) {
+    const note = document.createElement("p");
+    note.className = "empty-note";
+    note.textContent = "Nothing to sell. Unequip gear before selling it.";
+    el.shopSellList.appendChild(note);
+  } else {
+    for (const item of sellable) {
+      el.shopSellList.appendChild(createShopEntry(item, "sell", gold));
+    }
+  }
+}
+
+async function shopAction(action, itemName) {
+  if (!store.sessionId || store.busy) return;
+
+  store.busy = true;
+  setBusy(true, `${action === "buy" ? "Buying" : "Selling"} ${itemName}…`);
+  try {
+    const data = await api(`/shop/${action}`, {
+      method: "POST",
+      body: { session_id: store.sessionId, item: itemName },
+    });
+    appendOutput(data.output);
+    if (data.state) applyState(data.state);
+    if (data.shop) renderShop(data.shop);
+    if (data.message) {
+      const succeeded = action === "buy" ? data.bought : data.sold;
+      showToast(data.message, succeeded ? "success" : "error");
+    }
+    refreshSidePanels(data.state);
+  } catch (error) {
+    showToast(error.message, "error");
+    if (error.status === 404) {
+      clearSession();
+      showToast("Session expired. Start a new game.", "error");
+    } else if (error.status === 409) {
+      closeShopModal();
+    }
+  } finally {
+    store.busy = false;
+    setBusy(false, "");
+  }
+}
+
 async function showMapView() {
   if (!store.sessionId) return;
   try {
@@ -1530,15 +1667,20 @@ function bindEvents() {
   el.newGame.addEventListener("click", newGame);
   el.refreshInventory.addEventListener("click", () => refreshSidePanels(store.state));
   el.showMap.addEventListener("click", showMapView);
+  el.showShop.addEventListener("click", showShop);
   el.askHint.addEventListener("click", askHint);
   el.showRecap.addEventListener("click", showRecap);
   el.closeLoadModal.addEventListener("click", closeLoadModal);
   el.closeMapModal.addEventListener("click", closeMapModal);
+  el.closeShopModal.addEventListener("click", closeShopModal);
   el.loadModal.addEventListener("click", (event) => {
     if (event.target === el.loadModal) closeLoadModal();
   });
   el.mapModal.addEventListener("click", (event) => {
     if (event.target === el.mapModal) closeMapModal();
+  });
+  el.shopModal.addEventListener("click", (event) => {
+    if (event.target === el.shopModal) closeShopModal();
   });
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {

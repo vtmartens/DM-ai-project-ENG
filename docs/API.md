@@ -488,6 +488,66 @@ using an antidote clears poison from the player.
 ```
 
 `action` is `equip`, `unequip`, or `examine`. Returns `output`, `state`, and `equipment`.
+Equipping applies every stat effect on the item, and unequipping removes the same effects.
+
+#### `GET /shop?session_id=...`
+
+Returns the market stock and the player's sellable inventory. This endpoint is only
+available while the current state is `MarketState`; otherwise it returns `409`.
+
+```json
+{
+  "gold": 100,
+  "stock": [
+    {
+      "name": "Chainmail",
+      "type": "armor",
+      "category": "Armor",
+      "price": 45,
+      "sell_price": 22,
+      "description": "Armor of interwoven metal rings...",
+      "effect": {"defense": 4},
+      "effect_text": "AC +4",
+      "rarity": "common"
+    }
+  ],
+  "sellable": [
+    {
+      "name": "Healing Potion",
+      "type": "heal",
+      "category": "Inventory",
+      "price": 12,
+      "description": "A potion that restores 10 hit points",
+      "effect": {"heal": 10},
+      "effect_text": "restores 10 HP",
+      "rarity": "common",
+      "equipped": false
+    }
+  ]
+}
+```
+
+#### `POST /shop/buy`
+
+```json
+{"session_id": "uuid", "item": "Chainmail"}
+```
+
+Buys one stock item at `price`. Returns `output`, `state`, `bought`, `message`, and the
+updated `shop` object. A failed purchase returns `bought: false` with the reason; it does not
+change gold or inventory.
+
+#### `POST /shop/sell`
+
+```json
+{"session_id": "uuid", "item": "Healing Potion"}
+```
+
+Sells a non-equipped inventory item for half its value. Returns `output`, `state`, `sold`,
+`message`, and the updated `shop` object. Equipped gear is refused with a message.
+
+Both shop actions are also available as normal commands, for example `buy Chainmail` or
+`shop` to browse the numbered stock list.
 
 ### World and narrative
 
@@ -567,7 +627,8 @@ Returns a list of NPC names placed on the current map.
 
 The action list depends on the current state: combat, dialogue, market, inventory and the
 tavern each advertise their own commands. In the tavern, `rest` is the long-rest action
-(10 gold; restores HP and mana and clears conditions).
+(10 gold; restores HP and mana and clears conditions). In the market it includes `shop`,
+`buy` and `sell`, which drive the shop modal and the numbered terminal shop.
 
 #### `POST /dialogue`
 

@@ -272,6 +272,37 @@ class GameState:
         self._record_output()
         return used
 
+    def get_shop_state(self):
+        """Returns the market stock and the player's sellable inventory."""
+        from core.shop import sellable_items, shop_stock
+
+        player = self.game.player
+        return {
+            "gold": int(getattr(player, "gold", 0) or 0),
+            "stock": shop_stock(),
+            "sellable": sellable_items(player),
+        }
+
+    def shop_buy(self, item_name):
+        """Buys a market item and records its engine output."""
+        from core.shop import buy_item
+
+        self.io_buffer.clear()
+        result = buy_item(self.game.player, item_name, self.game)
+        self.io_buffer.flush()
+        self._record_output()
+        return result
+
+    def shop_sell(self, item_name):
+        """Sells a market item and records its engine output."""
+        from core.shop import sell_item
+
+        self.io_buffer.clear()
+        result = sell_item(self.game.player, item_name, self.game)
+        self.io_buffer.flush()
+        self._record_output()
+        return result
+
     def get_log(self, max_events=50):
         """Returns the most recent structured events, oldest first."""
         if max_events <= 0:

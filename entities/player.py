@@ -68,11 +68,20 @@ class Player(Entity):
 
     def _equipment_stat_bonus(self, ability):
         """Returns the equipment bonus applied to an ability modifier."""
+        equipment = []
+        if getattr(self, "weapon", None):
+            equipment.append(self.weapon)
+        if getattr(self, "armor", None):
+            equipment.append(self.armor)
+        equipment.extend(getattr(self, "accessories", []) or [])
+
         bonus = 0
-        if ability == "strength" and getattr(self, "weapon", None):
-            bonus += int(self.weapon.effect.get("strength", 0) or 0)
-        for accessory in getattr(self, "accessories", []):
-            bonus += int(accessory.effect.get(ability, 0) or 0)
+        for item in equipment:
+            if isinstance(item, str):
+                continue
+            bonus += int(
+                getattr(item, "effect", {}).get(ability, 0) or 0
+            )
         return bonus
 
     def _recalculate_ability_modifier(self, ability):
@@ -178,7 +187,7 @@ class Player(Entity):
     def _create_inventory_base(self):
         """Creates a base inventory based on the character's class"""
         # Common items for everyone
-        potion = Item("Healing Potion", "heal", {"heal": 10}, 5, "Restores 10 hit points")
+        potion = Item("Healing Potion", "heal", {"heal": 10}, 25, "Restores 10 hit points")
         key = Item("Common Key", "key", {}, 1, "A simple key that might open doors or chests")
 
         # Base weapons for all classes
@@ -670,18 +679,11 @@ class Player(Entity):
         player.initiative = player.initiative_base
 
         player.weapon = weapon
-        if weapon is not None:
-            player.strength += int(weapon.effect.get("strength", 0) or 0)
-
         player.armor = armor
-        if armor is not None:
-            player.defense += int(armor.effect.get("defense", 0) or 0)
-
         player.accessories = accessories
-        for accessory in accessories:
-            for stat, value in accessory.effect.items():
-                if hasattr(player, stat):
-                    setattr(player, stat, getattr(player, stat) + value)
+        for item in (weapon, armor, *accessories):
+            if item is not None:
+                Item._apply_effect(player, item.effect)
         player.recalculate_initiative()
 
         return player

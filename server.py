@@ -114,6 +114,9 @@ def home():
             "GET /log": "Get the log of recent events",
             "POST /equipment": "Manage the player's equipment",
             "GET /available_actions": "Get the actions available in the current context",
+            "GET /shop": "Get the market stock and sellable inventory",
+            "POST /shop/buy": "Buy a market item",
+            "POST /shop/sell": "Sell an inventory item",
             "POST /dialogue": "Manage dialogue with an NPC",
             "POST /explore": "Explore the surrounding environment",
             "POST /preferences": "Save the user's preferences",
@@ -861,7 +864,7 @@ def get_available_actions():
             "change equipment",
         ],
         "dialogue": ["talk", "ask", "offer", "goodbye"],
-        "market": ["buy", "sell", "examine", "exit"],
+        "market": ["shop", "buy", "sell", "examine", "exit"],
         "inventory": ["use", "equip", "drop", "examine"],
         "tavern": ["rest", "talk", "fight", "travel", "inventory", "map", "save"]
     }
@@ -883,6 +886,87 @@ def get_available_actions():
         "actions": actions,
         "targets": session.get_nearby_targets(),
         "context": state_name
+    })
+
+@app.route("/shop", methods=["GET"])
+def get_shop():
+    """Get the market's purchasable stock and the player's sellable items."""
+    session_id = request.args.get("session_id")
+    if not session_id:
+        return jsonify({"error": "Session ID not provided"}), 400
+
+    session = active_sessions.get(session_id) or load_session(session_id)
+    if not session:
+        return jsonify({"error": "Session not found"}), 404
+
+    current = session.game.current_state()
+    if type(current).__name__ != "MarketState":
+        return jsonify({"error": "Shopping is only available in the market."}), 409
+
+    return jsonify(session.get_shop_state())
+
+@app.route("/shop/buy", methods=["POST"])
+def shop_buy():
+    """Buy one item from the market stock."""
+    data = request.json or {}
+    session_id = data.get("session_id")
+    item_name = data.get("item")
+    if not session_id:
+        return jsonify({"error": "Session ID not provided"}), 400
+    if not item_name:
+        return jsonify({"error": "Item name not provided"}), 400
+
+    session = active_sessions.get(session_id) or load_session(session_id)
+    if not session:
+        return jsonify({"error": "Session not found"}), 404
+
+    current = session.game.current_state()
+    if type(current).__name__ != "MarketState":
+        return jsonify({"error": "Shopping is only available in the market."}), 409
+
+    result = session.shop_buy(str(item_name))
+    save_session(session_id, session)
+    structured_output = session.io_buffer.get_structured_output()
+    session.io_buffer.clear()
+
+    return jsonify({
+        "output": structured_output,
+        "state": session.get_current_state(),
+        "bought": bool(result.get("success")),
+        "message": result.get("message", ""),
+        "shop": session.get_shop_state(),
+    })
+
+@app.route("/shop/sell", methods=["POST"])
+def shop_sell():
+    """Sell one non-equipped inventory item."""
+    data = request.json or {}
+    session_id = data.get("session_id")
+    item_name = data.get("item")
+    if not session_id:
+        return jsonify({"error": "Session ID not provided"}), 400
+    if not item_name:
+        return jsonify({"error": "Item name not provided"}), 400
+
+    session = active_sessions.get(session_id) or load_session(session_id)
+    if not session:
+        return jsonify({"error": "Session not found"}), 404
+
+    current = session.game.current_state()
+    if type(current).__name__ != "MarketState":
+        return jsonify({"error": "Shopping is only available in the market."}), 409
+
+    result = session.shop_sell(str(item_name))
+    save_session(session_id, session)
+    structured_output = session.io_buffer.get_structured_output()
+    session.io_buffer.clear()
+
+    return jsonify({
+        "output": structured_output,
+        "state": session.get_current_state(),
+        "sold": bool(result.get("success")),
+        "message": result.get("message", ""),
+        "shop": session.get_shop_state(),
     })
 
 @app.route("/dialogue", methods=["POST"])

@@ -503,6 +503,23 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
   font-size: 12.5px;
 }
 .map-legend li { display: inline-flex; align-items: center; gap: 5px; }
+.shop-list { display: grid; gap: 8px; margin: 8px 0 18px; }
+.shop-entry {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-input);
+}
+.shop-item { display: grid; gap: 3px; min-width: 0; }
+.shop-name { font-weight: 600; }
+.shop-meta { color: var(--text-muted); font-size: 12.5px; }
+.shop-description { margin: 0; color: var(--text-muted); font-size: 12.5px; }
+.shop-action { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.shop-price { color: var(--accent-strong); font-family: var(--mono); font-size: 12.5px; white-space: nowrap; }
 .map-legend code {
   padding: 1px 5px;
   border-radius: 4px;

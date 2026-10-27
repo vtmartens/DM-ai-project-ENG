@@ -120,30 +120,34 @@ class Item:
         player.remove_item(self.name)
         game.io.show_message(f"You sold {self.name} for {self.value} gold coins")
     
+    @staticmethod
+    def _apply_effect(player, effect, direction=1):
+        """Adds or removes every numeric equipment effect on the player."""
+        for stat, value in (effect or {}).items():
+            if isinstance(value, (int, float)) and hasattr(player, stat):
+                setattr(player, stat, getattr(player, stat) + direction * value)
+
     def equip(self, player, game=None):
         # Silent version if no game is provided
         if self.type == "weapon":
             # Remove the previous weapon's effects if present
             if player.weapon:
-                player.strength -= player.weapon.effect.get("strength", 0)
+                self._apply_effect(player, player.weapon.effect, -1)
             player.weapon = self
-            player.strength += self.effect.get("strength", 0)
+            self._apply_effect(player, self.effect)
             if game:
-                game.io.show_message(f"You equipped {self.name}. Your strength increases by {self.effect.get('strength', 0)}!")
+                game.io.show_message(f"You equipped {self.name}.")
         elif self.type == "armor":
             # Remove the previous armor's effects if present
             if player.armor:
-                player.defense -= player.armor.effect.get("defense", 0)
+                self._apply_effect(player, player.armor.effect, -1)
             player.armor = self
-            player.defense += self.effect.get("defense", 0)
+            self._apply_effect(player, self.effect)
             if game:
-                game.io.show_message(f"You put on {self.name}. Your armor class increases by {self.effect.get('defense', 0)}!")
+                game.io.show_message(f"You put on {self.name}.")
         elif self.type == "accessory":
             player.accessories.append(self)
-            # Apply any accessory effects
-            for stat, value in self.effect.items():
-                if hasattr(player, stat):
-                    setattr(player, stat, getattr(player, stat) + value)
+            self._apply_effect(player, self.effect)
             if game:
                 game.io.show_message(f"You equipped {self.name} as an accessory.")
 
@@ -158,23 +162,20 @@ class Item:
     def remove(self, player, game=None):
         # Silent version if no game is provided
         if self.type == "weapon":
-            if player.weapon:
-                player.strength -= player.weapon.effect.get("strength", 0)
-            player.weapon = None
+            if player.weapon is self:
+                self._apply_effect(player, self.effect, -1)
+                player.weapon = None
             if game:
                 game.io.show_message(f"You removed the weapon {self.name}.")
         elif self.type == "armor":
-            if player.armor:
-                player.defense -= player.armor.effect.get("defense", 0)
-            player.armor = None
+            if player.armor is self:
+                self._apply_effect(player, self.effect, -1)
+                player.armor = None
             if game:
                 game.io.show_message(f"You removed the armor {self.name}.")
         elif self.type == "accessory":
             if self in player.accessories:
-                # Remove any accessory effects
-                for stat, value in self.effect.items():
-                    if hasattr(player, stat):
-                        setattr(player, stat, getattr(player, stat) - value)
+                self._apply_effect(player, self.effect, -1)
                 player.accessories.remove(self)
             if game:
                 game.io.show_message(f"You removed the accessory {self.name}.")

@@ -1,0 +1,35 @@
+{
+  "Weapons": [
+    "Short Sword",
+    "Long Sword",
+    "Battle Axe",
+    "Short Bow",
+    "Mage Staff"
+  ],
+  "Armor": [
+    "Leather Armor",
+    "Chainmail",
+    "Scale Armor",
+    "Plate Armor",
+    "Wizard's Robe",
+    "Shadow Cloak"
+  ],
+  "Accessories": [
+    "Ring of Strength",
+    "Amulet of Protection",
+    "Thief's Gloves",
+    "Crown of the Mind",
+    "Boots of Speed",
+    "Belt of the Giant",
+    "Earrings of Charisma"
+  ],
+  "Potions": [
+    "Light Healing Potion",
+    "Healing Potion",
+    "Greater Healing Potion",
+    "Antidote",
+    "Strength Potion",
+    "Dexterity Potion",
+    "Smoke Bomb"
+  ]
+}

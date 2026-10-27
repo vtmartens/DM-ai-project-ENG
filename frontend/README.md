@@ -77,6 +77,10 @@ You can also set `localStorage["dm_api_base"]`.
   the numbered choice list, which is shown only as buttons in the dialogue card.
 - Inventory list with item details and use/equip actions. Keys can be used on an adjacent
   matching lock, poison applies over several combat turns, and antidotes clear poison.
+- **Shop** button in the market (`GET /shop`, `POST /shop/buy`, `POST /shop/sell`) opening a
+  modal with affordable gear, prices and effects. Buy adds the item to the inventory; Sell
+  lists non-equipped items at half value. Equipment stat changes update the character panel
+  and combat stats immediately.
 - Save button that writes a timestamped save.
 - Light/dark theme, persisted through `POST /preferences` when a session exists.
 - Session resume from `localStorage` via `GET /state` and `GET /log`.

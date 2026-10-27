@@ -11,6 +11,7 @@ from states.commands import handle_targeted_command, parse_targeted_command
 from world.map import Map
 from world.map_manager import MapManager
 from core.io_interface import GameIO  # Correct import for the IO interface
+from core.shop import buy_item, sell_item, sellable_items, shop_stock
 from util.data_manager import get_data_manager
 import logging
 
@@ -174,6 +175,10 @@ class MarketState(BaseGameState):
         # Asynchronous handling based on the current phase
         if self.phase == "main_menu":
             self._main_show_menu(game)
+        elif self.phase == "shop":
+            self._shop_menu(game)
+        elif self.phase == "shop_buy":
+            self._shop_buy_direct(game)
         elif self.phase == "buy_potion":
             self._buy_potion(game)
         elif self.phase == "item_sale_list":
@@ -207,7 +212,7 @@ class MarketState(BaseGameState):
 
     def _main_show_menu(self, game):
         game.io.show_message("\n=== MARKET ===")
-        game.io.show_message("1. Buy potion (5 gold)")
+        game.io.show_message("1. Browse the shop (potions and equipment)")
         game.io.show_message("2. Sell item")
         game.io.show_message("3. Talk to a merchant")
         game.io.show_message("4. Challenge a merchant")
@@ -238,7 +243,9 @@ class MarketState(BaseGameState):
 
         # Set the next phase based on the choice
         if selection == "1":
-            self.phase = "buy_potion"
+            self.phase = "shop"
+        elif selection == "shop_buy":
+            self.phase = "shop_buy"
         elif selection == "2":
             self.phase = "item_sale_list"
         elif selection == "3":
@@ -273,8 +280,22 @@ class MarketState(BaseGameState):
     def _process_command_market(self, cmd):
         cmd = cmd.lower().strip()
 
+        # "buy Long Sword" buys directly; plain "buy" opens the stock list.
+        if cmd.startswith(("buy ", "purchase ")):
+            item_name = cmd.split(maxsplit=1)[1].strip()
+            if item_name not in {
+                "potion",
+                "potions",
+                "item",
+                "items",
+                "equipment",
+                "gear",
+            }:
+                self.contextual_data["shop_item"] = item_name
+                return "shop_buy"
+
         # Mapping of text commands to actions
-        if any(x in cmd for x in ["buy", "potion", "purchase"]):
+        if any(x in cmd for x in ["buy", "potion", "purchase", "shop", "stock"]):
             return "1"
         elif any(x in cmd for x in ["sell", "sells", "sell"]):
             return "2"
@@ -299,95 +320,152 @@ class MarketState(BaseGameState):
         else:
             return cmd  # return the original command if it matches no action
 
-    def _buy_potion(self, game):
-        if game.player.gold >= 5:
-            game.player.gold -= 5
-            game.player.add_item("Healing Potion")
-            game.io.show_message("You bought a healing potion!")
-        else:
-            game.io.show_message("You don't have enough gold!")
+    def _shop_menu(self, game):
+        """Lists potions and equipment with prices and allows a purchase."""
+        stock = shop_stock()
+        self.contextual_data["shop_items"] = stock
+        player = game.player
 
+        game.io.show_message("\n=== MARKET SHOP ===")
+        game.io.show_message(f"Gold: {player.gold}")
+        if not stock:
+            game.io.show_message("The shop has no goods for sale.")
+            self.phase = "main_menu"
+            press_enter(game)
+            return
+
+        category = None
+        for index, entry in enumerate(stock, 1):
+            if entry.get("category") != category:
+                category = entry.get("category")
+                game.io.show_message(f"\n{category}")
+            effect = entry.get("effect_text") or "no effect"
+            game.io.show_message(
+                f"{index}. {entry.get('name', 'Unknown item')} — "
+                f"{entry.get('price', 0)} gold — {effect}"
+            )
+        game.io.show_message("0. Leave the shop")
+
+        choice = str(
+            game.io.request_input("\nWhat do you want to buy? ") or ""
+        ).strip()
+        self.last_input = choice
+        if choice.casefold() in {"0", "back", "leave", "cancel"}:
+            self.phase = "main_menu"
+            return
+
+        selected = None
+        if choice.isdigit():
+            position = int(choice) - 1
+            if 0 <= position < len(stock):
+                selected = stock[position]
+        else:
+            wanted = choice.casefold()
+            matches = [
+                entry
+                for entry in stock
+                if wanted and wanted in entry.get("name", "").casefold()
+            ]
+            if len(matches) == 1:
+                selected = matches[0]
+
+        if selected is None:
+            game.io.show_message("That item is not in stock.")
+        else:
+            buy_item(player, selected["name"], game)
+
+        self.phase = "shop"
+        press_enter(game)
+
+    def _shop_buy_direct(self, game):
+        """Handles a direct 'buy <item>' command from the market menu."""
+        item_name = self.contextual_data.pop("shop_item", "")
+        buy_item(game.player, item_name, game)
+        self.phase = "main_menu"
+        press_enter(game)
+
+    def _buy_potion(self, game):
+        """Compatibility path for the old buy-potion phase."""
+        buy_item(game.player, "Healing Potion", game)
         self.phase = "main_menu"
         press_enter(game)
 
     def _sell_item_list(self, game):
-        if len(game.player.inventory) == 0:
+        items = sellable_items(game.player)
+        if not items:
             game.io.show_message("You have no items to sell!")
             self.phase = "main_menu"
             press_enter(game)
             return
 
-        # Show the list of items
+        self.contextual_data["sell_items"] = items
         game.io.show_message("\nYour items:")
-        for i, item in enumerate(game.player.inventory, 1):
-            if isinstance(item, str):
-                game.io.show_message(f"{i}. {item}")
-            else:
-                # Also show the item type and value if available
-                type_str = f" - {item.type}" if hasattr(item, 'type') else ""
-                value_str = f" (Value: {item.value} gold)" if hasattr(item, 'value') else ""
-                game.io.show_message(f"{i}. {item.name}{type_str}{value_str}")
-        game.io.show_message(f"0. Go back")
+        for index, item in enumerate(items, 1):
+            game.io.show_message(
+                f"{index}. {item['name']} - {item['type']} "
+                f"(Sale: {item['price']} gold)"
+            )
+        game.io.show_message("0. Go back")
 
-        idx_input = game.io.request_input("\nWhich item do you want to sell? ")
-        self.last_input = idx_input
+        choice = str(
+            game.io.request_input("\nWhich item do you want to sell? ") or ""
+        ).strip()
+        self.last_input = choice
 
-        # Return to the menu if requested
-        if idx_input == "0":
+        if choice == "0":
             self.phase = "main_menu"
             self.run(game)
             return
 
-        # Find the item by name or index
-        idx = -1
-        if idx_input.isdigit():
-            idx = int(idx_input) - 1
+        selected = None
+        if choice.isdigit():
+            position = int(choice) - 1
+            if 0 <= position < len(items):
+                selected = items[position]
         else:
-            # Try to find the item by name
-            object_name = idx_input.lower().strip()
-            for i, itm in enumerate(game.player.inventory):
-                itm_name = itm.name.lower() if hasattr(itm, 'name') else str(itm).lower()
-                if object_name in itm_name:
-                    idx = i
-                    break
+            wanted = choice.casefold()
+            matches = [
+                item
+                for item in items
+                if wanted and wanted in item["name"].casefold()
+            ]
+            if len(matches) == 1:
+                selected = matches[0]
 
-        # Check whether the item was found
-        if 0 <= idx < len(game.player.inventory):
-            # Store the item index in the contextual data
-            self.contextual_data["idx_item_from_sell"] = idx
-            self.phase = "confirm_item_sale"
-            self.run(game)  # Run the confirmation phase immediately
-        else:
+        if selected is None:
             game.io.show_message("Item not found in the inventory.")
             self.phase = "main_menu"
             press_enter(game)
+            return
+
+        self.contextual_data["sell_item_name"] = selected["name"]
+        self.phase = "confirm_item_sale"
+        self.run(game)
 
     def _sell_item_confirm(self, game):
-        idx = self.contextual_data.get("idx_item_from_sell", -1)
-        if idx < 0 or idx >= len(game.player.inventory):
+        item_name = self.contextual_data.get("sell_item_name", "")
+        items = sellable_items(game.player)
+        item = next(
+            (entry for entry in items if entry["name"] == item_name),
+            None,
+        )
+        if item is None:
             game.io.show_message("Error: the selected item is no longer available.")
             self.phase = "main_menu"
             press_enter(game)
             return
 
-        item = game.player.inventory[idx]
-
-        # Calculate the sale price
-        sale_price = 3  # Base price
-        if hasattr(item, 'value'):
-            sale_price = max(1, item.value // 2)  # Half the original value
-
-        game.io.show_message(f"You are about to sell {item} for {sale_price} gold coins.")
+        game.io.show_message(
+            f"You are about to sell {item['name']} for "
+            f"{item['price']} gold coins."
+        )
         confirm = game.io.request_input("Do you confirm the sale? (y/n): ")
         self.last_input = confirm
 
         if confirm.lower() == "y":
-            item = game.player.inventory.pop(idx)
-            game.player.gold += sale_price
-            from core.achievements import record_event
-
-            record_event(game.player, "gold_changed", game=game)
-            game.io.show_message(f"You sold {item} for {sale_price} gold coins!")
+            # Route through the shop service so equipped gear is refused and
+            # the sale price matches the API and web client.
+            sell_item(game.player, item_name, game)
         else:
             game.io.show_message("Sale cancelled.")
 

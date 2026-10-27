@@ -142,12 +142,44 @@ def test_web_client_smoke(live_server):
         assert "previously" in recap_text.lower()
         assert "Browser Smoke" in recap_text
 
+        # Market shop: buy equipment through the modal and return to the tavern.
+        driver.find_element(By.ID, "command-input").send_keys("go to market")
+        driver.find_element(By.ID, "send-button").click()
+        wait.until(lambda d: d.find_element(By.ID, "show-shop").is_displayed())
+        driver.find_element(By.ID, "show-shop").click()
+        wait.until(lambda d: d.find_element(By.ID, "shop-modal").is_displayed())
+        wait.until(
+            lambda d: len(
+                d.find_elements(By.CSS_SELECTOR, "#shop-stock .shop-entry")
+            )
+            > 0
+        )
+        buy_buttons = driver.find_elements(
+            By.CSS_SELECTOR, "#shop-stock .shop-entry button"
+        )
+        assert buy_buttons
+        buy_buttons[0].click()
+        wait.until(
+            lambda d: "You buy" in d.find_element(By.ID, "toast").text
+        )
+        driver.find_element(By.ID, "close-shop-modal").click()
+        driver.find_element(By.ID, "command-input").send_keys("go to tavern")
+        driver.find_element(By.ID, "send-button").click()
+        wait.until(
+            lambda d: not d.find_element(By.ID, "show-shop").is_displayed()
+        )
+
         # Locked travel reports a message and leaves the player in the tavern.
         driver.find_element(By.ID, "command-input").send_keys("go to warehouse")
         driver.find_element(By.ID, "send-button").click()
         wait.until(lambda d: "locked" in d.find_element(By.ID, "log").text.lower())
 
-        # Natural-language targeting: this used to open the NPC list.
+        # Natural-language targeting: move to Durnan, then talk to him.
+        driver.find_element(By.ID, "command-input").send_keys("go to Durnan")
+        driver.find_element(By.ID, "send-button").click()
+        wait.until(
+            lambda d: d.find_element(By.ID, "send-button").is_enabled()
+        )
         driver.find_element(By.ID, "command-input").send_keys("talk to Durnan")
         driver.find_element(By.ID, "send-button").click()
         wait.until(lambda d: d.find_element(By.ID, "dialogue-card").is_displayed())

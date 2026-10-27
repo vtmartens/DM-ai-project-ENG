@@ -73,7 +73,7 @@ def test_saving_throw_uses_condition_advantage(recording_io, monkeypatch):
     assert player.saving_throw("dexterity", 15, game) is True
 
     assert "2 / 18 (advantage)" in recording_io.text
-    assert "= 18" in recording_io.text
+    assert f"= {18 + player.dexterity}" in recording_io.text
 
 
 def test_ability_check_uses_condition_advantage(recording_io, monkeypatch):

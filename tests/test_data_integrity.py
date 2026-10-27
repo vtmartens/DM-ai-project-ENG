@@ -247,6 +247,28 @@ def test_condition_definitions_are_well_formed():
             assert isinstance(modifier, int), condition_id
 
 
+def test_shop_stock_references_existing_items():
+    stock = _load(ROOT / "data" / "items" / "shop_stock.json")
+    catalogue = set()
+    for file_name in (
+        "weapons.json",
+        "armor.json",
+        "accessories.json",
+        "potions.json",
+    ):
+        for item in _load(ITEMS_DIR / file_name):
+            catalogue.add(item["name"])
+
+    assert stock
+    referenced = set()
+    for category, names in stock.items():
+        assert names, category
+        for name in names:
+            assert name in catalogue, f"{category}: unknown item {name!r}"
+            assert name not in referenced, f"duplicate stock item {name!r}"
+            referenced.add(name)
+
+
 def test_monster_armor_classes_are_well_formed():
     monsters = _load(ROOT / "data" / "monsters" / "monsters.json")
 
