@@ -915,6 +915,24 @@ entirely. The doors that existed were also misaligned with the map exits.
   from that sorted list instead of assuming it is option 1.
 - Full suite remains green: 468 tests pass.
 
+## Combat maneuvers and expanded conditions (2026-10-27)
+
+- Added `data/combat/maneuvers.json` and `core/maneuvers.py`. **Trip** and **Shove** are
+  contested Athletics checks against the target's Acrobatics or Athletics; the data file
+  defines their skill pair, condition and duration.
+- Added the `prone` and `staggered` conditions. Prone gives the target's attacks
+  disadvantage, gives attacks against it advantage, and costs its next action to stand up.
+  Staggered gives disadvantage on attacks and blocks special abilities for a round.
+- Conditions now tick on living enemies as well as the player, with entity-aware messages,
+  and enemy conditions survive combat save/load. Incoming-condition roll flags are applied
+  when resolving attacks against a prone target.
+- Added menu options 9+, natural-language `trip`/`shove` commands and API quick actions.
+  The combat snapshot exposes enemy conditions, and the web card renders them as status tags.
+  Asset version bumped to `v=31`.
+- Tests cover success/failure, prone stand-up, stagger ability blocking and expiry,
+  incoming advantage, enemy/NPC-condition round trips, the command loop, API exposure and
+  data integrity. 518 tests pass.
+
 ## Deliberate translation choices worth knowing
 
 - **`hp_base` / `mana_base` were left as-is.** They are consistent between code and JSON

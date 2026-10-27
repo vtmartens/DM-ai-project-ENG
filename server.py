@@ -822,8 +822,12 @@ def get_available_actions():
         "road_event": ["leave"],
     }
 
-    if session.get_combat_state().get("in_combat"):
-        actions = actions_context["combat"]
+    combat_state = session.get_combat_state()
+    if combat_state.get("in_combat"):
+        actions = (
+            combat_state.get("available_actions")
+            or actions_context["combat"]
+        )
     elif state_name == "DialogueState":
         actions = actions_context["dialogue"]
     elif state_name == "MarketState":

@@ -81,7 +81,7 @@ def test_aim_and_defend_are_advertised_and_aim_is_exposed(client):
     actions = client.get(
         "/available_actions", query_string={"session_id": session_id}
     ).get_json()["actions"]
-    assert {"defend", "aim"} <= set(actions)
+    assert {"defend", "aim", "trip", "shove"} <= set(actions)
 
     result = client.post(
         "/combat_action",

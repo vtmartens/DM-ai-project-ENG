@@ -72,7 +72,8 @@ class Entity:
         self.weapon = None
         self.armor = None
         self.accessories = []
-        
+        self.conditions = {}
+
         # Game context
         self.game = None
         
@@ -578,6 +579,7 @@ class Entity:
             "weapon": serialize_safely(self.weapon),
             "armor": serialize_safely(self.armor),
             "accessories": serialize_list(self.accessories),
+            "conditions": dict(getattr(self, "conditions", {}) or {}),
         }
     
     @classmethod
@@ -630,6 +632,7 @@ class Entity:
         entity.gold = data.get("gold", 0)
         entity.experience = data.get("experience", 0)
         entity.level = data.get("level", 1)
+        entity.conditions = dict(data.get("conditions", {}) or {})
         
         # The complex objects (inventory, weapon, armor, accessories)
         # will be handled in the derived classes

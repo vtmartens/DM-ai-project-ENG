@@ -1,0 +1,22 @@
+{
+  "trip": {
+    "id": "trip",
+    "name": "Trip",
+    "description": "Sweep the target's legs and knock it prone.",
+    "skill": "athletics",
+    "defense_skill": "acrobatics",
+    "condition": "prone",
+    "turns": 2,
+    "message": "{target} is knocked prone."
+  },
+  "shove": {
+    "id": "shove",
+    "name": "Shove",
+    "description": "Drive the target back and leave it staggered.",
+    "skill": "athletics",
+    "defense_skill": "athletics",
+    "condition": "staggered",
+    "turns": 1,
+    "message": "{target} staggers back, off balance."
+  }
+}

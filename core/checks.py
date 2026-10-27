@@ -1,4 +1,4 @@
-"""Shared skill-check helper for data-driven interactions."""
+"""Shared skill-check helpers for data-driven interactions."""
 
 from __future__ import annotations
 
@@ -23,9 +23,15 @@ def _consume_guidance(player, game):
     return bonus
 
 
-def skill_check(player, skill, difficulty, game=None):
-    """Rolls d20 + skill modifier against a difficulty, with Guidance."""
-    advantage, disadvantage = player.roll_flags("check")
+def _skill_bonus(entity, skill, game):
+    if skill in ASSOCIATED_SKILLS:
+        return entity.ability_modifier(skill, game)
+    return int(getattr(entity, f"modifier_{skill}", 0) or 0)
+
+
+def _roll_skill(entity, skill, game=None, consume_guidance=False):
+    """Rolls one skill check and returns its component values."""
+    advantage, disadvantage = entity.roll_flags("check")
     roll, rolls = roll_d20(advantage, disadvantage)
     if rolls and game:
         mode = (
@@ -37,19 +43,61 @@ def skill_check(player, skill, difficulty, game=None):
             f"{mode.capitalize()} roll: {rolls[0]} / {rolls[1]} -> {roll}."
         )
 
-    if skill in ASSOCIATED_SKILLS:
-        bonus = player.ability_modifier(skill, game)
-    else:
-        bonus = int(getattr(player, f"modifier_{skill}", 0) or 0)
-
-    guidance = _consume_guidance(player, game)
+    bonus = _skill_bonus(entity, skill, game)
+    guidance = _consume_guidance(entity, game) if consume_guidance else 0
     total = roll + bonus + guidance
+    return {
+        "roll": roll,
+        "bonus": bonus,
+        "guidance": guidance,
+        "total": total,
+    }
+
+
+def skill_check(player, skill, difficulty, game=None):
+    """Rolls d20 + skill modifier against a difficulty, with Guidance."""
+    result = _roll_skill(
+        player, skill, game=game, consume_guidance=True
+    )
     if game:
         guidance_text = (
-            f", +{guidance} Guidance" if guidance else ""
+            f", +{result['guidance']} Guidance" if result["guidance"] else ""
         )
         game.io.show_message(
-            f"{skill.title()} check: {roll} + {bonus} (skill"
-            f"{guidance_text}) = {total} vs DC {difficulty}."
+            f"{skill.title()} check: {result['roll']} + {result['bonus']} "
+            f"(skill{guidance_text}) = {result['total']} vs DC {difficulty}."
         )
-    return total >= difficulty
+    return result["total"] >= difficulty
+
+
+def contested_skill_check(
+    player, player_skill, target, target_skill, game=None
+):
+    """Rolls opposing skill checks and returns both totals and the winner."""
+    player_result = _roll_skill(
+        player, player_skill, game=game, consume_guidance=True
+    )
+    target_result = _roll_skill(
+        target, target_skill, game=game, consume_guidance=False
+    )
+    if game:
+        guidance_text = (
+            f", +{player_result['guidance']} Guidance"
+            if player_result["guidance"]
+            else ""
+        )
+        game.io.show_message(
+            f"{player_skill.title()} check: {player_result['roll']} + "
+            f"{player_result['bonus']}{guidance_text} = "
+            f"{player_result['total']}."
+        )
+        game.io.show_message(
+            f"{getattr(target, 'name', 'The target')} {target_skill.title()} "
+            f"check: {target_result['roll']} + {target_result['bonus']} = "
+            f"{target_result['total']}."
+        )
+    return {
+        "success": player_result["total"] >= target_result["total"],
+        "player_total": player_result["total"],
+        "target_total": target_result["total"],
+    }

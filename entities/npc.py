@@ -268,5 +268,6 @@ class NPC(Entity):
         npc.background = data.get("background", "")
         npc.profession = data.get("profession", "")
         npc.group = data.get("group")
+        npc.conditions = dict(data.get("conditions", {}) or {})
 
         return npc

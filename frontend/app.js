@@ -508,6 +508,9 @@ function renderCombat(combat) {
     if (Number(enemy.guard || 0) > 0) {
       addStatusTag(statuses, `Guard ${enemy.guard}`, "guard");
     }
+    for (const [condition, value] of Object.entries(enemy.conditions || {})) {
+      addStatusTag(statuses, conditionLabel(condition, value), "condition");
+    }
     for (const cooldown of enemy.cooldowns || []) {
       if (Number(cooldown.remaining || 0) > 0) {
         addStatusTag(
@@ -576,7 +579,7 @@ function conditionLabel(name, value) {
     return `Guidance +${Number(value.bonus ?? 2)}`;
   }
   if (
-    ["burning", "frightened", "weakened"].includes(key) &&
+    ["burning", "frightened", "weakened", "prone", "staggered"].includes(key) &&
     value &&
     typeof value === "object"
   ) {

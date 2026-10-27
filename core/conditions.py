@@ -22,7 +22,9 @@ def _definition(condition_id):
     return data if isinstance(data, dict) else None
 
 
-def apply_condition(entity, condition_id, turns=None, game=None, **params) -> bool:
+def apply_condition(
+    entity, condition_id, turns=None, game=None, message=None, **params
+) -> bool:
     """Applies or refreshes a catalogued condition on an entity."""
     definition = _definition(condition_id)
     if definition is None:
@@ -42,15 +44,17 @@ def apply_condition(entity, condition_id, turns=None, game=None, **params) -> bo
         current["turns"] = max(int(current.get("turns", 0) or 0), duration)
         for key, value in params.items():
             current.setdefault(key, value)
-        message = f"{name} lingers."
+        text = message or f"{name} lingers."
     else:
         entry = {"turns": duration}
         entry.update(params)
         conditions[condition_id] = entry
-        message = definition.get("message", f"You are affected by {name}.")
+        text = message or definition.get(
+            "message", f"You are affected by {name}."
+        )
 
     if game:
-        game.io.show_message(message)
+        game.io.show_message(text)
     return True
 
 
@@ -64,11 +68,17 @@ def remove_condition(entity, condition_id, game=None, message=None) -> bool:
     return True
 
 
+def _is_player(entity, game) -> bool:
+    return game is not None and entity is getattr(game, "player", None)
+
+
 def tick_conditions(entity, game=None) -> list[str]:
     """Ticks active conditions at the end of a round; returns expired ids."""
     conditions = getattr(entity, "conditions", None)
     if not isinstance(conditions, dict):
         return []
+    player_subject = _is_player(entity, game)
+    entity_name = str(getattr(entity, "name", "the target"))
 
     catalogue = condition_catalogue()
     expired = []
@@ -92,7 +102,10 @@ def tick_conditions(entity, game=None) -> list[str]:
             if damage > 0:
                 entity.hp = max(0, int(getattr(entity, "hp", 0) or 0) - damage)
                 if game:
-                    game.io.show_message(f"{name} deals {damage} damage to you.")
+                    recipient = "you" if player_subject else entity_name
+                    game.io.show_message(
+                        f"{name} deals {damage} damage to {recipient}."
+                    )
             if heal > 0:
                 hp_max = int(getattr(entity, "hp_max", 0) or 0)
                 before = int(getattr(entity, "hp", 0) or 0)
@@ -113,7 +126,12 @@ def tick_conditions(entity, game=None) -> list[str]:
                 conditions.pop(condition_id, None)
                 expired.append(condition_id)
                 if game:
-                    game.io.show_message(f"You recover from {name}.")
+                    if player_subject:
+                        game.io.show_message(f"You recover from {name}.")
+                    else:
+                        game.io.show_message(
+                            f"{entity_name} recovers from {name}."
+                        )
                 continue
 
         turns = int(entry.get("turns", 0) or 0) - 1
@@ -121,15 +139,19 @@ def tick_conditions(entity, game=None) -> list[str]:
             conditions.pop(condition_id, None)
             expired.append(condition_id)
             if game:
-                game.io.show_message(f"{name} fades.")
+                if player_subject:
+                    game.io.show_message(f"{name} fades.")
+                else:
+                    game.io.show_message(
+                        f"{name} fades from {entity_name}."
+                    )
         else:
             entry["turns"] = turns
 
     return expired
 
 
-def condition_roll_flags(entity, kind="check"):
-    """Returns (advantage, disadvantage) granted by catalogued conditions."""
+def _condition_roll_flags(entity, field, kind):
     conditions = getattr(entity, "conditions", None)
     if not isinstance(conditions, dict):
         return False, False
@@ -141,7 +163,7 @@ def condition_roll_flags(entity, kind="check"):
         definition = catalogue.get(condition_id)
         if not isinstance(definition, dict):
             continue
-        rolls = definition.get("rolls", {})
+        rolls = definition.get(field, {})
         if not isinstance(rolls, dict):
             continue
 
@@ -155,6 +177,42 @@ def condition_roll_flags(entity, kind="check"):
                 else:
                     disadvantage = True
     return advantage, disadvantage
+
+
+def condition_roll_flags(entity, kind="check"):
+    """Returns (advantage, disadvantage) for the entity's own rolls."""
+    return _condition_roll_flags(entity, "rolls", kind)
+
+
+def condition_incoming_roll_flags(entity, kind="attack"):
+    """Returns flags applied to attacks made against the entity."""
+    return _condition_roll_flags(entity, "incoming_rolls", kind)
+
+
+def condition_blocks_abilities(entity) -> bool:
+    """Whether an active condition prevents special abilities."""
+    conditions = getattr(entity, "conditions", None)
+    if not isinstance(conditions, dict):
+        return False
+    catalogue = condition_catalogue()
+    return any(
+        isinstance(catalogue.get(condition_id), dict)
+        and bool(catalogue[condition_id].get("blocks_abilities"))
+        for condition_id in conditions
+    )
+
+
+def condition_stand_up(entity) -> str | None:
+    """Returns the first condition that costs the entity a turn to clear."""
+    conditions = getattr(entity, "conditions", None)
+    if not isinstance(conditions, dict):
+        return None
+    catalogue = condition_catalogue()
+    for condition_id in conditions:
+        definition = catalogue.get(condition_id)
+        if isinstance(definition, dict) and definition.get("stand_up"):
+            return condition_id
+    return None
 
 
 def condition_damage_modifier(entity) -> int:

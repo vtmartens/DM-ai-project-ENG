@@ -22,5 +22,22 @@
     "save": {"ability": "constitution", "dc": 12},
     "damage_modifier": -2,
     "message": "You feel weakened!"
+  },
+  "prone": {
+    "name": "Prone",
+    "description": "You are on the ground and must spend a turn standing up.",
+    "duration": 2,
+    "stand_up": true,
+    "rolls": {"disadvantage": ["attack"]},
+    "incoming_rolls": {"advantage": ["attack"]},
+    "message": "You are knocked prone!"
+  },
+  "staggered": {
+    "name": "Staggered",
+    "description": "The impact leaves you off balance and unable to use special abilities.",
+    "duration": 1,
+    "blocks_abilities": true,
+    "rolls": {"disadvantage": ["attack"]},
+    "message": "You are staggered!"
   }
 }

@@ -66,7 +66,8 @@ You can also set `localStorage["dm_api_base"]`.
   explains the recovery and the session returns to the tavern.
   Recruited allies appear below the enemies. Enemy abilities and their telegraphs appear in
   the adventure log, and the card reflects HP changes. Status tags show each enemy's physical
-  guard and ability cooldowns.
+  guard, ability cooldowns and conditions such as Prone or Staggered. Trip and Shove are
+  available as quick actions; their contested Athletics checks and outcomes appear in the log.
 - Conditions panel driven by `state.conditions`: poisoned duration/damage, Guidance,
   advantage/disadvantage, and timed burning/frightened/weakened effects are rendered as
   colour-coded tags and update after each action.

@@ -189,7 +189,8 @@ class Enemy(Entity):
                 enemy.hp = data["hp"]
             if "name" in data:
                 enemy.name = data["name"]
-            
+            enemy.conditions = dict(data.get("conditions", {}) or {})
+
             return enemy
         
         # Otherwise create an enemy with the data from the dictionary
@@ -214,5 +215,6 @@ class Enemy(Entity):
         enemy.attack_stat = data.get("attack_stat")
         enemy.damage_bonus = int(data.get("damage_bonus", 0) or 0)
         enemy.gold = data.get("gold", 10)
+        enemy.conditions = dict(data.get("conditions", {}) or {})
 
         return enemy

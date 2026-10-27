@@ -363,6 +363,11 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
   color: var(--text-muted);
   border-color: var(--border-strong);
 }
+.tag.condition-prone,
+.tag.condition-staggered {
+  color: var(--accent-strong);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+}
 .condition-list .empty-note { padding: 0; background: none; border: 0; }
 
 .quest-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
@@ -474,6 +479,10 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
   border-color: color-mix(in srgb, var(--info) 45%, var(--border));
 }
 .status-tag.cooldown {
+  color: var(--accent-strong);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+}
+.status-tag.condition {
   color: var(--accent-strong);
   border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
 }

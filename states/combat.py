@@ -1,5 +1,15 @@
 from states.base_state import BaseState
+from core.checks import contested_skill_check
+from core.conditions import (
+    apply_condition,
+    condition_blocks_abilities,
+    condition_incoming_roll_flags,
+    condition_stand_up,
+    remove_condition,
+    tick_conditions,
+)
 from core.enemy_abilities import choose_ability, load_abilities
+from core.maneuvers import maneuver_definitions
 from entities.enemy import Enemy
 from entities.player import Player
 from entities.npc import NPC
@@ -140,6 +150,32 @@ class CombatState(BaseState):
             return text[len("attack ") :].strip(), True
         return None, False
 
+    def _maneuvers(self):
+        return maneuver_definitions()
+
+    def _parse_maneuver_command(self, command):
+        """Matches a maneuver id/name or its menu number (9 onward)."""
+        text = str(command or "").strip().casefold()
+        if not text:
+            return None
+
+        maneuvers = self._maneuvers()
+        if text.isdigit():
+            index = int(text) - 9
+            if 0 <= index < len(maneuvers):
+                return maneuvers[index]
+            return None
+
+        for maneuver in maneuvers:
+            names = {
+                str(maneuver.get("id", "")).casefold(),
+                str(maneuver.get("name", "")).casefold(),
+            }
+            for name in names:
+                if name and (text == name or text.startswith(f"{name} ")):
+                    return maneuver
+        return None
+
     def select_target(self, name):
         """Selects a living enemy by name. Returns False if it is not found."""
         wanted = str(name or "").strip().casefold()
@@ -223,6 +259,11 @@ class CombatState(BaseState):
             game.io.show_message("6. Choose target")
         game.io.show_message("7. Defend")
         game.io.show_message("8. Aim")
+        for offset, maneuver in enumerate(maneuver_definitions(), start=9):
+            game.io.show_message(
+                f"{offset}. {maneuver.get('name', 'Maneuver')} — "
+                f"{maneuver.get('description', '')}"
+            )
 
         # Get the command from the input (already set by the web system)
         game.io.request_input("Choice: ")
@@ -275,6 +316,11 @@ class CombatState(BaseState):
         ability_name = self._parse_ability_command(player, selection_input)
         if ability_name:
             self._manage_ability(player, game, ability_name)
+            return
+
+        maneuver = self._parse_maneuver_command(selection_input)
+        if maneuver is not None:
+            self._manage_maneuver(player, game, maneuver)
             return
 
         # Process the textual or numeric command
@@ -371,9 +417,9 @@ class CombatState(BaseState):
         self._tick_poison(game)
         self._tick_player_poison(player, game)
 
-        from core.conditions import tick_conditions
-
         tick_conditions(player, game)
+        for enemy in self._alive_enemies():
+            tick_conditions(enemy, game)
 
         # Defending lasts through the enemy phase of this round. Aim persists
         # until the next weapon attack consumes it.
@@ -1114,6 +1160,11 @@ class CombatState(BaseState):
             condition_advantage, condition_disadvantage = roll_flags("attack")
             advantage_flag = advantage_flag or condition_advantage
             disadvantage_flag = disadvantage_flag or condition_disadvantage
+        incoming_advantage, incoming_disadvantage = (
+            condition_incoming_roll_flags(target, "attack")
+        )
+        advantage_flag = advantage_flag or incoming_advantage
+        disadvantage_flag = disadvantage_flag or incoming_disadvantage
         if advantage_flag and disadvantage_flag:
             advantage_flag = disadvantage_flag = False
 
@@ -1250,6 +1301,52 @@ class CombatState(BaseState):
         )
         self.phase = "enemy_attack" if self._alive_enemies() else "end_turn"
 
+    def _manage_maneuver(self, player, game, maneuver):
+        """Resolves a contested maneuver and applies its condition."""
+        target = self.opponent
+        if target is None:
+            self.phase = "selection"
+            return
+
+        name = str(maneuver.get("name", "maneuver"))
+        player_skill = str(maneuver.get("skill", "athletics"))
+        target_skill = str(maneuver.get("defense_skill", "acrobatics"))
+        result = contested_skill_check(
+            player, player_skill, target, target_skill, game
+        )
+
+        if result["success"]:
+            condition_id = str(maneuver.get("condition", "") or "")
+            condition_name = condition_id.replace("_", " ").title()
+            message = str(
+                maneuver.get(
+                    "message",
+                    f"{target.name} is {condition_name.lower()}.",
+                )
+            ).format(target=target.name)
+            if condition_id and apply_condition(
+                target,
+                condition_id,
+                turns=maneuver.get("turns"),
+                game=game,
+                message=message,
+            ):
+                game.io.show_message(
+                    f"\n{name} succeeds "
+                    f"({result['player_total']} vs {result['target_total']})."
+                )
+            else:
+                game.io.show_message(
+                    f"\n{name} succeeds, but {target.name} is unaffected."
+                )
+        else:
+            game.io.show_message(
+                f"\n{name} fails "
+                f"({result['player_total']} vs {result['target_total']})."
+            )
+
+        self.phase = "enemy_attack" if self._alive_enemies() else "end_turn"
+
     def _enemy_index(self, enemy):
         try:
             return self.enemies.index(enemy)
@@ -1335,6 +1432,17 @@ class CombatState(BaseState):
             game.io.show_message("You take no damage.")
         return effective_damage
 
+    def _enemy_stands_up(self, enemy, game):
+        """Spends a prone enemy's action standing up; returns True if it did."""
+        condition_id = condition_stand_up(enemy)
+        if not condition_id:
+            return False
+        remove_condition(enemy, condition_id)
+        game.io.show_message(
+            f"\n{enemy.name} spends its turn standing up."
+        )
+        return True
+
     def _attack_enemy(self, player, game, enemy=None, index=None):
         """Handle one opponent's action: ability when ready, else basic attack."""
         enemy = enemy or self.opponent
@@ -1346,6 +1454,9 @@ class CombatState(BaseState):
         if not isinstance(getattr(self, "effects", None), dict):
             self.effects = {}
 
+        if self._enemy_stands_up(enemy, game):
+            return
+
         if self.effects.pop("evade", False):
             game.io.show_message(f"\nYou evade {enemy.name}'s attack!")
             return
@@ -1354,7 +1465,15 @@ class CombatState(BaseState):
         if abilities is None:
             abilities = load_abilities(getattr(enemy, "ability_ids", []))
         cooldowns = self.ability_cooldowns.setdefault(str(index), {})
-        ability = choose_ability(abilities, cooldowns, enemy)
+        if condition_blocks_abilities(enemy):
+            ability = None
+            if abilities:
+                game.io.show_message(
+                    f"\n{enemy.name} is staggered and cannot use "
+                    "special abilities."
+                )
+        else:
+            ability = choose_ability(abilities, cooldowns, enemy)
         if ability is not None:
             self._use_enemy_ability(player, game, enemy, ability, index)
             return

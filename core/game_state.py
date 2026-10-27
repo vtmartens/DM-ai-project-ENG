@@ -363,6 +363,7 @@ class GameState:
         current = self.game.current_state()
         if isinstance(current, CombatState) and getattr(current, "enemies", None):
             from core.enemy_abilities import load_abilities
+            from core.maneuvers import maneuver_actions
 
             target = getattr(current, "opponent", None)
             living = [
@@ -372,10 +373,13 @@ class GameState:
             ]
             actions = [
                 "attack",
+                "defend",
+                "aim",
                 "use item",
                 "use ability",
                 "change equipment",
                 "flee",
+                *maneuver_actions(),
             ]
             if len(living) > 1:
                 actions.append("choose target")
@@ -400,6 +404,11 @@ class GameState:
                         "hp": getattr(enemy, "hp", 0),
                         "max_hp": getattr(enemy, "hp_max", 0),
                         "ac": getattr(enemy, "armor_class", 10),
+                        "conditions": (
+                            dict(getattr(enemy, "conditions", {}) or {})
+                            if alive
+                            else {}
+                        ),
                         "guard": (
                             int(current.enemy_guard.get(str(index), 0) or 0)
                             if alive

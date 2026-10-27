@@ -762,8 +762,10 @@ Runs `look` and returns `output`, `state`, plus nearby `items`, `exits`, and `np
   "effects": {"defending": false, "aiming": true},
   "enemies": [
     {"name": "Goblin A", "hp": 10, "max_hp": 10, "ac": 13, "guard": 0,
+     "conditions": {"prone": {"turns": 2}},
      "cooldowns": [{"id": "poison_arrow", "name": "Poison Arrow", "remaining": 2}]},
-    {"name": "Goblin B", "hp": 10, "max_hp": 10, "ac": 13, "guard": 0, "cooldowns": []}
+    {"name": "Goblin B", "hp": 10, "max_hp": 10, "ac": 13, "guard": 0,
+     "conditions": {}, "cooldowns": []}
   ],
   "allies": [],
   "available_actions": [
@@ -774,6 +776,8 @@ Runs `look` and returns `output`, `state`, plus nearby `items`, `exits`, and `np
     "use ability",
     "change equipment",
     "flee",
+    "trip",
+    "shove",
     "choose target"
   ]
 }
@@ -785,11 +789,19 @@ the stat (`STR`/`DEX`/`INT`).
 
 `target` is the enemy attacks and abilities currently affect. `choose target` appears when more
 than one enemy is alive; clients can also send `target <name>` as a command. `conditions` is
-the player's active condition map (same shape as `state.conditions`); `guard` is the enemy's
-remaining physical guard, and `cooldowns` lists ability names and rounds until reuse. Timed
-conditions (burning, frightened, weakened) include a `turns` counter and tick at the end of
-each combat round. `effects.defending` is true while Defend adds +4 AC through the enemy
-phase; `effects.aiming` is true until the next weapon attack consumes the advantage.
+the player's active condition map (same shape as `state.conditions`); each enemy also carries
+its own `conditions` map. `guard` is the enemy's remaining physical guard, and `cooldowns`
+lists ability names and rounds until reuse. Timed conditions (burning, frightened, weakened,
+prone, staggered) include a `turns` counter and tick at the end of each combat round.
+`effects.defending` is true while Defend adds +4 AC through the enemy phase;
+`effects.aiming` is true until the next weapon attack consumes the advantage.
+
+`trip` and `shove` are data-driven maneuvers from `data/combat/maneuvers.json`. Each makes a
+contested Athletics check against the target's Acrobatics or Athletics. Trip applies
+`prone`: attacks against the target have advantage, its attacks have disadvantage, and it
+spends its next action standing up. Shove applies `staggered`: disadvantage on attacks and
+no special abilities for a round. Both conditions affect the target's next action, appear in
+the log, and are included in the enemy snapshot.
 
 Outside combat: `{"in_combat": false}`.
 
@@ -802,7 +814,9 @@ Outside combat: `{"in_combat": false}`.
 Returns `output`, `state`, and `combat`. A non-empty `target` selects that enemy before
 the action, so `"attack"` with `"Goblin B"` attacks that enemy directly. `"defend"` spends
 the turn for +4 AC until the next round, and `"aim"` spends it to give the next weapon attack
-advantage; both also work as normal commands via `POST /command`.
+advantage; both also work as normal commands via `POST /command`. `"trip"` and `"shove"`
+resolve contested skill checks and apply their condition to the selected target; they are
+also available as normal commands, menu options 9 and 10, and quick actions.
 
 Enemies also act on data-driven abilities with cooldowns. Their telegraphs and effects appear
 in `output`; `combat.enemies` reflects the resulting HP. Abilities may deal damage, poison,

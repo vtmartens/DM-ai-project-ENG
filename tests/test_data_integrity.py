@@ -233,14 +233,25 @@ def test_condition_definitions_are_well_formed():
             }, condition_id
             assert 5 <= int(save.get("dc", 0)) <= 30, condition_id
 
-        rolls = condition.get("rolls")
-        if rolls is not None:
+        for field in ("rolls", "incoming_rolls"):
+            rolls = condition.get(field)
+            if rolls is None:
+                continue
             assert isinstance(rolls, dict), condition_id
             for mode in ("advantage", "disadvantage"):
                 targets = rolls.get(mode, [])
                 if targets:
                     assert isinstance(targets, list), condition_id
-                    assert set(targets) <= {"check", "save", "attack", "all"}, condition_id
+                    assert set(targets) <= {
+                        "check",
+                        "save",
+                        "attack",
+                        "all",
+                    }, condition_id
+
+        for flag in ("stand_up", "blocks_abilities"):
+            if flag in condition:
+                assert isinstance(condition[flag], bool), condition_id
 
         modifier = condition.get("damage_modifier")
         if modifier is not None:
@@ -393,6 +404,24 @@ def test_road_event_definitions_are_well_formed():
         reward = event.get("reward") or {}
         for item_name in reward.get("items", []) or []:
             assert item_name in item_names, event_id
+
+
+def test_maneuver_definitions_are_well_formed():
+    from entities.entity import ASSOCIATED_SKILLS
+
+    maneuvers = _load(ROOT / "data" / "combat" / "maneuvers.json")
+    conditions = _load(ROOT / "data" / "conditions" / "conditions.json")
+
+    assert maneuvers
+    assert {"trip", "shove"} <= set(maneuvers)
+    for maneuver_id, maneuver in maneuvers.items():
+        assert maneuver.get("id") == maneuver_id
+        assert maneuver.get("name")
+        assert maneuver.get("description")
+        assert maneuver.get("skill") in ASSOCIATED_SKILLS, maneuver_id
+        assert maneuver.get("defense_skill") in ASSOCIATED_SKILLS, maneuver_id
+        assert maneuver.get("condition") in conditions, maneuver_id
+        assert int(maneuver.get("turns", 0)) >= 1, maneuver_id
 
 
 def test_road_encounter_ids_are_defined():
