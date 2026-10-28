@@ -129,17 +129,25 @@ class CombatState(BaseState):
             enemy_scaling as cycle_scaling,
         )
         from core.difficulty import enemy_scaling as difficulty_scaling
+        from core.omens import enemy_scaling as omen_scaling
 
         cycle = cycle_scaling(cycle_number(player))
         difficulty = difficulty_scaling(player)
-        hp_percent = int(cycle.get("hp_percent", 0) or 0) + int(
-            difficulty.get("hp_percent", 0) or 0
+        omen = omen_scaling(player)
+        hp_percent = (
+            int(cycle.get("hp_percent", 0) or 0)
+            + int(difficulty.get("hp_percent", 0) or 0)
+            + int(omen.get("hp_percent", 0) or 0)
         )
-        damage_bonus = int(cycle.get("damage_bonus", 0) or 0) + int(
-            difficulty.get("damage_bonus", 0) or 0
+        damage_bonus = (
+            int(cycle.get("damage_bonus", 0) or 0)
+            + int(difficulty.get("damage_bonus", 0) or 0)
+            + int(omen.get("damage_bonus", 0) or 0)
         )
-        ac_bonus = int(cycle.get("ac_bonus", 0) or 0) + int(
-            difficulty.get("ac_bonus", 0) or 0
+        ac_bonus = (
+            int(cycle.get("ac_bonus", 0) or 0)
+            + int(difficulty.get("ac_bonus", 0) or 0)
+            + int(omen.get("ac_bonus", 0) or 0)
         )
         if not (hp_percent or damage_bonus or ac_bonus):
             return
@@ -1328,10 +1336,13 @@ class CombatState(BaseState):
         experience = int(reward.get("experience", 0) or 0)
         from core.cycles import reward_multiplier
         from core.difficulty import reward_multiplier as difficulty_reward_multiplier
+        from core.omens import reward_multiplier as omen_reward_multiplier
 
-        multiplier = reward_multiplier(
-            getattr(game.player, "cycle", 1)
-        ) * difficulty_reward_multiplier(game.player)
+        multiplier = (
+            reward_multiplier(getattr(game.player, "cycle", 1))
+            * difficulty_reward_multiplier(game.player)
+            * omen_reward_multiplier(game.player)
+        )
         gold = int(gold * multiplier)
         experience = int(experience * multiplier)
 

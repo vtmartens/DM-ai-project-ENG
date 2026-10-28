@@ -144,6 +144,8 @@ class TavernState(BaseGameState):
             self._choose_enemy(game)
         elif self.phase == "confirm_new_cycle":
             self._confirm_new_cycle(game)
+        elif self.phase == "choose_omen":
+            self._choose_omen(game)
         else:
             # Unrecognized phase, return to the main menu
             self.phase = "main_menu"
@@ -332,16 +334,78 @@ class TavernState(BaseGameState):
             game.io.request_input("Begin the new cycle? (y/n): ") or ""
         )
         if choice.strip().casefold() in {"y", "yes", "begin"}:
-            game.start_new_cycle()
+            self.phase = "choose_omen"
             return
         game.io.show_message("You remain in the current cycle.")
         self.phase = "main_menu"
 
+    def _choose_omen(self, game):
+        from core.omens import omen_entries
+
+        player = game.player
+        next_cycle = max(1, int(getattr(player, "cycle", 1) or 1)) + 1
+        entries = omen_entries()
+        game.io.show_message(
+            f"\nChoose an omen for cycle {next_cycle}:"
+        )
+        for index, omen in enumerate(entries, 1):
+            game.io.show_message(
+                f"{index}. {omen['name']} — {omen['description']}"
+            )
+        game.io.show_message(f"{len(entries) + 1}. No omen")
+
+        choice = str(
+            game.io.request_input("\nChoice: ") or ""
+        ).strip().casefold()
+        self.last_input = choice
+
+        selected = None
+        if choice.isdigit():
+            index = int(choice) - 1
+            if 0 <= index < len(entries):
+                selected = entries[index]["id"]
+            elif index == len(entries):
+                selected = None
+            else:
+                game.io.show_message("Choose one of the listed omens.")
+                self.phase = "choose_omen"
+                return
+        else:
+            selected = next(
+                (
+                    entry["id"]
+                    for entry in entries
+                    if choice in {
+                        str(entry.get("id", "")).casefold(),
+                        str(entry.get("name", "")).casefold(),
+                    }
+                ),
+                None,
+            )
+            if selected is None and choice in {
+                "no omen",
+                "none",
+                "skip",
+                "no",
+            }:
+                selected = None
+            elif selected is None:
+                game.io.show_message("Choose one of the listed omens.")
+                self.phase = "choose_omen"
+                return
+
+        game.start_new_cycle(selected)
+
     @staticmethod
     def _rest_cost(player):
         from core.difficulty import rest_cost
+        from core.omens import rest_cost_bonus
 
-        return rest_cost(player, TavernState.REST_COST)
+        return max(
+            0,
+            rest_cost(player, TavernState.REST_COST)
+            + rest_cost_bonus(player),
+        )
 
     def _rest(self, game):
         """Restore the party at the inn for gold and clear temporary effects."""

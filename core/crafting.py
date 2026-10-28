@@ -39,6 +39,12 @@ def rune_shards(player) -> int:
 
 def add_rune_shards(player, amount, game=None):
     amount = max(0, int(amount or 0))
+    if amount:
+        from core.omens import rune_shard_multiplier
+
+        amount = max(
+            1, int(round(amount * rune_shard_multiplier(player)))
+        )
     player.rune_shards = rune_shards(player) + amount
     if game and amount:
         game.io.show_message(

@@ -1149,6 +1149,9 @@ function renderCampaign(data) {
   if (Number(data?.cycle || 1) > 1) {
     summary.push(`Cycle ${Number(data.cycle)}`);
   }
+  if (data?.cycle_omen?.name) {
+    summary.push(`Omen: ${data.cycle_omen.name}`);
+  }
   if (data?.campaign_complete) {
     summary.push("Campaign complete");
   }

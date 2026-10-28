@@ -1,0 +1,42 @@
+{
+  "rune_surge": {
+    "name": "Rune Surge",
+    "description": "Rune-light sharpens every ward and fills the trials with power. Enemies gain +1 AC; Rune Shards increase by 50%; all rewards increase by 10%.",
+    "enemy": {"hp_percent": 0, "damage_bonus": 0, "ac_bonus": 1},
+    "reward_percent": 10,
+    "rune_shards_percent": 50,
+    "rest_cost_bonus": 0,
+    "market_discount_bonus": 0,
+    "black_market_discount_bonus": 0
+  },
+  "smugglers_moon": {
+    "name": "Smugglers' Moon",
+    "description": "The tunnels open and the Watch looks elsewhere. Black-market prices fall by 20% and all rewards increase by 10%.",
+    "enemy": {"hp_percent": 0, "damage_bonus": 0, "ac_bonus": 0},
+    "reward_percent": 10,
+    "rune_shards_percent": 0,
+    "rest_cost_bonus": 0,
+    "market_discount_bonus": 0,
+    "black_market_discount_bonus": 20
+  },
+  "watch_crackdown": {
+    "name": "Watch Crackdown",
+    "description": "The Watch controls the market and pays well for order. Mirt's market discount improves by 10%, but all rewards increase by 10%.",
+    "enemy": {"hp_percent": 0, "damage_bonus": 0, "ac_bonus": 0},
+    "reward_percent": 10,
+    "rune_shards_percent": 0,
+    "rest_cost_bonus": 0,
+    "market_discount_bonus": 10,
+    "black_market_discount_bonus": 0
+  },
+  "long_winter": {
+    "name": "Long Winter",
+    "description": "The roads freeze and every fire costs more. Enemies gain 10% HP, rests cost 5 more gold, and all rewards increase by 20%.",
+    "enemy": {"hp_percent": 10, "damage_bonus": 0, "ac_bonus": 0},
+    "reward_percent": 20,
+    "rune_shards_percent": 0,
+    "rest_cost_bonus": 5,
+    "market_discount_bonus": 0,
+    "black_market_discount_bonus": 0
+  }
+}

@@ -542,6 +542,7 @@ class GameState:
             difficulty_definition,
             player_difficulty,
         )
+        from core.omens import player_omen
 
         difficulty_id = player_difficulty(player)
         difficulty = difficulty_definition(difficulty_id) or {}
@@ -552,6 +553,7 @@ class GameState:
                 "name": difficulty.get("name", difficulty_id.title()),
                 "description": difficulty.get("description", ""),
             },
+            "cycle_omen": player_omen(player),
             "chapters": chapters,
             "completed_chapters": sum(
                 1 for chapter in chapters if chapter["status"] == "completed"
@@ -990,6 +992,7 @@ class GameState:
             "disguised": bool(getattr(player, "disguised", False)),
             "rune_shards": int(getattr(player, "rune_shards", 0) or 0),
             "difficulty": player_difficulty(player),
+            "cycle_omen": getattr(player, "cycle_omen", None),
         }
 
     def get_abilities(self):
@@ -1121,6 +1124,7 @@ class GameState:
             "name": self.game.player.name,
             "char_class": self.game.player.char_class,
             "difficulty": player_difficulty(self.game.player),
+            "cycle_omen": getattr(self.game.player, "cycle_omen", None),
             "hp": self.game.player.hp,
             "max_hp": self.game.player.hp_max,
             "state": state_name,

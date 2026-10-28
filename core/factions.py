@@ -101,7 +101,16 @@ def faction_bonus_percent(player, faction_id, table="quest_bonus") -> int:
 
 
 def shop_discount(player, faction_id="mirt_network") -> int:
-    return faction_bonus_percent(player, faction_id, table="shop_discount")
+    from core.omens import market_discount_bonus
+
+    return max(
+        0,
+        min(
+            75,
+            faction_bonus_percent(player, faction_id, table="shop_discount")
+            + market_discount_bonus(player),
+        ),
+    )
 
 
 def reputation_entries(player) -> list[dict]:

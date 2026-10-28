@@ -227,10 +227,13 @@ def complete_quest(player, quest_id, game=None):
 
     from core.cycles import reward_multiplier
     from core.difficulty import reward_multiplier as difficulty_reward_multiplier
+    from core.omens import reward_multiplier as omen_reward_multiplier
 
-    multiplier = reward_multiplier(
-        getattr(player, "cycle", 1)
-    ) * difficulty_reward_multiplier(player)
+    multiplier = (
+        reward_multiplier(getattr(player, "cycle", 1))
+        * difficulty_reward_multiplier(player)
+        * omen_reward_multiplier(player)
+    )
     gold = int(gold * multiplier)
     experience = int(experience * multiplier)
 

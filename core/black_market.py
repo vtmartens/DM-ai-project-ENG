@@ -71,11 +71,15 @@ def _is_purchased(player, item_name) -> bool:
     return flag in (getattr(player, "claimed_rewards", []) or [])
 
 
-def _price(definition, tier_definition) -> int:
+def _price(definition, tier_definition, player=None) -> int:
     value = max(1, int(definition.get("value", 0) or 0))
     discount = max(
         0, min(50, int(tier_definition.get("discount", 0) or 0))
     )
+    if player is not None:
+        from core.omens import black_market_discount_bonus
+
+        discount = min(75, discount + black_market_discount_bonus(player))
     return max(1, round(value * (100 - discount) / 100))
 
 
@@ -105,7 +109,7 @@ def black_market_entries(player) -> list[dict]:
         available = unlocked and _reputation(player) >= required
         unique = bool(spec.get("unique", False))
         purchased = unique and _is_purchased(player, name)
-        price = _price(definition, tier_definition)
+        price = _price(definition, tier_definition, player)
 
         reasons = []
         if not unlocked:
@@ -141,13 +145,20 @@ def black_market_entries(player) -> list[dict]:
 
 
 def black_market_state(player) -> dict:
+    from core.omens import black_market_discount_bonus
+
     tier_id, tier_definition = _tier_for(player)
+    discount = min(
+        75,
+        int(tier_definition.get("discount", 0) or 0)
+        + black_market_discount_bonus(player),
+    )
     return {
         "unlocked": black_market_unlocked(player),
         "reputation": _reputation(player),
         "tier": tier_id,
         "tier_label": tier_definition.get("label", "No standing"),
-        "discount": int(tier_definition.get("discount", 0) or 0),
+        "discount": discount,
         "gold": int(getattr(player, "gold", 0) or 0),
         "items": black_market_entries(player),
     }

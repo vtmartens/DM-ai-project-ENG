@@ -214,11 +214,18 @@ class Game:
         self.active = True
         self.push_state(new_state)
 
-    def start_new_cycle(self):
+    def start_new_cycle(self, omen=None):
         """Starts a fresh story run while retaining meta-progression."""
         player = self.player
         if player is None:
             return False
+
+        from core.omens import omen_definition
+
+        omen_key = str(omen or "").strip().casefold()
+        player.cycle_omen = (
+            omen_key if omen_definition(omen_key) is not None else None
+        )
 
         retained_rewards = [
             flag
@@ -258,9 +265,18 @@ class Game:
         if hasattr(self.map_manager, "transfer_items_from_state"):
             self.map_manager.transfer_items_from_state("tavern", tavern)
         tavern.first_visit = False
+        from core.omens import player_omen
+
+        omen_data = player_omen(player)
+        omen_text = (
+            f" The cycle's omen is {omen_data['name']}."
+            if omen_data
+            else ""
+        )
         self.io.show_message(
             f"\nA new cycle begins. You carry your achievements, standing "
             f"and forged gear into cycle {player.cycle}."
+            f"{omen_text}"
         )
         self.reset_to_state(tavern)
         return True

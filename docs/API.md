@@ -67,6 +67,7 @@ a server restart. A stale `session_id` returns `404`.
   "name": "Aria",
   "char_class": "wizard",
   "difficulty": "standard",
+  "cycle_omen": null,
   "hp": 6,
   "max_hp": 6,
   "state": "TavernState",
@@ -165,7 +166,8 @@ A compact player summary is also returned by `/start`, `/load`, and `/import_sav
   "mana_max": 20,
   "ac": 13,
   "attack_bonus": 1,
-  "difficulty": "standard"
+  "difficulty": "standard",
+  "cycle_omen": null
 }
 ```
 
@@ -1241,6 +1243,11 @@ in `GET /state`.
     "name": "Standard",
     "description": "The intended balance for the campaign..."
   },
+  "cycle_omen": {
+    "id": "rune_surge",
+    "name": "Rune Surge",
+    "description": "Rune-light sharpens every ward..."
+  },
   "chapters": [
     {
       "id": "vargas_debt",
@@ -1265,9 +1272,9 @@ in `GET /state`.
 
 Chapters use the eight main story quests, including the `runeheart_gate` epilogue, and
 report `not_started`, `active`, `ready` or `completed`. `campaign_complete` requires both
-`sanctum_chapter` and `runeheart_gate`. `difficulty` reports the active preset and is also
-summarised in the web client's Campaign panel. The same campaign object is included in
-`GET /state`.
+`sanctum_chapter` and `runeheart_gate`. `difficulty` and `cycle_omen` report the active
+run modifiers and are also summarised in the web client's Campaign panel. The same campaign
+object is included in `GET /state`.
 
 #### `GET /party?session_id=...`
 
@@ -1344,8 +1351,17 @@ the corresponding state. The object is also included in `GET /state`.
 #### New Cycle
 
 After completing both `sanctum_chapter` and the `runeheart_gate` epilogue, the tavern menu
-gains **16. Begin a new cycle**. The same action is available as `new cycle` / `ng+`. A confirmation prompt then
-calls `Game.start_new_cycle()`:
+gains **16. Begin a new cycle**. The same action is available as `new cycle` / `ng+`. After
+confirmation, choose a **Cycle Omen** from `data/cycles/omens.json` or select no omen:
+
+- `rune_surge` — enemy AC +1, Rune Shards +50%, rewards +10%.
+- `smugglers_moon` — black-market discount +20%, rewards +10%.
+- `watch_crackdown` — Mirt market discount +10%, rewards +10%.
+- `long_winter` — enemy HP +10%, rest cost +5, rewards +20%.
+- No omen — no additional modifiers.
+
+The chosen omen is stored as `player.cycle_omen`, appears in `/state` and `/campaign`, and
+multiplies with difficulty and cycle scaling. `Game.start_new_cycle(omen_id)` then:
 
 - resets quests, cleared areas, campaign flags, map state, conditions, allies and defeats
 - clears `claimed_rewards` except `crafted:*` forge flags and `black_market:*` unique
@@ -1354,9 +1370,10 @@ calls `Game.start_new_cycle()`:
   Rune Shards, Rune Trials best/runs and forged gear
 - increments `player.cycle`, restores HP/mana and returns to the Tavern
 
-Enemy HP, damage and AC scale by `data/cycles/cycles.json` and stack with the selected
-difficulty; encounter, quest and trial completion rewards use both multipliers.
-`GET /state` exposes the cycle and difficulty in the player/campaign data, and the
+Enemy HP, damage and AC scale by `data/cycles/cycles.json` and stack with difficulty and
+the selected Omen; encounter, quest and trial completion rewards use all applicable
+multipliers. Rest costs, Mirt discounts and black-market prices also read the active Omen.
+`GET /state` exposes the cycle, difficulty and Omen in the player/campaign data, and the
 Cyclebreaker achievement unlocks on cycle 2.
 
 #### `GET /tutorial?session_id=...&type=combat`

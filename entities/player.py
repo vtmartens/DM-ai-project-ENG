@@ -56,6 +56,7 @@ class Player(Entity):
         self.rune_trials_runs = 0
         self.rune_shards = 0
         self.cycle = 1
+        self.cycle_omen = None
         self.allies = []
         self.ally_stances = {}
         self.disguised = False
@@ -541,6 +542,7 @@ class Player(Entity):
             ),
             "rune_shards": int(getattr(self, "rune_shards", 0) or 0),
             "cycle": int(getattr(self, "cycle", 1) or 1),
+            "cycle_omen": getattr(self, "cycle_omen", None),
             "difficulty": getattr(self, "difficulty", "standard"),
             "allies": list(getattr(self, "allies", [])),
             "ally_stances": dict(getattr(self, "ally_stances", {}) or {}),
@@ -630,6 +632,7 @@ class Player(Entity):
         )
         player.rune_shards = int(data.get("rune_shards", 0) or 0)
         player.cycle = max(1, int(data.get("cycle", 1) or 1))
+        player.cycle_omen = data.get("cycle_omen") or None
         player.difficulty = str(
             data.get("difficulty", "standard") or "standard"
         ).casefold()

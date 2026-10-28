@@ -68,10 +68,14 @@ def _campaign(player) -> dict:
     elif "runeheart_violet" in claimed:
         choice = "violet"
 
+    from core.omens import player_omen
+
+    omen = player_omen(player)
     campaign = {
         "sanctum_cleared": "sanctum" in cleared,
         "runeheart_choice": choice,
         "sanctum_complete": "sanctum_chapter" in completed,
+        "cycle_omen": omen["name"] if omen else None,
     }
     return {
         key: value

@@ -1402,6 +1402,24 @@ entirely. The doors that existed were also misaligned with the map exits.
   the return to the Sanctum. Campaign/New Cycle/state-registry tests were updated.
   **758 tests pass.**
 
+## Cycle Omens (2026-10-27)
+
+- Added `data/cycles/omens.json` with **Rune Surge**, **Smugglers' Moon**, **Watch
+  Crackdown** and **Long Winter**. `core/omens.py` provides the catalogue, current omen,
+  enemy scaling, reward/shard multipliers, rest bonus and Mirt/black-market discount
+  bonuses.
+- New Cycle confirmation now moves to an Omen choice (or no omen) before calling
+  `Game.start_new_cycle(omen_id)`. `Player.cycle_omen` persists in saves; choosing no omen
+  clears it. Existing direct `start_new_cycle()` calls still work and clear the omen.
+- Omens stack with difficulty and cycle scaling: enemy AC/HP, quest/encounter/trial rewards,
+  Rune Shards, inn rest cost, Mirt market discount and black-market prices all read the
+  active omen.
+- `GET /state` exposes `cycle_omen`; the campaign object includes its id/name/description;
+  the Campaign panel summarises it and AI context includes the name.
+- Tests: `tests/test_cycle_omens.py` covers catalogue, persistence, New Cycle selection,
+  enemy/reward/shard/rest/shop effects, black-market pricing, campaign/AI exposure and the
+  tavern choice flow. **772 tests pass.**
+
 ## Deliberate translation choices worth knowing
 
 - **`hp_base` / `mana_base` were left as-is.** They are consistent between code and JSON

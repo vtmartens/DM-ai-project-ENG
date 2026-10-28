@@ -171,10 +171,13 @@ class RuneTrialsState(BaseGameState):
             reward = completion_reward()
             from core.cycles import reward_multiplier
             from core.difficulty import reward_multiplier as difficulty_reward_multiplier
+            from core.omens import reward_multiplier as omen_reward_multiplier
 
-            multiplier = reward_multiplier(
-                getattr(player, "cycle", 1)
-            ) * difficulty_reward_multiplier(player)
+            multiplier = (
+                reward_multiplier(getattr(player, "cycle", 1))
+                * difficulty_reward_multiplier(player)
+                * omen_reward_multiplier(player)
+            )
             gold = int(int(reward.get("gold", 0) or 0) * multiplier)
             experience = int(
                 int(reward.get("experience", 0) or 0) * multiplier

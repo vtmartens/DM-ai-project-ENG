@@ -28,8 +28,8 @@ You can also set `localStorage["dm_api_base"]`.
 - Load/delete saves from the start screen or the in-game Load modal.
 - Live adventure log, including AI narration styled separately (`type: "narration"`).
 - Command input, quick actions from `GET /available_actions`, and menu-number play. The
-  tavern quick actions include **Rest** (5/10/15 gold by difficulty); resting restores
-  HP/mana and clears conditions.
+  tavern quick actions include **Rest** (5/10/15 gold by difficulty, plus any Omen
+  modifier); resting restores HP/mana and clears conditions.
 - Natural-language target commands in the tavern, market and map screen: “talk to Durnan”,
   “attack the goblin”, “use Healing Potion”, “go to the market”, “examine the chair”, and
   direction words such as “south” or “move east”. Unknown targets fall back to the normal
@@ -96,13 +96,14 @@ You can also set `localStorage["dm_api_base"]`.
   effect tooltips and update after each action.
 - Quests panel driven by `GET /missions`, showing each active quest and its objective.
   Completed objectives change to “Ready to turn in — speak to …” until rewards are collected.
-- **Campaign** panel driven by `state.campaign` / `GET /campaign`, with seven chapter rows,
-  active/ready/complete states, campaign completion, Runeheart choice, Rune Trials progress,
-  Rune Shards, cycle number and capstone status. After campaign completion, the tavern offers
-  **Begin a new cycle** in its numbered menu.
+- **Campaign** panel driven by `state.campaign` / `GET /campaign`, with eight chapter rows,
+  active/ready/complete states, campaign completion, Runeheart choice, difficulty, active
+  Cycle Omen, Rune Trials progress, Rune Shards, cycle number and capstone status. After
+  campaign completion, the tavern offers **Begin a new cycle** and then an Omen choice in its
+  numbered menu.
 - **Landmark** card driven by `state.landmark` / `GET /landmark`, showing a description,
-  status tags and action buttons for the Waystation, Underroad, Sanctum, Rune Trials and
-  Rune Forge. The numbered menus remain available in the log.
+  status tags and action buttons for the Waystation, Underroad, Sanctum, Runeheart Gate,
+  Rune Trials and Rune Forge. The numbered menus remain available in the log.
 - Achievements panel driven by `GET /achievements`, with an unlocked/total count, score,
   description and unlock date for each entry. Locked achievements stay visible as goals,
   and a toast announces new unlocks as they happen.
