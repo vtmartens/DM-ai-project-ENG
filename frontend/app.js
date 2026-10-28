@@ -18,6 +18,7 @@ const store = {
   sessionId: localStorage.getItem(SESSION_KEY) || null,
   state: null,
   classes: {},
+  backgrounds: [],
   difficulties: [],
   achievements: [],
   log: [],
@@ -33,6 +34,8 @@ const el = {
   playerName: document.getElementById("player-name"),
   classSelect: document.getElementById("class-select"),
   classSummary: document.getElementById("class-summary"),
+  backgroundSelect: document.getElementById("background-select"),
+  backgroundSummary: document.getElementById("background-summary"),
   difficultySelect: document.getElementById("difficulty-select"),
   difficultySummary: document.getElementById("difficulty-summary"),
   savesList: document.getElementById("saves-list"),
@@ -219,6 +222,37 @@ async function loadClasses() {
   renderClassSummary();
 }
 
+async function loadBackgrounds() {
+  try {
+    const data = await api("/backgrounds");
+    store.backgrounds = data?.backgrounds || [];
+  } catch (error) {
+    store.backgrounds = [];
+    el.startError.textContent = error.message;
+    return;
+  }
+
+  el.backgroundSelect.innerHTML = "";
+  for (const background of store.backgrounds) {
+    const option = document.createElement("option");
+    option.value = background.id;
+    option.textContent = background.name || background.id;
+    el.backgroundSelect.appendChild(option);
+  }
+  const preferred =
+    store.backgrounds.find((entry) => entry.default) ||
+    store.backgrounds[0];
+  if (preferred) el.backgroundSelect.value = preferred.id;
+  renderBackgroundSummary();
+}
+
+function renderBackgroundSummary() {
+  const selected = store.backgrounds.find(
+    (entry) => entry.id === el.backgroundSelect.value
+  );
+  el.backgroundSummary.textContent = selected?.description || "";
+}
+
 async function loadDifficulties() {
   try {
     const data = await api("/difficulties");
@@ -293,6 +327,7 @@ async function startGame(event) {
 
   const name = (el.playerName.value || "Adventurer").trim() || "Adventurer";
   const charClass = el.classSelect.value;
+  const background = el.backgroundSelect.value || "wanderer";
   const difficulty = el.difficultySelect.value || "standard";
   if (!charClass) {
     el.startError.textContent = "Choose a class first.";
@@ -304,7 +339,7 @@ async function startGame(event) {
   try {
     const data = await api("/start", {
       method: "POST",
-      body: { name, char_class: charClass, difficulty },
+      body: { name, char_class: charClass, background, difficulty },
     });
     enterGame(data.session_id, data.state, data.output);
     showToast("New game started.", "success");
@@ -433,7 +468,9 @@ function renderState(state) {
   store.state = state;
 
   el.charName.textContent = state.name || "Adventurer";
-  el.charClass.textContent = state.char_class || "";
+  el.charClass.textContent = [state.char_class, state.background_name]
+    .filter(Boolean)
+    .join(" · ");
   el.charLevel.textContent = `Lv ${state.stats?.level ?? 1}`;
 
   const hp = Number(state.hp ?? 0);
@@ -2511,6 +2548,7 @@ function showToast(message, kind = "") {
 function bindEvents() {
   el.startForm.addEventListener("submit", startGame);
   el.classSelect.addEventListener("change", renderClassSummary);
+  el.backgroundSelect.addEventListener("change", renderBackgroundSummary);
   el.difficultySelect.addEventListener("change", renderDifficultySummary);
   el.refreshSaves.addEventListener("click", refreshSaves);
   el.themeToggle.addEventListener("click", toggleTheme);
@@ -2570,6 +2608,7 @@ async function init() {
   applyTheme(storedTheme(), false);
   bindEvents();
   await loadClasses();
+  await loadBackgrounds();
   await loadDifficulties();
   refreshSaves();
 

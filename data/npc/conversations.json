@@ -210,6 +210,8 @@
         ["What lies beyond the sanctum?", "sanctum_done", {"quest": "sanctum_chapter", "status": "completed"}],
         ["Any work for a trusted friend?", "mirt_trusted", {"reputation": {"faction": "mirt_network", "min": 10}}],
         ["You do not recognize me, merchant.", "disguise_bluff", {"disguised": true}],
+        ["I know a fence when I see one.", "background_criminal", {"background": "criminal"}],
+        ["Those rune-marks are older than the city.", "background_sage", {"background": "sage"}],
         ["One of your merchants is selling cursed relics.", "silent_partner_offer", {"all": [{"quest": "underroad_chapter", "status": "completed"}, {"quest": "silent_partner", "status": "not_started"}, {"reputation": {"faction": "mirt_network", "min": 10}}]}],
         ["About Gundren's relics...", "silent_partner_reminder", {"quest": "silent_partner", "status": "active"}],
         ["I have Gundren's ledger.", "silent_partner_turn_in", {"quest": "silent_partner", "status": "ready"}],
@@ -360,6 +362,20 @@
       "effect": {"type": "clear_disguise"},
       "options": [
         ["A pleasure doing business.", null]
+      ]
+    },
+    "background_criminal": {
+      "text": "Mirt's eyes flick to your hands, then to the door. 'A professional. Good.' He lowers his voice. 'Gundren keeps a lockbox under his stall with a false plate. If you ever need leverage on him, that is where it lives.'",
+      "options": [
+        ["Useful.", null],
+        ["I will remember that.", null]
+      ]
+    },
+    "background_sage": {
+      "text": "Mirt turns a sealed ledger toward you. 'These marks are not merchant script. They are older than the city.' You recognize the same angular forms carved into the sanctum and the Runeheart vault below it.",
+      "options": [
+        ["The gate below is connected to them.", null],
+        ["I will keep that in mind.", null]
       ]
     },
     "silent_partner_offer": {
@@ -559,6 +575,8 @@
         ["What happens now?", "shadows_done", {"quest": "shadows_of_the_market", "status": "completed"}],
         ["Is there anything else I can do?", "warning_offer"],
         ["About that warning for Mirt...", "warning_reminder", {"quest": "violet_warning", "status": "active"}],
+        ["I have walked the trade road before.", "background_outlander", {"background": "outlander"}],
+        ["I have tended the sick before.", "background_acolyte", {"background": "acolyte"}],
         ["The Watch could use someone like you.", "violet_trusted", {"reputation": {"faction": "violet_watch", "min": 10}}],
         ["I heard the Watch has a corruption problem.", "watchman_offer", {"all": [{"quest": "shadows_of_the_market", "status": "completed"}, {"quest": "watchman_ledger", "status": "not_started"}, {"reputation": {"faction": "violet_watch", "min": 10}}]}],
         ["About Watch Sergeant Vell...", "watchman_reminder", {"quest": "watchman_ledger", "status": "active"}],
@@ -597,6 +615,20 @@
       "text": "Violet smiles without looking up from her herbs. 'The Watch remembers who stood with us when the warehouse was full of knives. My door is open to you.'",
       "options": [
         ["Good to know.", null]
+      ]
+    },
+    "background_outlander": {
+      "text": "Violet studies the road dust on your boots. 'You know the old paths, then. Watch the grass east of the waystation; the bandits there have learned to wait without a fire. An Outlander sees the signs before the ambush closes.'",
+      "options": [
+        ["I will watch the road.", null],
+        ["Anything else?", "strange_info"]
+      ]
+    },
+    "background_acolyte": {
+      "text": "Violet pauses over a tray of dried herbs. 'You have the look of a temple healer. If the smoke gets into your lungs, do not try to pray it out. Water, salt and a clean cloth first. Faith can follow.'",
+      "options": [
+        ["I will remember that.", null],
+        ["What do you sell here?", "shop_info"]
       ]
     },
     "watchman_offer": {

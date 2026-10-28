@@ -66,6 +66,8 @@ a server restart. A stale `session_id` returns `404`.
 {
   "name": "Aria",
   "char_class": "wizard",
+  "background": "sage",
+  "background_name": "Sage",
   "difficulty": "standard",
   "cycle_omen": null,
   "hp": 6,
@@ -155,6 +157,8 @@ A compact player summary is also returned by `/start`, `/load`, and `/import_sav
 {
   "name": "Aria",
   "char_class": "wizard",
+  "background": "sage",
+  "background_name": "Sage",
   "hp": 6,
   "hp_max": 6,
   "level": 1,
@@ -178,11 +182,17 @@ A compact player summary is also returned by `/start`, `/load`, and `/import_sav
 #### `POST /start`
 
 ```json
-{"name": "Aria", "char_class": "wizard", "difficulty": "standard"}
+{
+  "name": "Aria",
+  "char_class": "wizard",
+  "background": "sage",
+  "difficulty": "standard"
+}
 ```
 
-`difficulty` is optional and defaults to `standard`; it must match one of
-`GET /difficulties`. An unknown value returns `400`.
+`background` is optional and defaults to `wanderer`; it must match one of
+`GET /backgrounds`. `difficulty` is optional and defaults to `standard`; it must match one
+of `GET /difficulties`. Unknown values return `400`.
 
 Response:
 
@@ -411,6 +421,30 @@ Returns the full class catalogue from `data/classes/classes.json`:
   }
 }
 ```
+
+#### `GET /backgrounds`
+
+Returns the character backgrounds from `data/backgrounds/backgrounds.json`:
+
+```json
+{
+  "backgrounds": [
+    {
+      "id": "sage",
+      "name": "Sage",
+      "description": "Years among old books...",
+      "skills": ["arcana", "history"],
+      "starting_items": ["Sage's Notebook"],
+      "default": false
+    }
+  ],
+  "default": "wanderer"
+}
+```
+
+Background skills merge with class proficiencies and use the existing proficiency bonus on
+ability checks. Starting items are added to the initial inventory. Background-gated dialogue
+options use `{"background": "sage"}` conditions.
 
 #### `GET /difficulties`
 
@@ -1231,8 +1265,8 @@ Faction values start at 0. The tiers are `hostile` (≤ -10), `neutral`, `friend
 `reputation` values, and a friendly-or-better `quest_bonus` adds gold to the reward. Mirt's
 Network `shop_discount` reduces market buy prices. Dialogue options may gate on
 `{"reputation": {"faction": "mirt_network", "min": 10}}`; reputation conditions can also be
-combined with quest conditions through `all` / `any`. The same reputation object is included
-in `GET /state`.
+combined with quest conditions through `all` / `any`. Dialogue options may also gate on
+`{"background": "criminal"}`. The same reputation object is included in `GET /state`.
 
 #### `GET /campaign?session_id=...`
 

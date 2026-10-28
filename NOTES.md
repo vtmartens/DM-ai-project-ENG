@@ -1420,6 +1420,24 @@ entirely. The doors that existed were also misaligned with the map exits.
   enemy/reward/shard/rest/shop effects, black-market pricing, campaign/AI exposure and the
   tavern choice flow. **772 tests pass.**
 
+## Character backgrounds (2026-10-27)
+
+- Added `data/backgrounds/backgrounds.json` with **Acolyte**, **Criminal**, **Soldier**,
+  **Sage**, **Outlander** and the default **Wanderer**.
+- Backgrounds merge skill proficiencies with class proficiencies, add one starting item and
+  gate a few existing dialogue options. `POST /start` accepts `background`; invalid values
+  return `400`. `GET /backgrounds` lists the catalogue.
+- `Player.background` persists in saves and old saves default to Wanderer. Background items
+  are added to the initial inventory through the normal item path.
+- Added a Sage's Notebook document for the Sage starting item.
+- The start screen has a background selector with description; the character panel shows
+  `Class · Background`; `/state`, player summaries and AI context expose the background.
+- Dialogue conditions now support `{"background": "criminal"}` (or a list), and Mirt/Violet
+  gained background-gated clue options for Criminal, Sage, Outlander and Acolyte.
+- Tests: `tests/test_backgrounds.py` covers catalogue integrity, default/legacy saves,
+  proficiencies, starting items, dialogue gating, API validation and exposure. The browser
+  test selects Sage on the start screen. **783 tests pass.**
+
 ## Deliberate translation choices worth knowing
 
 - **`hp_base` / `mana_base` were left as-is.** They are consistent between code and JSON

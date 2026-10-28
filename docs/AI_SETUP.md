@@ -195,7 +195,7 @@ returned with `source: "engine"`. Recaps use the same configuration as hints and
 Narration, hints, scene descriptions, dialogue voice and recaps share one compact
 serializable context:
 
-- player name, class, level, HP, position and difficulty preset
+- player name, class, background, level, HP, position and difficulty preset
 - active quests and completed-quest count
 - conditions
 - faction standing and the current merchant discount, when nonzero

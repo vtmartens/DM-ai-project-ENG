@@ -243,7 +243,7 @@ def test_web_client_smoke(live_server):
         driver.quit()
 
 
-def test_start_screen_selects_difficulty(live_server):
+def test_start_screen_selects_difficulty_and_background(live_server):
     driver = _make_driver()
     wait = WebDriverWait(driver, 40)
 
@@ -254,6 +254,12 @@ def test_start_screen_selects_difficulty(live_server):
                 d.find_elements(By.CSS_SELECTOR, "#difficulty-select option")
             )
             >= 3
+        )
+        wait.until(
+            lambda d: len(
+                d.find_elements(By.CSS_SELECTOR, "#background-select option")
+            )
+            >= 5
         )
         values = {
             option.get_attribute("value")
@@ -275,6 +281,11 @@ def test_start_screen_selects_difficulty(live_server):
         assert driver.find_element(By.ID, "difficulty-summary").text
 
         Select(
+            driver.find_element(By.ID, "background-select")
+        ).select_by_value("sage")
+        assert driver.find_element(By.ID, "background-summary").text
+
+        Select(
             driver.find_element(By.ID, "class-select")
         ).select_by_value("fighter")
         driver.find_element(By.ID, "start-button").click()
@@ -289,7 +300,9 @@ def test_start_screen_selects_difficulty(live_server):
 
         session = server.active_sessions[session_id]
         assert session.game.player.difficulty == "hard"
+        assert session.game.player.background == "sage"
         assert session.get_current_state()["difficulty"] == "hard"
+        assert session.get_current_state()["background"] == "sage"
     finally:
         driver.quit()
 

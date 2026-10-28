@@ -122,6 +122,7 @@ def home():
             "GET /map_view": "Get the current map as an ASCII grid",
             "GET /missions": "Get active/completed quests",
             "GET /classes": "Get information about the available classes",
+            "GET /backgrounds": "Get the available character backgrounds",
             "GET /difficulties": "Get the available difficulty presets",
             "GET /saves": "Get the list of available saves (legacy shape)",
             "GET /list_saves": "Get the list of available saves",
@@ -179,17 +180,28 @@ def start_game():
     difficulty = str(
         data.get("difficulty", "standard") or "standard"
     ).casefold()
+    background = str(
+        data.get("background", "wanderer") or "wanderer"
+    ).casefold()
 
+    from core.backgrounds import background_definition
     from core.difficulty import difficulty_definition
 
     if difficulty_definition(difficulty) is None:
         return jsonify({"error": "Unknown difficulty"}), 400
+    if background_definition(background) is None:
+        return jsonify({"error": "Unknown background"}), 400
 
     # Create a new session ID
     session_id = str(uuid4())
 
     # Create a new player
-    player = Player(name, char_class, difficulty=difficulty)
+    player = Player(
+        name,
+        char_class,
+        background=background,
+        difficulty=difficulty,
+    )
     
     # Create a new game session
     session = GameState(player, TavernState())
@@ -506,6 +518,19 @@ def get_classes():
     """Get information about the available character classes"""
     # Use the data manager to load the classes from the external file
     return jsonify(get_data_manager().get_classes())
+
+
+@app.route("/backgrounds", methods=["GET"])
+def get_backgrounds():
+    """Get the available character backgrounds."""
+    from core.backgrounds import background_entries
+
+    return jsonify(
+        {
+            "backgrounds": background_entries(),
+            "default": "wanderer",
+        }
+    )
 
 
 @app.route("/difficulties", methods=["GET"])

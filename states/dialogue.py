@@ -54,6 +54,19 @@ class DialogueState(BaseState):
             ):
                 return False
 
+        if "background" in condition:
+            player = (game or self.game).player
+            from core.backgrounds import player_background_id
+
+            wanted = condition["background"]
+            allowed = (
+                {str(wanted).casefold()}
+                if not isinstance(wanted, list)
+                else {str(value).casefold() for value in wanted}
+            )
+            if player_background_id(player) not in allowed:
+                return False
+
         reputation = condition.get("reputation")
         if isinstance(reputation, dict):
             player = (game or self.game).player

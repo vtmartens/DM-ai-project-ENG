@@ -30,6 +30,7 @@ class DataManager:
         """Initializes the directories for the data."""
         self._data_paths = {
             "classes": DATA_DIR / "classes",
+            "backgrounds": DATA_DIR / "backgrounds",
             "tutorials": DATA_DIR / "tutorials",
             "achievements": DATA_DIR / "achievements",
             "items": DATA_DIR / "items",

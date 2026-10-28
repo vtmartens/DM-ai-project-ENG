@@ -23,8 +23,9 @@ You can also set `localStorage["dm_api_base"]`.
 
 ## What it does
 
-- Character creation (name + class, with class details from `GET /classes`, plus
-  Story/Standard/Hard selection from `GET /difficulties`).
+- Character creation (name, class and background, with class details from `GET /classes`
+  and backgrounds from `GET /backgrounds`, plus Story/Standard/Hard selection from
+  `GET /difficulties`).
 - Load/delete saves from the start screen or the in-game Load modal.
 - Live adventure log, including AI narration styled separately (`type: "narration"`).
 - Command input, quick actions from `GET /available_actions`, and menu-number play. The
@@ -37,9 +38,9 @@ You can also set `localStorage["dm_api_base"]`.
 - Direct approach with pathfinding: “go to Durnan” or “walk to barrel” moves next to the
   target in one command, respecting walls and occupied cells. “go to exit” / “leave” walks
   to the nearest map exit, steps through it and enters the destination state.
-- Character panel: HP, level, gold, location, abilities, skills; ability scores show the
-  base value with its effective modifier (for example `INT 16 (+4)`), matching the class
-  preview. The stats panel also shows armor class, attack bonus and initiative. Class abilities are clickable
+- Character panel: class and background, HP, level, gold, location, abilities, skills;
+  ability scores show the base value with its effective modifier (for example
+  `INT 16 (+4)`), matching the class preview. The stats panel also shows armor class, attack bonus and initiative. Class abilities are clickable
   buttons with mana costs; unavailable abilities
   (not enough mana, or combat-only outside combat) are disabled with an explanation.
   Utility spells (Knock, Mage Hand, Guidance, Detect Magic, Disguise Self, Comprehend

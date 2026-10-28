@@ -4,9 +4,16 @@ from items.item import Item
 from entities.entity import Entity, ASSOCIATED_SKILLS
 
 class Player(Entity):
-    def __init__(self, name, char_class, difficulty="standard"):
+    def __init__(
+        self,
+        name,
+        char_class,
+        background="wanderer",
+        difficulty="standard",
+    ):
         # Initialize player-specific values
         self.char_class = char_class
+        self.background = str(background or "wanderer").casefold()
         self.difficulty = str(difficulty or "standard").casefold()
         
         # Load the class data from JSON
@@ -75,6 +82,7 @@ class Player(Entity):
         }
 
         self._create_inventory_base()
+        self._apply_background()
         self._seed_achievement_items()
         self.recalculate_initiative()
 
@@ -157,6 +165,23 @@ class Player(Entity):
             self.skill_proficiencies["acrobatics"] = True
         # For all other classes, no specific proficiency
     
+    def _apply_background(self):
+        """Merges background proficiencies and starting items."""
+        from core.backgrounds import (
+            background_skills,
+            background_starting_items,
+        )
+        from core.item_catalogue import item_definition
+        from items.item import Item
+
+        for skill in background_skills(self.background):
+            self.skill_proficiencies[skill] = True
+
+        for item_name in background_starting_items(self.background):
+            definition = item_definition(item_name)
+            if definition is not None:
+                self.add_item(Item.from_dict(definition))
+
     def _initialize_for_char_class(self):
         """Sets specific attributes based on the character's class"""
         # If the class exists in the class data
@@ -544,6 +569,7 @@ class Player(Entity):
             "cycle": int(getattr(self, "cycle", 1) or 1),
             "cycle_omen": getattr(self, "cycle_omen", None),
             "difficulty": getattr(self, "difficulty", "standard"),
+            "background": getattr(self, "background", "wanderer"),
             "allies": list(getattr(self, "allies", [])),
             "ally_stances": dict(getattr(self, "ally_stances", {}) or {}),
             "disguised": bool(getattr(self, "disguised", False)),
@@ -578,9 +604,18 @@ class Player(Entity):
         # Extract the subclass-specific data
         name = data.get("name", "Unknown")
         char_class = data.get("char_class", "fighter")
-        
+        background = data.get("background", "wanderer")
+        difficulty = str(
+            data.get("difficulty", "standard") or "standard"
+        ).casefold()
+
         # Create the instance with the base parameters
-        player = cls(name, char_class)
+        player = cls(
+            name,
+            char_class,
+            background=background,
+            difficulty=difficulty,
+        )
         
         # Set the base attributes using the base class
         # We skip the initialization that Entity.from_dict performs
@@ -633,9 +668,8 @@ class Player(Entity):
         player.rune_shards = int(data.get("rune_shards", 0) or 0)
         player.cycle = max(1, int(data.get("cycle", 1) or 1))
         player.cycle_omen = data.get("cycle_omen") or None
-        player.difficulty = str(
-            data.get("difficulty", "standard") or "standard"
-        ).casefold()
+        player.background = str(background or "wanderer").casefold()
+        player.difficulty = difficulty
         player.allies = list(data.get("allies", []))
         player.ally_stances = dict(data.get("ally_stances", {}) or {})
         player.disguised = bool(data.get("disguised", False))

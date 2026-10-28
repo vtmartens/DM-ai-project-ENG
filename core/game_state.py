@@ -972,11 +972,15 @@ class GameState:
     def get_player_summary(self):
         """Returns a compact, serializable summary of the player."""
         player = self.game.player
+        from core.backgrounds import player_background
         from core.difficulty import player_difficulty
 
+        background = player_background(player)
         return {
             "name": player.name,
             "char_class": player.char_class,
+            "background": background["id"],
+            "background_name": background["name"],
             "hp": player.hp,
             "hp_max": player.hp_max,
             "level": player.level,
@@ -1118,11 +1122,15 @@ class GameState:
             "initiative": getattr(self.game.player, "initiative", 0),
         }
         
+        from core.backgrounds import player_background
         from core.difficulty import player_difficulty
 
+        background = player_background(self.game.player)
         return {
             "name": self.game.player.name,
             "char_class": self.game.player.char_class,
+            "background": background["id"],
+            "background_name": background["name"],
             "difficulty": player_difficulty(self.game.player),
             "cycle_omen": getattr(self.game.player, "cycle_omen", None),
             "hp": self.game.player.hp,

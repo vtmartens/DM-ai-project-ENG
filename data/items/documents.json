@@ -19,5 +19,12 @@
     "effect": {},
     "value": 55,
     "description": "A Watch impound manifest listing medicine, lamp oil and blankets bound for the Underroad"
+  },
+  {
+    "name": "Sage's Notebook",
+    "type": "document",
+    "effect": {},
+    "value": 25,
+    "description": "A narrow notebook of rune sketches, old family names and half-finished theories"
   }
 ]

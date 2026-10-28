@@ -1,0 +1,38 @@
+{
+  "wanderer": {
+    "name": "Wanderer",
+    "description": "No fixed past, no fixed loyalties. A clean slate and a road ahead.",
+    "skills": [],
+    "starting_items": []
+  },
+  "acolyte": {
+    "name": "Acolyte",
+    "description": "Raised in a temple, trained in doctrine, ritual and the care of the faithful.",
+    "skills": ["religion", "insight"],
+    "starting_items": ["Healing Potion"]
+  },
+  "criminal": {
+    "name": "Criminal",
+    "description": "You know the language of fences, locked doors and quiet arrangements.",
+    "skills": ["stealth", "deception"],
+    "starting_items": ["Smoke Bomb"]
+  },
+  "soldier": {
+    "name": "Soldier",
+    "description": "You learned discipline, formation and how to make a threat sound like a promise.",
+    "skills": ["athletics", "intimidation"],
+    "starting_items": ["Light Healing Potion"]
+  },
+  "sage": {
+    "name": "Sage",
+    "description": "Years among old books left you with a memory for runes, ledgers and forgotten names.",
+    "skills": ["arcana", "history"],
+    "starting_items": ["Sage's Notebook"]
+  },
+  "outlander": {
+    "name": "Outlander",
+    "description": "You grew up beyond the walls, reading weather, tracks and the mood of the road.",
+    "skills": ["survival", "perception"],
+    "starting_items": ["Antidote"]
+  }
+}

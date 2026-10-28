@@ -885,6 +885,15 @@ def _assert_dialogue_condition(condition, quests, factions, label):
         assert isinstance(condition["disguised"], bool), label
         return
 
+    if "background" in condition:
+        backgrounds = _load(ROOT / "data" / "backgrounds" / "backgrounds.json")
+        wanted = condition["background"]
+        values = wanted if isinstance(wanted, list) else [wanted]
+        assert values, label
+        for value in values:
+            assert value in backgrounds, label
+        return
+
     reputation = condition.get("reputation")
     if isinstance(reputation, dict):
         assert reputation.get("faction") in factions, label
